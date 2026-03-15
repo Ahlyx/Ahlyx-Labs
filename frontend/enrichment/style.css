@@ -1,19 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
+
 :root {
-    --bg: #080d14;
-    --bg-card: #0f1923;
-    --bg-elevated: #162030;
+    --bg: #0a0e1a;
+    --bg-panel: #0d1321;
+    --bg-card: #0d1321;
+    --bg-elevated: #111827;
+    --border: #1a2a4a;
+    --border-accent: rgba(0, 229, 255, 0.25);
     --accent: #00e5ff;
     --accent-dim: rgba(0, 229, 255, 0.08);
     --threat: #ff4444;
     --threat-dim: rgba(255, 68, 68, 0.08);
     --safe: #00e5ff;
-    --text: #e2e8f0;
-    --text-dim: #64748b;
-    --text-muted: #334155;
-    --border: #1e2d3d;
-    --border-accent: rgba(0, 229, 255, 0.25);
-    --font-display: 'Syne', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --text: #e0f7fa;
+    --text-dim: #546e7a;
+    --text-muted: #37474f;
+    --font-display: 'Share Tech Mono', monospace;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-body: 'Exo 2', sans-serif;
+    --glow: 0 0 10px rgba(0, 229, 255, 0.15);
 }
 
 * {
@@ -35,7 +40,7 @@ header {
     padding: 1.25rem 2rem;
     position: sticky;
     top: 0;
-    background: rgba(8, 13, 20, 0.95);
+    background: rgba(10, 14, 26, 0.95);
     backdrop-filter: blur(10px);
     z-index: 100;
 }
@@ -255,7 +260,7 @@ main {
 }
 
 #searchBtn:hover {
-    background: #33eeff;
+    background: #00e5ff;
 }
 
 #searchBtn:disabled {
