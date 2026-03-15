@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/enrichment/(.*)", "destination": "/enrichment/index.html" },
+    { "source": "/enrichment",      "destination": "/enrichment/index.html" },
+    { "source": "/scanner/(.*)",    "destination": "/scanner/index.html" },
+    { "source": "/scanner",         "destination": "/scanner/index.html" },
+    { "source": "/hardware/(.*)",   "destination": "/hardware/index.html" },
+    { "source": "/hardware",        "destination": "/hardware/index.html" },
+    { "source": "/privacy",         "destination": "/landing/privacy.html" },
+    { "source": "/(.*)",            "destination": "/landing/index.html" }
+  ]
+}

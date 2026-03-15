@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ahlyx Labs</title>
+
+    <!-- SEO -->
+    <meta name="description" content="Ahlyx Labs — security tools for threat intelligence, network scanning, and system monitoring. Built by Ahlyx.">
+    <meta name="keywords" content="security tools, threat intelligence, network scanner, OT ICS security, cybersecurity">
+    <meta property="og:title" content="Ahlyx Labs">
+    <meta property="og:description" content="Security tooling by Ahlyx — threat intelligence, network scanning, hardware monitoring">
+    <meta property="og:url" content="https://ahlyxlabs.com">
+    <meta property="og:type" content="website">
+    <link rel="canonical" href="https://ahlyxlabs.com">
+
+    <!-- Analytics -->
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <h1 class="site-title">AHLYX LABS</h1>
+        <p class="site-subtitle">Security tooling by Ahlyx</p>
+    </header>
+
+    <main class="tools-section">
+        <div class="tools-grid">
+
+            <article class="card">
+                <h2 class="card-title">Security Enrichment API</h2>
+                <p class="card-desc">Threat intelligence aggregation across 8 sources</p>
+                <a href="/enrichment" class="card-btn">[ LAUNCH → ]</a>
+            </article>
+
+            <article class="card">
+                <h2 class="card-title">Network Scanner</h2>
+                <p class="card-desc">TCP port scanning with OT/ICS protocol detection</p>
+                <a href="/scanner" class="card-btn">[ LAUNCH → ]</a>
+            </article>
+
+            <article class="card">
+                <h2 class="card-title">Hardware Dashboard</h2>
+                <p class="card-desc">Live system metrics: CPU, RAM, disk, network</p>
+                <a href="/hardware" class="card-btn">[ LAUNCH → ]</a>
+            </article>
+
+            <article class="card">
+                <h2 class="card-title">Baptisia</h2>
+                <p class="card-desc">Safety-enforcing DSL for ICS/OT systems, compiles to C</p>
+                <a href="https://github.com/Ahlyx/Baptisia" target="_blank" rel="noopener noreferrer" class="card-btn">[ LAUNCH → ]</a>
+            </article>
+
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a>
+        <span class="sep">|</span>
+        <a href="https://twitter.com/AhIyxx" target="_blank" rel="noopener noreferrer">@AhIyxx</a>
+        <span class="sep">|</span>
+        <a href="/privacy">Privacy Policy</a>
+    </footer>
+
+    <div id="consent-banner" class="consent-banner hidden" role="dialog" aria-label="Cookie consent">
+        <p class="consent-text">
+            This site uses analytics to improve your experience.
+            We use Google Analytics and Vercel Analytics.
+            Vercel Analytics collects no personal data.
+            Google Analytics is only enabled with your consent.
+        </p>
+        <div class="consent-actions">
+            <button id="consent-accept" class="consent-btn consent-btn-accept">[ ACCEPT ]</button>
+            <button id="consent-decline" class="consent-btn consent-btn-decline">[ DECLINE ]</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

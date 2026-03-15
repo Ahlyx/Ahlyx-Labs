@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — Ahlyx Labs</title>
+    <meta name="robots" content="noindex">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
+
+        :root {
+            --bg: #0a0e1a;
+            --bg-panel: #0d1321;
+            --bg-elevated: #111827;
+            --border: #1a2a4a;
+            --border-accent: #005f6b;
+            --accent: #00e5ff;
+            --accent-dim: rgba(0, 229, 255, 0.08);
+            --white: #e0f7fa;
+            --dim: #546e7a;
+            --muted: #37474f;
+            --font-mono: 'Share Tech Mono', monospace;
+            --font-body: 'Exo 2', sans-serif;
+            --glow: 0 0 10px rgba(0, 229, 255, 0.15);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: var(--font-body);
+            font-weight: 300;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { opacity: 0.8; }
+
+        .page-header {
+            padding: 2.5rem 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-link {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--dim);
+            display: inline-block;
+            margin-bottom: 1.25rem;
+            transition: color 0.15s ease;
+        }
+        .back-link:hover { color: var(--accent); opacity: 1; }
+
+        .page-title {
+            font-family: var(--font-mono);
+            font-size: clamp(1.25rem, 4vw, 1.75rem);
+            color: var(--accent);
+            text-shadow: var(--glow);
+            letter-spacing: 0.05em;
+        }
+
+        .page-subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--dim);
+            margin-top: 0.4rem;
+        }
+
+        main {
+            flex: 1;
+            max-width: 780px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .policy-section {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .section-title {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--accent);
+            letter-spacing: 0.04em;
+        }
+
+        .section-body {
+            font-size: 0.87rem;
+            color: var(--dim);
+            line-height: 1.65;
+        }
+
+        .section-body p + p {
+            margin-top: 0.6rem;
+        }
+
+        .section-body ul {
+            margin-top: 0.5rem;
+            padding-left: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .section-body li::marker {
+            color: var(--accent);
+        }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.82em;
+            color: var(--accent);
+            background: var(--accent-dim);
+            padding: 0.1em 0.35em;
+        }
+
+        .site-footer {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--muted);
+            text-align: center;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .site-footer a { color: var(--dim); }
+        .site-footer a:hover { color: var(--accent); opacity: 1; }
+        .sep { color: var(--border); }
+
+        @media (max-width: 480px) {
+            main { padding: 1.5rem 1rem 2rem; }
+            .page-header { padding: 1.75rem 1rem 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="page-header">
+        <a href="/" class="back-link">[ ← BACK ]</a>
+        <h1 class="page-title">PRIVACY POLICY</h1>
+        <p class="page-subtitle">Last updated: March 2026</p>
+    </header>
+
+    <main>
+
+        <section class="policy-section">
+            <h2 class="section-title">Overview</h2>
+            <div class="section-body">
+                <p>
+                    Ahlyx Labs is a portfolio of open-source security tools.
+                    This page describes what data is collected when you visit
+                    this site and how it is used.
+                </p>
+            </div>
+        </section>
+
+        <section class="policy-section">
+            <h2 class="section-title">What data is collected</h2>
+            <div class="section-body">
+                <p>This site uses two analytics systems:</p>
+                <ul>
+                    <li>
+                        <strong>Vercel Analytics</strong> — automatically enabled.
+                        Collects aggregate, anonymous metrics: page views, device
+                        type (desktop/mobile), and approximate country derived
+                        from your IP address. No personally identifiable information
+                        is stored. Vercel does not set cookies for this data.
+                    </li>
+                    <li>
+                        <strong>Google Analytics 4 (GA4)</strong> — only enabled
+                        with your explicit consent. When consented, GA4 may collect
+                        session data including pages visited, time on page, browser
+                        type, approximate location, and a pseudonymous client ID
+                        stored in a first-party cookie. This data is processed by
+                        Google under their privacy policy.
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="policy-section">
+            <h2 class="section-title">Cookies</h2>
+            <div class="section-body">
+                <p>
+                    This site stores one item in your browser's
+                    <code>localStorage</code>: the key <code>analytics_consent</code>,
+                    which records your accept/decline decision so the banner does
+                    not reappear. This is not a tracking cookie.
+                </p>
+                <p>
+                    If you consent to GA4, Google sets its own first-party
+                    cookies (<code>_ga</code>, <code>_ga_*</code>) used to
+                    distinguish sessions. These expire after 2 years.
+                </p>
+            </div>
+        </section>
+
+        <section class="policy-section">
+            <h2 class="section-title">Data sharing</h2>
+            <div class="section-body">
+                <p>
+                    No personal data is sold to or shared with third parties
+                    for commercial purposes. Analytics data is shared only with
+                    the analytics providers listed above (Vercel, Google) and
+                    only to the extent required to operate those services.
+                </p>
+            </div>
+        </section>
+
+        <section class="policy-section">
+            <h2 class="section-title">How to opt out</h2>
+            <div class="section-body">
+                <p>To withdraw GA4 consent at any time:</p>
+                <ul>
+                    <li>
+                        Open your browser's developer console and run
+                        <code>localStorage.removeItem('analytics_consent')</code>,
+                        then reload the page.
+                    </li>
+                    <li>
+                        The consent banner will reappear — click
+                        <strong>[ DECLINE ]</strong> to keep GA4 in denied mode.
+                    </li>
+                </ul>
+                <p>
+                    Vercel Analytics cannot be opted out of on a per-visitor
+                    basis as it collects no personal data and sets no cookies.
+                </p>
+            </div>
+        </section>
+
+        <section class="policy-section">
+            <h2 class="section-title">Contact</h2>
+            <div class="section-body">
+                <p>
+                    Questions or concerns about this policy can be raised via
+                    <a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a>.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a>
+        <span class="sep">|</span>
+        <a href="https://twitter.com/AhIyxx" target="_blank" rel="noopener noreferrer">@AhIyxx</a>
+        <span class="sep">|</span>
+        <a href="/">Ahlyx Labs</a>
+    </footer>
+
+</body>
+</html>
