@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // API config
 // ---------------------------------------------------------------------------
 // dev: http://localhost:8080
-const API_BASE = 'https://ahlyx-labs.onrender.com';
+const API_BASE = 'https://api.ahlyxlabs.com';
 
 // ---------------------------------------------------------------------------
 // Scanner

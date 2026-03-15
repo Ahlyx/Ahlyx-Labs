@@ -11,7 +11,7 @@ import (
 // Tighten AllowedOrigins to the Vercel domain before going to production.
 func CORSMiddleware() func(http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
-		AllowedOrigins: []string{"*"},
+		AllowedOrigins: []string{"https://ahlyxlabs.com", "https://www.ahlyxlabs.com"},
 		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders: []string{"*"},
 		MaxAge:         300,
