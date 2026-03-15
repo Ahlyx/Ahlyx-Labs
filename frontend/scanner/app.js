@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // API config
 // ---------------------------------------------------------------------------
 // dev: http://localhost:8080
-const API_BASE = 'https://api.ahlyxlabs.com';
+const API_BASE = 'https://ahlyx-labs.onrender.com';
 
 // ---------------------------------------------------------------------------
 // Scanner
@@ -149,4 +149,10 @@ document.getElementById('scanBtn').addEventListener('click', runScan);
 
 document.getElementById('subnetInput').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') runScan();
+});
+
+document.querySelectorAll('.preset-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        document.getElementById('subnetInput').value = btn.dataset.value;
+    });
 });

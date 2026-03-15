@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // API config
 // ---------------------------------------------------------------------------
 // dev: http://localhost:8080
-const API_BASE = 'https://api.ahlyxlabs.com/api/v1';
+const API_BASE = 'https://ahlyx-labs.onrender.com/api/v1';
 
 const placeholders = {
     ip: 'Enter an IP address... e.g. 8.8.8.8',
@@ -74,7 +74,7 @@ let history = [];
 // Health check
 async function checkHealth() {
     try {
-        const res = await fetch('https://api.ahlyxlabs.com/health');
+        const res = await fetch('https://ahlyx-labs.onrender.com/health');
         const data = await res.json();
         if (data.status === 'ok') {
             document.getElementById('statusDot').className = 'status-dot online';

@@ -2,16 +2,16 @@
     --bg: #080d14;
     --bg-card: #0f1923;
     --bg-elevated: #162030;
-    --accent: #00d4c8;
-    --accent-dim: #00d4c820;
-    --threat: #f59e0b;
-    --threat-dim: #f59e0b20;
-    --safe: #00d4c8;
+    --accent: #00e5ff;
+    --accent-dim: rgba(0, 229, 255, 0.08);
+    --threat: #ff4444;
+    --threat-dim: rgba(255, 68, 68, 0.08);
+    --safe: #00e5ff;
     --text: #e2e8f0;
     --text-dim: #64748b;
     --text-muted: #334155;
     --border: #1e2d3d;
-    --border-accent: #00d4c840;
+    --border-accent: rgba(0, 229, 255, 0.25);
     --font-display: 'Syne', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 }
@@ -146,6 +146,7 @@ main {
     line-height: 1.1;
     margin-bottom: 1rem;
     letter-spacing: -0.02em;
+    color: var(--accent);
 }
 
 .hero h1 .accent {
@@ -254,7 +255,7 @@ main {
 }
 
 #searchBtn:hover {
-    background: #00f0e2;
+    background: #33eeff;
 }
 
 #searchBtn:disabled {

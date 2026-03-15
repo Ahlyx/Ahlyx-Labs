@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // API config
 // ---------------------------------------------------------------------------
 // dev: http://localhost:8080/api/v1/hardware
-const API_BASE = 'https://api.ahlyxlabs.com/api/v1/hardware';
+const API_BASE = 'https://ahlyx-labs.onrender.com/api/v1/hardware';
 
 // ---------------------------------------------------------------------------
 // Helpers
