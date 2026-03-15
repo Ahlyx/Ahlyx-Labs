@@ -151,7 +151,7 @@ document.getElementById('subnetInput').addEventListener('keydown', function (e) 
     if (e.key === 'Enter') runScan();
 });
 
-document.querySelectorAll('.preset-btn').forEach(function (btn) {
+document.querySelectorAll('.preset-btn, .sidebar-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
         document.getElementById('subnetInput').value = btn.dataset.value;
     });

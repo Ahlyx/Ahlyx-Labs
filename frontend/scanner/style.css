@@ -105,13 +105,67 @@ a:hover {
 
 main {
     flex: 1;
-    max-width: 900px;
+    max-width: 1060px;
     width: 100%;
     margin: 0 auto;
     padding: 2.5rem 2rem 3rem;
     display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+
+.sidebar {
+    width: 175px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 5rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    display: flex;
     flex-direction: column;
-    justify-content: center;
+    gap: 1.25rem;
+}
+
+.sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.sidebar-comment {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+}
+
+.sidebar-btn {
+    background: none;
+    border: none;
+    color: var(--dim);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    text-align: left;
+    padding: 0.18rem 0;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.sidebar-btn:hover {
+    color: var(--accent);
+}
+
+/* ── Scan content area ───────────────────────────────────── */
+
+.scan-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
 }
 
@@ -395,7 +449,12 @@ main {
     }
 
     main {
+        flex-direction: column;
         padding: 1.5rem 1rem 2rem;
+    }
+
+    .sidebar {
+        display: none;
     }
 
     .scan-row {

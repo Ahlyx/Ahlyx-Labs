@@ -85,6 +85,24 @@ function showError(containerId) {
     el.appendChild(msg);
 }
 
+// Append a dim rate-limit note without wiping the panel.
+function showRateLimit(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el || el.querySelector('.rate-limit-note')) return;
+    const note = document.createElement('div');
+    note.className = 'rate-limit-note';
+    note.textContent = '// rate limited, retrying...';
+    el.appendChild(note);
+}
+
+// Remove rate-limit note once a successful response arrives.
+function clearRateLimit(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const note = el.querySelector('.rate-limit-note');
+    if (note) note.remove();
+}
+
 // ---------------------------------------------------------------------------
 // Fetch functions
 // ---------------------------------------------------------------------------
@@ -92,9 +110,11 @@ function showError(containerId) {
 async function fetchSystem() {
     try {
         const res = await fetch(`${API_BASE}/system`);
+        if (res.status === 429) { showRateLimit('system-data'); return; }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const d = await res.json();
 
+        clearRateLimit('system-data');
         const container = document.getElementById('system-data');
         container.innerHTML = '';
 
@@ -111,9 +131,11 @@ async function fetchSystem() {
 async function fetchCPU() {
     try {
         const res = await fetch(`${API_BASE}/cpu`);
+        if (res.status === 429) { showRateLimit('cpu-data'); return; }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const d = await res.json();
 
+        clearRateLimit('cpu-data');
         const container = document.getElementById('cpu-data');
         container.innerHTML = '';
 
@@ -129,9 +151,11 @@ async function fetchCPU() {
 async function fetchRAM() {
     try {
         const res = await fetch(`${API_BASE}/ram`);
+        if (res.status === 429) { showRateLimit('ram-data'); return; }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const d = await res.json();
 
+        clearRateLimit('ram-data');
         const container = document.getElementById('ram-data');
         container.innerHTML = '';
 
@@ -150,9 +174,11 @@ async function fetchRAM() {
 async function fetchDisk() {
     try {
         const res = await fetch(`${API_BASE}/disk`);
+        if (res.status === 429) { showRateLimit('disk-data'); return; }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const d = await res.json();
 
+        clearRateLimit('disk-data');
         const container = document.getElementById('disk-data');
         container.innerHTML = '';
 
@@ -197,9 +223,11 @@ async function fetchDisk() {
 async function fetchNetwork() {
     try {
         const res = await fetch(`${API_BASE}/network`);
+        if (res.status === 429) { showRateLimit('network-data'); return; }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const d = await res.json();
 
+        clearRateLimit('network-data');
         const container = document.getElementById('network-data');
         container.innerHTML = '';
 
@@ -239,16 +267,20 @@ async function fetchNetwork() {
 }
 
 // ---------------------------------------------------------------------------
-// Fetch all and update timestamp
+// Fetch all and update timestamp — staggered 200 ms apart
 // ---------------------------------------------------------------------------
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
 async function fetchAll() {
-    await Promise.all([
-        fetchSystem(),
-        fetchCPU(),
-        fetchRAM(),
-        fetchDisk(),
-        fetchNetwork(),
-    ]);
+    await fetchSystem();
+    await delay(200);
+    await fetchCPU();
+    await delay(200);
+    await fetchRAM();
+    await delay(200);
+    await fetchDisk();
+    await delay(200);
+    await fetchNetwork();
 
     const ts = document.getElementById('last-updated-time');
     if (ts) ts.textContent = new Date().toLocaleTimeString();
@@ -258,4 +290,4 @@ async function fetchAll() {
 // Boot
 // ---------------------------------------------------------------------------
 fetchAll();
-setInterval(fetchAll, 2000);
+setInterval(fetchAll, 10000);

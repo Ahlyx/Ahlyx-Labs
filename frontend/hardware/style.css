@@ -246,12 +246,19 @@ main {
     margin-top: 0.25rem;
 }
 
-/* ── Error state ─────────────────────────────────────────── */
+/* ── Error / rate-limit states ───────────────────────────── */
 
 .card-error {
     font-family: var(--font-mono);
     font-size: 0.8rem;
     color: var(--threat);
+}
+
+.rate-limit-note {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
 }
 
 /* ── Footer ──────────────────────────────────────────────── */
