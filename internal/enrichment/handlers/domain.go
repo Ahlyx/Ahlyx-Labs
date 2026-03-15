@@ -30,6 +30,8 @@ func NewDomainHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc 
 			return
 		}
 
+		start := time.Now()
+
 		var (
 			mu      sync.Mutex
 			wg      sync.WaitGroup
@@ -147,7 +149,7 @@ func NewDomainHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc 
 		if isMalicious {
 			verdict = "threat"
 		}
-		shared.LogQuery("enrichment", "domain", verdict, isMalicious, len(sources), 0, 0, 0)
+		shared.LogQuery("enrichment", "domain", verdict, isMalicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(data)
 	}

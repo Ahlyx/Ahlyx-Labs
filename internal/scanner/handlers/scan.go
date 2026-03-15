@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/Ahlyx/Ahlyx-Labs/internal/scanner"
 	"github.com/Ahlyx/Ahlyx-Labs/internal/shared"
@@ -35,6 +36,8 @@ func NewScanHandler() http.HandlerFunc {
 			return
 		}
 
+		start := time.Now()
+
 		result, err := scanner.Scan(subnet)
 		if err != nil {
 			if errors.Is(err, scanner.ErrSubnetTooLarge) {
@@ -50,7 +53,7 @@ func NewScanHandler() http.HandlerFunc {
 		for _, h := range result.Hosts {
 			openPorts += len(h.Ports)
 		}
-		shared.LogQuery("scanner", "tcp", "", false, 0, 0, result.HostsFound, openPorts)
+		shared.LogQuery("scanner", "tcp", "", false, 0, int(time.Since(start).Milliseconds()), result.HostsFound, openPorts)
 	}
 }
 
