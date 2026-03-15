@@ -104,15 +104,14 @@ a:hover {
 /* ── Main ────────────────────────────────────────────────── */
 
 main {
-    flex: 1;
-    max-width: 1060px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 2.5rem 2rem 3rem;
     display: flex;
     flex-direction: row;
     align-items: flex-start;
     gap: 2rem;
+    width: 100%;
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
 }
 
 /* ── Sidebar ─────────────────────────────────────────────── */
@@ -121,7 +120,7 @@ main {
     width: 175px;
     flex-shrink: 0;
     position: sticky;
-    top: 5rem;
+    top: 2rem;
     background: var(--bg-panel);
     border: 1px solid var(--border);
     padding: 1rem;
@@ -224,7 +223,14 @@ main {
     cursor: not-allowed;
 }
 
-/* ── Helper text + presets ───────────────────────────────── */
+/* ── Disclaimer + helper text + presets ─────────────────── */
+
+.scan-disclaimer {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: -0.75rem;
+}
 
 .scan-helper {
     font-family: var(--font-mono);
@@ -344,6 +350,98 @@ main {
     color: var(--muted);
 }
 
+/* ── OT/ICS reference panel ──────────────────────────────── */
+
+.ot-ref {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+}
+
+.ot-ref-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 1rem;
+}
+
+.ot-ref-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--dim);
+    letter-spacing: 0.06em;
+}
+
+.ot-ref-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.ot-ref-toggle:hover {
+    color: var(--accent);
+    border-color: var(--border-accent);
+}
+
+.ot-ref-body {
+    border-top: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+.ot-ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+}
+
+.ot-ref-table thead tr {
+    border-bottom: 1px solid var(--border);
+}
+
+.ot-ref-table th {
+    text-align: left;
+    padding: 0.5rem 1rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--dim);
+    font-weight: 400;
+}
+
+.ot-ref-table tbody tr {
+    border-bottom: 1px solid var(--border);
+}
+
+.ot-ref-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.ot-ref-table td {
+    padding: 0.45rem 1rem;
+    vertical-align: top;
+}
+
+.ot-port {
+    color: var(--accent);
+    white-space: nowrap;
+    width: 60px;
+}
+
+.ot-proto {
+    color: var(--accent);
+    white-space: nowrap;
+    width: 160px;
+}
+
+.ot-why {
+    color: var(--dim);
+    line-height: 1.5;
+}
+
 /* ── Footer ──────────────────────────────────────────────── */
 
 .site-footer {
@@ -443,7 +541,7 @@ main {
 
 /* ── Responsive ──────────────────────────────────────────── */
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .site-header {
         padding: 1.25rem 1rem;
     }

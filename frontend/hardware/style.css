@@ -148,6 +148,13 @@ main {
     padding-bottom: 0.6rem;
 }
 
+.card-note {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: -0.4rem;
+}
+
 /* 2-column grid for CPU + RAM */
 .card-grid {
     display: grid;

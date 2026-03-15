@@ -74,6 +74,8 @@
                 <button id="scanBtn" class="scan-btn">[ SCAN ]</button>
             </div>
 
+            <div class="scan-disclaimer">// only scan networks you own or have explicit authorization to test</div>
+
             <div class="scan-helper">// enter a subnet, IP, or hostname</div>
 
             <div class="scan-presets">
@@ -95,6 +97,96 @@
                     </thead>
                     <tbody id="resultsBody"></tbody>
                 </table>
+            </div>
+
+            <div class="ot-ref">
+                <div class="ot-ref-header">
+                    <span class="ot-ref-title">[ OT/ICS PORT REFERENCE ]</span>
+                    <button class="ot-ref-toggle" id="otRefToggle" aria-expanded="false">[ + ]</button>
+                </div>
+                <div class="ot-ref-body" id="otRefBody" hidden>
+                    <table class="ot-ref-table">
+                        <thead>
+                            <tr>
+                                <th>Port</th>
+                                <th>Protocol</th>
+                                <th>Why It Matters</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ot-port">502</td>
+                                <td class="ot-proto">Modbus</td>
+                                <td class="ot-why">No authentication — any device on the network can issue commands to PLCs and RTUs</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">102</td>
+                                <td class="ot-proto">S7comm</td>
+                                <td class="ot-why">Siemens proprietary — exposes logic read/write on S7-300/400/1200 PLCs</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">44818</td>
+                                <td class="ot-proto">EtherNet/IP</td>
+                                <td class="ot-why">Rockwell/Allen-Bradley control protocol — exposed instances are directly commandable</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">4840</td>
+                                <td class="ot-proto">OPC-UA</td>
+                                <td class="ot-why">Unified industrial data bus — misconfigured servers leak process data and accept writes</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">20000</td>
+                                <td class="ot-proto">DNP3</td>
+                                <td class="ot-why">SCADA/utility protocol with no native auth — common in water and power infrastructure</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">47808</td>
+                                <td class="ot-proto">BACnet</td>
+                                <td class="ot-why">Building automation — exposed instances give full control of HVAC, access, fire systems</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">9600</td>
+                                <td class="ot-proto">OMRON FINS</td>
+                                <td class="ot-why">No auth, direct memory read/write on OMRON PLCs</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">1962</td>
+                                <td class="ot-proto">PCWorx</td>
+                                <td class="ot-why">Phoenix Contact — exposes PLC program upload/download</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">18245</td>
+                                <td class="ot-proto">GE SRTP</td>
+                                <td class="ot-why">GE PLCs — service request transport with no encryption</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">4000</td>
+                                <td class="ot-proto">Emerson DeltaV</td>
+                                <td class="ot-why">DCS process control — exposed instances risk process manipulation</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">2222</td>
+                                <td class="ot-proto">EtherNet/IP</td>
+                                <td class="ot-why">Alternate EtherNet/IP port used by some Rockwell devices</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">1089</td>
+                                <td class="ot-proto">FF Annunciation</td>
+                                <td class="ot-why">Foundation Fieldbus — process alarm and event signaling with no authentication</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">1090</td>
+                                <td class="ot-proto">Foundation Fieldbus</td>
+                                <td class="ot-why">Core FF messaging — exposes field device configuration and live process values</td>
+                            </tr>
+                            <tr>
+                                <td class="ot-port">1091</td>
+                                <td class="ot-proto">FF System Management</td>
+                                <td class="ot-why">Foundation Fieldbus system management — exposes network topology and device control</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 

@@ -156,3 +156,13 @@ document.querySelectorAll('.preset-btn, .sidebar-btn').forEach(function (btn) {
         document.getElementById('subnetInput').value = btn.dataset.value;
     });
 });
+
+// OT/ICS reference panel toggle
+document.getElementById('otRefToggle').addEventListener('click', function () {
+    const body   = document.getElementById('otRefBody');
+    const toggle = document.getElementById('otRefToggle');
+    const open   = !body.hidden;
+    body.hidden  = open;
+    toggle.textContent    = open ? '[ + ]' : '[ - ]';
+    toggle.setAttribute('aria-expanded', String(!open));
+});
