@@ -109,7 +109,7 @@ main {
     align-items: flex-start;
     gap: 2.5rem;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1300px;
     margin: 0 auto;
     padding: 3rem 2rem;
 }
@@ -117,13 +117,15 @@ main {
 /* ── Left column ─────────────────────────────────────────── */
 
 .left-col {
-    width: 380px;
+    width: 480px;
     flex-shrink: 0;
-    position: sticky;
-    top: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
 }
 
 .left-col .hero {
@@ -391,7 +393,7 @@ main {
     width: 100%;
     border-collapse: collapse;
     font-family: var(--font-mono);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
 }
 
 .ot-ref-table thead tr {
@@ -400,8 +402,8 @@ main {
 
 .ot-ref-table th {
     text-align: left;
-    padding: 0.5rem 1rem;
-    font-size: 0.68rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.65rem;
     letter-spacing: 0.08em;
     color: var(--dim);
     font-weight: 400;
@@ -416,25 +418,27 @@ main {
 }
 
 .ot-ref-table td {
-    padding: 0.45rem 1rem;
+    padding: 0.3rem 0.75rem;
     vertical-align: top;
+    line-height: 1.4;
 }
 
 .ot-port {
     color: var(--accent);
     white-space: nowrap;
-    width: 60px;
+    width: 45px;
 }
 
 .ot-proto {
     color: var(--accent);
     white-space: nowrap;
-    width: 160px;
+    width: 130px;
 }
 
 .ot-why {
     color: var(--dim);
-    line-height: 1.5;
+    line-height: 1.4;
+    max-width: 220px;
 }
 
 /* ── Footer ──────────────────────────────────────────────── */
