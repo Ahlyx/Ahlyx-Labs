@@ -65,6 +65,11 @@ async function runScan() {
     const subnet = subnetInput.value.trim();
     if (!subnet) return;
 
+    const inputType = subnet.includes('/') ? 'cidr' : 'ip';
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'scan_submitted', { input_type: inputType });
+    }
+
     // Reset state
     scanBtn.disabled = true;
     scanBtn.textContent = 'SCANNING...';
@@ -89,6 +94,15 @@ async function runScan() {
 
         statusLine.textContent = `Found ${count} host${count !== 1 ? 's' : ''} on ${data.subnet ?? subnet}`;
         statusLine.className = 'status-line success';
+
+        const openPortCount = hosts.reduce((sum, h) => sum + (h.ports ? h.ports.length : 0), 0);
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'scan_result', {
+                input_type: inputType,
+                host_count: count,
+                open_port_count: openPortCount
+            });
+        }
 
         if (hosts.length > 0) {
             hosts.forEach(host => {
@@ -131,9 +145,29 @@ async function runScan() {
             });
 
             resultsTable.style.display = 'table';
+
+            const feedbackRow = document.createElement('div');
+            feedbackRow.className = 'feedback-row';
+            feedbackRow.innerHTML = `
+                <span class="feedback-label">// was this useful?</span>
+                <button class="feedback-btn" data-value="up">[ ↑ ]</button>
+                <button class="feedback-btn" data-value="down">[ ↓ ]</button>
+            `;
+            feedbackRow.querySelectorAll('.feedback-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'scan_feedback', { value: btn.dataset.value });
+                    }
+                    feedbackRow.innerHTML = '<span class="feedback-thanks">// thanks</span>';
+                });
+            });
+            document.querySelector('.results-wrapper').appendChild(feedbackRow);
         }
 
     } catch (err) {
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'scan_error', { input_type: subnet.includes('/') ? 'cidr' : 'ip' });
+        }
         statusLine.textContent = err.message;
         statusLine.className = 'status-line error';
     } finally {

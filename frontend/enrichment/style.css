@@ -725,3 +725,41 @@ main {
     .header-inner { gap: 1rem; }
     .consent-banner { padding: 1rem; flex-direction: column; gap: 0.75rem; }
 }
+/* ── Feedback widget ─────────────────────────────────────── */
+
+.feedback-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.feedback-label {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--dim);
+}
+
+.feedback-btn {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--accent);
+    border: 1px solid var(--border-accent);
+    background: transparent;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.feedback-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.feedback-thanks {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--dim);
+}

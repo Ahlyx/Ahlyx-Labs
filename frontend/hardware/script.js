@@ -52,6 +52,8 @@ document.addEventListener('DOMContentLoaded', function () {
 // dev: http://localhost:8080/api/v1/hardware
 const API_BASE = 'https://ahlyx-labs.onrender.com/api/v1/hardware';
 
+let hardwareDashboardLoaded = false;
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -125,6 +127,9 @@ async function fetchSystem() {
         appendRow(container, 'processor',    d.processor);
     } catch {
         showError('system-data');
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'hardware_fetch_error', { panel: 'system' });
+        }
     }
 }
 
@@ -145,6 +150,9 @@ async function fetchCPU() {
         appendRow(container, 'cpu_usage',      d.cpu_usage, true);
     } catch {
         showError('cpu-data');
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'hardware_fetch_error', { panel: 'cpu' });
+        }
     }
 }
 
@@ -168,6 +176,9 @@ async function fetchRAM() {
         appendRow(container, 'swap_usage', d.swap_usage, true);
     } catch {
         showError('ram-data');
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'hardware_fetch_error', { panel: 'ram' });
+        }
     }
 }
 
@@ -217,6 +228,9 @@ async function fetchDisk() {
         container.appendChild(totals);
     } catch {
         showError('disk-data');
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'hardware_fetch_error', { panel: 'disk' });
+        }
     }
 }
 
@@ -263,6 +277,9 @@ async function fetchNetwork() {
         container.appendChild(totals);
     } catch {
         showError('network-data');
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'hardware_fetch_error', { panel: 'network' });
+        }
     }
 }
 
@@ -284,6 +301,13 @@ async function fetchAll() {
 
     const ts = document.getElementById('last-updated-time');
     if (ts) ts.textContent = new Date().toLocaleTimeString();
+
+    if (!hardwareDashboardLoaded) {
+        hardwareDashboardLoaded = true;
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'hardware_dashboard_loaded');
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

@@ -153,6 +153,10 @@ async function performSearch(value, type) {
         else if (type === 'url') endpoint = `${API_BASE}/url?url=${encodeURIComponent(value)}`;
         else if (type === 'hash') endpoint = `${API_BASE}/hash/${encodeURIComponent(value)}`;
 
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'enrichment_submitted', { query_type: type });
+        }
+
         const res = await fetch(endpoint);
         const data = await res.json();
 
@@ -168,10 +172,45 @@ async function performSearch(value, type) {
         loading.style.display = 'none';
 
         renderResults(data, type);
+
+        const isMalicious = data.is_malicious || data.is_tor ||
+            (data.abuse && data.abuse.abuse_score >= 80) ||
+            (data.virustotal && data.virustotal.malicious_votes > 0);
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'enrichment_result', {
+                query_type: type,
+                source_count: data.sources ? data.sources.length : 0,
+                has_threat: isMalicious
+            });
+        }
+
+        const feedbackRow = document.createElement('div');
+        feedbackRow.className = 'feedback-row';
+        feedbackRow.innerHTML = `
+            <span class="feedback-label">// was this useful?</span>
+            <button class="feedback-btn" data-value="up">[ ↑ ]</button>
+            <button class="feedback-btn" data-value="down">[ ↓ ]</button>
+        `;
+        feedbackRow.querySelectorAll('.feedback-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'enrichment_feedback', {
+                        value: btn.dataset.value,
+                        query_type: type
+                    });
+                }
+                feedbackRow.innerHTML = '<span class="feedback-thanks">// thanks</span>';
+            });
+        });
+        document.getElementById('resultsContent').appendChild(feedbackRow);
+
         addToHistory(value, type, data);
 
     } catch (err) {
         loading.style.display = 'none';
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'enrichment_error', { query_type: type });
+        }
         const errBanner = document.createElement('div');
         errBanner.className = 'verdict-banner malicious';
         const errDot = document.createElement('div');
