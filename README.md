@@ -27,22 +27,22 @@ Aggregates threat intelligence from multiple sources against IPs, domains, URLs,
 **Intel sources:** AbuseIPDB · VirusTotal · IPinfo · AlienVault OTX · Google Safe Browsing · URLScan · MalwareBazaar · CIRCL HashLookup · WHOIS · DNS · SSL
 
 ### Network Scanner
-TCP port scanner with a curated OT/ICS port map alongside common service ports. Accepts a subnet or single host as input.
+TCP port scanner with a curated OT/ICS port map alongside common service ports. Accepts a subnet or single host as input. Maximum subnet size is /24.
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/v1/scanner/scan?subnet=` | Scan a subnet or host for open ports |
+| `GET /api/v1/scanner/scan?subnet=` | Scan a subnet or host for open TCP ports |
 
 ### Hardware Dashboard
-Real-time system telemetry for the host running the backend.
+Real-time system telemetry for the host running the backend (Render VM).
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/v1/hardware/system` | OS, hostname, uptime, platform |
-| `GET /api/v1/hardware/cpu` | Model, core count, usage per core |
+| `GET /api/v1/hardware/system` | OS, hostname, architecture, processor |
+| `GET /api/v1/hardware/cpu` | Model, core count, clock speed, usage |
 | `GET /api/v1/hardware/ram` | Total, used, available, swap |
-| `GET /api/v1/hardware/disk` | Per-partition usage |
-| `GET /api/v1/hardware/network` | Bytes sent/received per interface |
+| `GET /api/v1/hardware/disk` | Per-partition usage + I/O totals |
+| `GET /api/v1/hardware/network` | Per-interface addresses + traffic totals |
 
 ### Health Check
 ```
@@ -52,7 +52,6 @@ GET /health → 200 OK  {"status":"ok"}
 ---
 
 ## Architecture
-
 ```
 Ahlyx-Labs/
 ├── cmd/server/main.go          ← single entrypoint, registers all route groups
@@ -66,10 +65,12 @@ Ahlyx-Labs/
     ├── enrichment/
     ├── scanner/
     ├── hardware/
+    ├── robots.txt
+    ├── sitemap.xml
     └── vercel.json
 ```
 
-**Backend:** Go 1.22 · [chi](https://github.com/go-chi/chi) router · per-IP token-bucket rate limiting (`golang.org/x/time/rate`) · in-memory TTL cache (`sync.RWMutex`) · Dockerized for Render
+**Backend:** Go 1.25 · [chi](https://github.com/go-chi/chi) router · per-IP token-bucket rate limiting (`golang.org/x/time/rate`) · in-memory TTL cache (`sync.RWMutex`) · Dockerized for Render
 
 **Frontend:** Vanilla JS / HTML / CSS · dark terminal design language · Vercel Analytics + Speed Insights · GA4 (G-99NT7YXMY8) · consent banner on all pages
 
@@ -121,11 +122,10 @@ API keys are set in the Render dashboard and are **not committed to the repo**. 
 ## Local Development
 
 ### Prerequisites
-- Go 1.22+
+- Go 1.25+
 - Docker (optional, for container builds)
 
 ### Run locally
-
 ```bash
 git clone https://github.com/Ahlyx/Ahlyx-Labs.git
 cd Ahlyx-Labs
@@ -137,7 +137,6 @@ go run ./cmd/server
 Server starts on `http://localhost:8080`. Open any `frontend/*/index.html` directly in a browser or serve the `frontend/` directory with a static server.
 
 ### Docker
-
 ```bash
 docker build -t ahlyx-labs .
 docker run --env-file .env -p 8080:8080 ahlyx-labs
@@ -150,33 +149,26 @@ docker run --env-file .env -p 8080:8080 ahlyx-labs
 ### Backend → Render
 
 1. **New → Web Service** → connect `Ahlyx/Ahlyx-Labs`
-2. Environment: **Docker** · Branch: `main` · Root directory: *(leave empty)*
+2. Environment: **Docker** · Branch: `master` · Root directory: *(leave empty)*
 3. Add all 7 API keys as environment variables in the Render dashboard
-4. Deploy → note the service URL (e.g. `ahlyx-labs.onrender.com`)
-5. Verify: `curl https://ahlyx-labs.onrender.com/health`
+4. Deploy → service URL: `ahlyx-labs.onrender.com`
+5. Add custom domain `api.ahlyxlabs.com` in Render → Settings → Custom Domains
+6. Verify: `curl https://api.ahlyxlabs.com/health`
 
 ### Frontend → Vercel
 
 1. **New Project** → import `Ahlyx/Ahlyx-Labs`
 2. Root directory: `frontend` · Framework preset: **Other** · Build command: *(empty)* · Output directory: `./`
-3. Deploy → note the Vercel URL
+3. Deploy → add custom domains `ahlyxlabs.com` and `www.ahlyxlabs.com`
 
 ### DNS → Cloudflare
-
-**Frontend (apex + www → Vercel):**
 ```
-CNAME  @    →  <vercel-cname-target>   (proxy ON)
-CNAME  www  →  <vercel-cname-target>   (proxy ON)
+A      @    →  216.198.79.1                        (proxy ON)
+CNAME  www  →  990da1196320c862.vercel-dns-017.com  (proxy ON)
+CNAME  api  →  ahlyx-labs.onrender.com              (proxy ON)
 ```
-
-**API subdomain → Render:**
-```
-CNAME  api  →  ahlyx-labs.onrender.com   (proxy ON)
-```
-Then in Render: **Settings → Custom Domains → add** `api.ahlyxlabs.com`
 
 ### Verification
-
 ```bash
 curl https://api.ahlyxlabs.com/health
 curl "https://api.ahlyxlabs.com/api/v1/ip/8.8.8.8"
@@ -187,7 +179,6 @@ curl "https://api.ahlyxlabs.com/api/v1/ip/8.8.8.8"
 ---
 
 ## Module
-
 ```
 github.com/Ahlyx/Ahlyx-Labs
 ```
