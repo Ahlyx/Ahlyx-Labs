@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/cors v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/lib/pq v1.11.2 // indirect
 	github.com/likexian/gokit v0.25.16 // indirect
 	github.com/likexian/whois v1.15.7 // indirect
 	github.com/likexian/whois-parser v1.24.21 // indirect

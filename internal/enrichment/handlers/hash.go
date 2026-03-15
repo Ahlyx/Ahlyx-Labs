@@ -113,6 +113,11 @@ func NewHashHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			return
 		}
 		cache.Set(cacheKey, data, sources)
+		verdict := "clean"
+		if isMalicious {
+			verdict = "threat"
+		}
+		shared.LogQuery("enrichment", "hash", verdict, isMalicious, len(sources), 0, 0, 0)
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(data)
 	}

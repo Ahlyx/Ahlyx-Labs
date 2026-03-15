@@ -46,6 +46,11 @@ func NewScanHandler() http.HandlerFunc {
 		}
 
 		writeJSON(w, http.StatusOK, result)
+		openPorts := 0
+		for _, h := range result.Hosts {
+			openPorts += len(h.Ports)
+		}
+		shared.LogQuery("scanner", "tcp", "", false, 0, 0, result.HostsFound, openPorts)
 	}
 }
 

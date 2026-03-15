@@ -21,6 +21,8 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
+	shared.InitDB()
+
 	cache := shared.NewCache()
 
 	r := chi.NewRouter()

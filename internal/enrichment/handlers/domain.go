@@ -139,6 +139,15 @@ func NewDomainHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc 
 			return
 		}
 		cache.Set(cacheKey, data, sources)
+		isMalicious := false
+		if resp.VirusTotal != nil && resp.VirusTotal.MaliciousVotes != nil && *resp.VirusTotal.MaliciousVotes > 0 {
+			isMalicious = true
+		}
+		verdict := "clean"
+		if isMalicious {
+			verdict = "threat"
+		}
+		shared.LogQuery("enrichment", "domain", verdict, isMalicious, len(sources), 0, 0, 0)
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(data)
 	}
