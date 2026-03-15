@@ -128,6 +128,33 @@ main {
     gap: 1.25rem;
 }
 
+/* ── Hero ────────────────────────────────────────────────── */
+
+.hero {
+    margin-bottom: 2rem;
+}
+
+.hero h1 {
+    font-family: var(--font-mono);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+    color: var(--white);
+}
+
+.hero h1 .accent {
+    color: var(--accent);
+}
+
+.hero-sub {
+    color: var(--dim);
+    font-size: 0.85rem;
+    max-width: 600px;
+    line-height: 1.7;
+    font-family: var(--font-mono);
+}
+
 /* ── Cards ───────────────────────────────────────────────── */
 
 .card {
