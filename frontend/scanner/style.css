@@ -31,7 +31,7 @@ html {
 body {
     background: var(--bg);
     color: var(--white);
-    font-family: var(--font-body);
+    font-family: var(--font-mono);
     font-weight: 300;
     min-height: 100vh;
     display: flex;
@@ -52,7 +52,7 @@ a:hover {
 
 .site-header {
     border-bottom: 1px solid var(--border);
-    padding: 1.5rem 2rem;
+    padding: 1.25rem 2rem;
     background: var(--bg);
     position: sticky;
     top: 0;
@@ -88,7 +88,7 @@ a:hover {
 
 .site-title {
     font-family: var(--font-mono);
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     color: var(--accent);
     text-shadow: var(--glow);
     letter-spacing: 0.06em;
@@ -111,7 +111,7 @@ main {
     width: 100%;
     max-width: 1060px;
     margin: 0 auto;
-    padding: 3rem 1.5rem;
+    padding: 3rem 2rem;
 }
 
 /* ── Sidebar ─────────────────────────────────────────────── */
