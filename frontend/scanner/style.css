@@ -176,11 +176,11 @@ main {
 
 .hero h1 {
     font-family: var(--font-mono);
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
     line-height: 1.1;
     margin-bottom: 0.75rem;
-    color: var(--white);
+    color: var(--accent);
 }
 
 .hero h1 .accent {
@@ -572,6 +572,8 @@ main {
     .site-header {
         padding: 1.25rem 1rem;
     }
+
+    .hero h1 { font-size: 1.75rem; }
 
     main {
         flex-direction: column;
