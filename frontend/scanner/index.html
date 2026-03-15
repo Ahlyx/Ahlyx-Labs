@@ -40,76 +40,14 @@
 
     <main>
 
-        <aside class="sidebar">
-            <div class="sidebar-group">
-                <div class="sidebar-comment">// localhost</div>
-                <button class="sidebar-btn" data-value="127.0.0.1">127.0.0.1</button>
-            </div>
-            <div class="sidebar-group">
-                <div class="sidebar-comment">// common home/lab ranges</div>
-                <button class="sidebar-btn" data-value="192.168.0.0/24">192.168.0.0/24</button>
-                <button class="sidebar-btn" data-value="192.168.1.0/24">192.168.1.0/24</button>
-                <button class="sidebar-btn" data-value="192.168.2.0/24">192.168.2.0/24</button>
-                <button class="sidebar-btn" data-value="10.0.0.0/24">10.0.0.0/24</button>
-                <button class="sidebar-btn" data-value="10.0.1.0/24">10.0.1.0/24</button>
-                <button class="sidebar-btn" data-value="172.16.0.0/24">172.16.0.0/24</button>
-            </div>
-            <div class="sidebar-group">
-                <div class="sidebar-comment">// nmap test host</div>
-                <button class="sidebar-btn" data-value="45.33.32.156">45.33.32.156</button>
-            </div>
-        </aside>
-
-        <div class="scan-content">
+        <div class="left-col">
             <section class="hero">
                 <h1>Network<br><span class="accent">Scanner</span></h1>
                 <p class="hero-sub">TCP port scanning with OT/ICS protocol detection. Identify open ports and industrial control system services on your network.</p>
             </section>
 
-            <div class="scan-row">
-                <input
-                    type="text"
-                    id="subnetInput"
-                    class="scan-input"
-                    value="192.168.1.0/24"
-                    autocomplete="off"
-                    spellcheck="false"
-                    aria-label="Subnet or IP address"
-                />
-                <button id="scanBtn" class="scan-btn">[ SCAN ]</button>
-            </div>
-
-            <div class="scan-disclaimer">// only scan networks you own or have explicit authorization to test</div>
-
-            <div class="scan-helper">// enter a subnet, IP, or hostname</div>
-
-            <div class="scan-presets">
-                <button class="preset-btn" data-value="45.33.32.156">45.33.32.156</button>
-                <button class="preset-btn" data-value="8.8.8.8">8.8.8.8</button>
-                <button class="preset-btn" data-value="192.168.1.0/24">192.168.1.0/24</button>
-                <button class="preset-btn" data-value="10.0.0.0/24">10.0.0.0/24</button>
-            </div>
-
-            <div id="statusLine" class="status-line"></div>
-
-            <div class="results-wrapper">
-                <table class="results-table" id="resultsTable" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>IP ADDRESS</th>
-                            <th>OPEN PORTS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultsBody"></tbody>
-                </table>
-            </div>
-
             <div class="ot-ref">
-                <div class="ot-ref-header">
-                    <span class="ot-ref-title">[ OT/ICS PORT REFERENCE ]</span>
-                    <button class="ot-ref-toggle" id="otRefToggle" aria-expanded="false">[ + ]</button>
-                </div>
-                <div class="ot-ref-body" id="otRefBody" hidden>
+                <div class="ot-ref-body" id="otRefBody">
                     <table class="ot-ref-table">
                         <thead>
                             <tr>
@@ -192,6 +130,51 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <div class="right-col">
+            <div class="scan-row">
+                <input
+                    type="text"
+                    id="subnetInput"
+                    class="scan-input"
+                    value="192.168.1.0/24"
+                    autocomplete="off"
+                    spellcheck="false"
+                    aria-label="Subnet or IP address"
+                />
+                <button id="scanBtn" class="scan-btn">[ SCAN ]</button>
+            </div>
+
+            <div class="scan-disclaimer">// only scan networks you own or have explicit authorization to test</div>
+
+            <div class="scan-helper">// enter a subnet, IP, or hostname</div>
+
+            <div class="scan-presets">
+                <button class="preset-btn" data-value="127.0.0.1">127.0.0.1</button>
+                <button class="preset-btn" data-value="45.33.32.156">45.33.32.156</button>
+                <button class="preset-btn" data-value="8.8.8.8">8.8.8.8</button>
+                <button class="preset-btn" data-value="192.168.0.0/24">192.168.0.0/24</button>
+                <button class="preset-btn" data-value="192.168.1.0/24">192.168.1.0/24</button>
+                <button class="preset-btn" data-value="192.168.2.0/24">192.168.2.0/24</button>
+                <button class="preset-btn" data-value="10.0.0.0/24">10.0.0.0/24</button>
+                <button class="preset-btn" data-value="10.0.1.0/24">10.0.1.0/24</button>
+                <button class="preset-btn" data-value="172.16.0.0/24">172.16.0.0/24</button>
+            </div>
+
+            <div id="statusLine" class="status-line"></div>
+
+            <div class="results-wrapper">
+                <table class="results-table" id="resultsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>IP ADDRESS</th>
+                            <th>OPEN PORTS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
             </div>
         </div>
 
