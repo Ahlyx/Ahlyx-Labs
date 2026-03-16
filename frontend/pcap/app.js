@@ -84,6 +84,7 @@ function connect() {
 
     setStatus('connecting');
 
+    console.log('Connecting WebSocket to:', WS_URL);
     ws = new WebSocket(WS_URL);
 
     ws.addEventListener('open', function () {
@@ -105,7 +106,9 @@ function connect() {
         scheduleReconnect();
     });
 
-    ws.addEventListener('error', function () {
+    ws.addEventListener('error', function (event) {
+        console.error('WebSocket error:', event);
+        console.error('WS_URL was:', WS_URL);
         ws.close();
     });
 }
