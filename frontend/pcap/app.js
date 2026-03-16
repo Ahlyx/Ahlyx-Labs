@@ -51,7 +51,12 @@ document.addEventListener('DOMContentLoaded', function () {
 // ---------------------------------------------------------------------------
 // WebSocket
 // ---------------------------------------------------------------------------
-const WS_URL = 'ws://localhost:7777/ws';
+const urlParams = new URLSearchParams(window.location.search);
+const SESSION_ID = urlParams.get('session');
+
+const WS_URL = SESSION_ID
+    ? `wss://api.ahlyxlabs.com/ws/relay/${SESSION_ID}?role=browser`
+    : 'ws://localhost:7777/ws';
 const MAX_FLOWS      = 200;
 const MAX_ALERTS     = 50;
 const MAX_DNS        = 100;
@@ -132,7 +137,9 @@ function setStatus(state) {
     if (state === 'connected') {
         dot.className   = 'status-dot online';
         text.className  = 'status-text status-connected';
-        text.textContent = '● CONNECTED';
+        text.textContent = SESSION_ID
+            ? `● CONNECTED — relay mode | session: ${SESSION_ID}`
+            : '● CONNECTED — local mode';
         banner.classList.add('hidden');
     } else if (state === 'connecting') {
         dot.className   = 'status-dot';

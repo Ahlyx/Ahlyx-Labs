@@ -117,20 +117,25 @@
                 <div class="setup-block">
                     <div class="setup-block-title">// usage</div>
                     <div class="setup-code-block">
+                        <span class="setup-cmd-comment">// list available network interfaces</span>
                         <span class="setup-cmd-line">sudo ./pcap-agent list-interfaces</span>
+                        <span class="setup-cmd-comment">// start capturing on default interface (local mode)</span>
                         <span class="setup-cmd-line">sudo ./pcap-agent start</span>
+                        <span class="setup-cmd-comment">// capture on a specific interface</span>
                         <span class="setup-cmd-line">sudo ./pcap-agent start --interface eth0</span>
+                        <span class="setup-cmd-comment">// use a custom local WebSocket port</span>
                         <span class="setup-cmd-line">sudo ./pcap-agent start --port 8888</span>
+                        <span class="setup-cmd-comment">// relay mode — stream to ahlyxlabs.com/pcap?session=&lt;id&gt;</span>
                         <span class="setup-cmd-line">sudo ./pcap-agent start --relay</span>
                     </div>
                     <div class="setup-block-title">// modes</div>
                     <div class="setup-mode">
                         <span class="setup-mode-name">local (default)</span>
-                        <span class="setup-mode-desc">WebSocket on localhost:7777 &mdash; browser connects directly &mdash; zero data leaves your machine &mdash; browser and agent must be on the same machine</span>
+                        <span class="setup-mode-desc">Opens a WebSocket on localhost:7777. The browser connects directly — zero data leaves your machine. Agent and browser must run on the same machine.</span>
                     </div>
                     <div class="setup-mode">
                         <span class="setup-mode-name">relay</span>
-                        <span class="setup-mode-desc">streams via api.ahlyxlabs.com</span>
+                        <span class="setup-mode-desc">Streams captured data through api.ahlyxlabs.com. The agent prints a session ID on start — open ahlyxlabs.com/pcap?session=&lt;id&gt; in any browser to connect remotely.</span>
                     </div>
                 </div>
             </div>
