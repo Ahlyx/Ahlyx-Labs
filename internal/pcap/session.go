@@ -43,7 +43,7 @@ func (s *RelaySession) SetBrowserAndFlush(ws *websocket.Conn) {
 	s.mu.Unlock()
 
 	for _, msg := range buf {
-		_ = ws.WriteMessage(websocket.BinaryMessage, msg)
+		_ = ws.WriteMessage(websocket.TextMessage, msg)
 	}
 	s.sendMu.Unlock()
 }
@@ -64,7 +64,7 @@ func (s *RelaySession) Forward(msg []byte) {
 	s.mu.Unlock()
 
 	s.sendMu.Lock()
-	_ = browser.WriteMessage(websocket.BinaryMessage, msg)
+	_ = browser.WriteMessage(websocket.TextMessage, msg)
 	s.sendMu.Unlock()
 }
 
