@@ -3,12 +3,23 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 
 	"github.com/Ahlyx/Ahlyx-Labs/internal/pcap"
 )
+
+var upgrader = websocket.Upgrader{
+	HandshakeTimeout: 10 * time.Second,
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		return origin == "https://ahlyxlabs.com" ||
+			origin == "https://www.ahlyxlabs.com" ||
+			origin == ""
+	},
+}
 
 // HandleRelay upgrades the request to a WebSocket connection and wires it
 // into the relay session identified by {session_id}.
@@ -34,26 +45,22 @@ func HandleRelay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	srv := websocket.Server{
-		// Accept all origins; the chi CORS middleware handles origin
-		// enforcement at the HTTP layer before we reach this handler.
-		Handshake: func(_ *websocket.Config, _ *http.Request) error {
-			return nil
-		},
-		Handler: websocket.Handler(func(ws *websocket.Conn) {
-			switch role {
-			case "agent":
-				relayAgent(ws, sessionID, sess)
-			case "browser":
-				relayBrowser(ws, sessionID, sess)
-			}
-		}),
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("pcap relay: upgrade error session=%s role=%s: %v", sessionID, role, err)
+		return
 	}
-	srv.ServeHTTP(w, r)
+
+	switch role {
+	case "agent":
+		relayAgent(conn, sessionID, sess)
+	case "browser":
+		relayBrowser(conn, sessionID, sess)
+	}
 }
 
-func relayAgent(ws *websocket.Conn, sessionID string, sess *pcap.RelaySession) {
-	sess.SetAgent(ws)
+func relayAgent(conn *websocket.Conn, sessionID string, sess *pcap.RelaySession) {
+	sess.SetAgent(conn)
 	defer func() {
 		sess.CloseBoth()
 		pcap.Store.Delete(sessionID)
@@ -61,16 +68,16 @@ func relayAgent(ws *websocket.Conn, sessionID string, sess *pcap.RelaySession) {
 	}()
 
 	for {
-		var msg []byte
-		if err := websocket.Message.Receive(ws, &msg); err != nil {
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
 			break
 		}
 		sess.Forward(msg)
 	}
 }
 
-func relayBrowser(ws *websocket.Conn, sessionID string, sess *pcap.RelaySession) {
-	sess.SetBrowserAndFlush(ws)
+func relayBrowser(conn *websocket.Conn, sessionID string, sess *pcap.RelaySession) {
+	sess.SetBrowserAndFlush(conn)
 	defer func() {
 		sess.CloseBoth()
 		pcap.Store.Delete(sessionID)
@@ -79,8 +86,7 @@ func relayBrowser(ws *websocket.Conn, sessionID string, sess *pcap.RelaySession)
 
 	// Browser sends nothing meaningful; loop just to detect disconnects.
 	for {
-		var msg []byte
-		if err := websocket.Message.Receive(ws, &msg); err != nil {
+		if _, _, err := conn.ReadMessage(); err != nil {
 			break
 		}
 	}

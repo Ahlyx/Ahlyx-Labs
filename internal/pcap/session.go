@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 )
 
 const sessionTTL = time.Hour
@@ -43,7 +43,7 @@ func (s *RelaySession) SetBrowserAndFlush(ws *websocket.Conn) {
 	s.mu.Unlock()
 
 	for _, msg := range buf {
-		_ = websocket.Message.Send(ws, msg)
+		_ = ws.WriteMessage(websocket.BinaryMessage, msg)
 	}
 	s.sendMu.Unlock()
 }
@@ -64,7 +64,7 @@ func (s *RelaySession) Forward(msg []byte) {
 	s.mu.Unlock()
 
 	s.sendMu.Lock()
-	_ = websocket.Message.Send(browser, msg)
+	_ = browser.WriteMessage(websocket.BinaryMessage, msg)
 	s.sendMu.Unlock()
 }
 
