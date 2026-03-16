@@ -598,12 +598,210 @@ main {
     gap: 1.25rem;
 }
 
+/* ── Setup section ─────────────────────────────────────────── */
+
+.setup-section {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+}
+
+.setup-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+}
+
+.setup-header:hover {
+    background: var(--bg-elevated);
+}
+
+.setup-toggle-btn {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.setup-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--dim);
+}
+
+.setup-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.setup-body.collapsed {
+    display: none;
+}
+
+.setup-prereqs-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.setup-block-title {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: var(--dim);
+    margin-bottom: 0.25rem;
+}
+
+.setup-prereq-list {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.prereq-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    flex-wrap: wrap;
+}
+
+.prereq-platform {
+    color: var(--accent);
+    min-width: 72px;
+    flex-shrink: 0;
+}
+
+.prereq-note {
+    color: var(--muted);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.setup-cmd {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+    background: none;
+    border: none;
+}
+
+.setup-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.setup-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.setup-option-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+}
+
+.setup-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+}
+
+.setup-table th {
+    text-align: left;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    font-weight: 400;
+    border-bottom: 1px solid var(--border);
+}
+
+.setup-table td {
+    padding: 0.35rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.setup-table tr:last-child td { border-bottom: none; }
+
+.setup-td-dim { color: var(--dim); }
+
+.setup-code-block {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.setup-cmd-line {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+}
+
+.setup-link {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-accent);
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.setup-link:hover {
+    color: var(--text);
+    border-color: var(--dim);
+}
+
+.setup-mode {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.setup-mode:last-child { border-bottom: none; }
+
+.setup-mode-name {
+    color: var(--accent);
+    flex-shrink: 0;
+    min-width: 90px;
+}
+
+.setup-mode-desc {
+    color: var(--dim);
+    font-size: 0.72rem;
+}
+
 /* ── Responsive ────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
     .main-cols { flex-direction: column; }
     .pcap-sidebar { width: 100%; }
     .flow-wrapper { max-height: 300px; }
+    .setup-cols { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {

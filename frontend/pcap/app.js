@@ -462,3 +462,36 @@ function isOTPort(port) {
 // Boot
 // ---------------------------------------------------------------------------
 connect();
+
+// ---------------------------------------------------------------------------
+// Setup section toggle
+// ---------------------------------------------------------------------------
+function toggleSetup(forceCollapse) {
+    var body = document.getElementById('setupBody');
+    var btn  = document.getElementById('setupToggleBtn');
+    if (!body || !btn) return;
+    var isOpen = !body.classList.contains('collapsed');
+    if (forceCollapse === true) {
+        if (!isOpen) return;
+        body.classList.add('collapsed');
+        btn.textContent = '[ + SETUP ]';
+    } else if (isOpen) {
+        body.classList.add('collapsed');
+        btn.textContent = '[ + SETUP ]';
+    } else {
+        body.classList.remove('collapsed');
+        btn.textContent = '[ \u2212 SETUP ]';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var toggle = document.getElementById('setupToggle');
+    if (toggle) { toggle.addEventListener('click', toggleSetup); }
+});
+
+// Patch setStatus to auto-collapse the setup panel when the agent connects.
+var _origSetStatus = setStatus;
+setStatus = function (state) {
+    _origSetStatus(state);
+    if (state === 'connected') { toggleSetup(true); }
+};

@@ -53,6 +53,91 @@
         <p class="hero-sub">Real-time packet capture and threat detection. Run the pcap-agent binary then connect here to see your network traffic live.</p>
     </section>
 
+    <section class="setup-section" id="setupSection">
+        <div class="setup-header" id="setupToggle">
+            <span class="setup-toggle-btn" id="setupToggleBtn">[ &minus; SETUP ]</span>
+            <span class="setup-header-sub">// prerequisites &middot; installation &middot; usage</span>
+        </div>
+        <div class="setup-body" id="setupBody">
+
+            <div class="setup-prereqs-block">
+                <div class="setup-block-title">// prerequisites</div>
+                <div class="setup-prereq-list">
+                    <div class="prereq-row">
+                        <span class="prereq-platform">Linux</span>
+                        <code class="setup-cmd">sudo apt-get install -y libpcap-dev</code>
+                        <span class="prereq-note">// must run with sudo</span>
+                    </div>
+                    <div class="prereq-row">
+                        <span class="prereq-platform">macOS</span>
+                        <code class="setup-cmd">brew install libpcap</code>
+                        <span class="prereq-note">// must run with sudo</span>
+                    </div>
+                    <div class="prereq-row">
+                        <span class="prereq-platform">Windows</span>
+                        <span>Download and install <a href="https://npcap.com" target="_blank" rel="noopener noreferrer" class="setup-link">Npcap</a> from npcap.com (same as Wireshark)</span>
+                        <span class="prereq-note">// must run as Administrator</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setup-cols">
+                <div class="setup-block">
+                    <div class="setup-block-title">// installation</div>
+                    <div class="setup-option-label">// option 1 &mdash; download binary (recommended)</div>
+                    <table class="setup-table">
+                        <thead><tr><th>Platform</th><th>File</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td class="setup-td-dim">Linux (amd64)</td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-linux-amd64</a></td>
+                            </tr>
+                            <tr>
+                                <td class="setup-td-dim">Windows (amd64)</td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-windows-amd64.exe</a></td>
+                            </tr>
+                            <tr>
+                                <td class="setup-td-dim">macOS (Intel)</td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-darwin-amd64</a></td>
+                            </tr>
+                            <tr>
+                                <td class="setup-td-dim">macOS (Apple Silicon)</td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-darwin-arm64</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="setup-option-label">// option 2 &mdash; build from source</div>
+                    <div class="setup-code-block">
+                        <span class="setup-cmd-line">git clone https://github.com/Ahlyx/pcap-agent.git</span>
+                        <span class="setup-cmd-line">cd pcap-agent</span>
+                        <span class="setup-cmd-line">go build -o pcap-agent ./cmd/agent</span>
+                    </div>
+                </div>
+
+                <div class="setup-block">
+                    <div class="setup-block-title">// usage</div>
+                    <div class="setup-code-block">
+                        <span class="setup-cmd-line">sudo ./pcap-agent list-interfaces</span>
+                        <span class="setup-cmd-line">sudo ./pcap-agent start</span>
+                        <span class="setup-cmd-line">sudo ./pcap-agent start --interface eth0</span>
+                        <span class="setup-cmd-line">sudo ./pcap-agent start --port 8888</span>
+                        <span class="setup-cmd-line">sudo ./pcap-agent start --relay</span>
+                    </div>
+                    <div class="setup-block-title">// modes</div>
+                    <div class="setup-mode">
+                        <span class="setup-mode-name">local (default)</span>
+                        <span class="setup-mode-desc">WebSocket on localhost:7777 &mdash; browser connects directly &mdash; zero data leaves your machine &mdash; browser and agent must be on the same machine</span>
+                    </div>
+                    <div class="setup-mode">
+                        <span class="setup-mode-name">relay</span>
+                        <span class="setup-mode-desc">streams via api.ahlyxlabs.com</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
     <div class="main-cols">
     <aside class="pcap-sidebar">
         <div class="panel" id="stats-panel">

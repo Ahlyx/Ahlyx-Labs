@@ -10,8 +10,9 @@ import (
 	"golang.org/x/time/rate"
 
 	enrichhandlers "github.com/Ahlyx/Ahlyx-Labs/internal/enrichment/handlers"
-	hwhandlers "github.com/Ahlyx/Ahlyx-Labs/internal/hardware/handlers"
-	scanhandlers "github.com/Ahlyx/Ahlyx-Labs/internal/scanner/handlers"
+	hwhandlers     "github.com/Ahlyx/Ahlyx-Labs/internal/hardware/handlers"
+	pcaphandlers   "github.com/Ahlyx/Ahlyx-Labs/internal/pcap/handlers"
+	scanhandlers   "github.com/Ahlyx/Ahlyx-Labs/internal/scanner/handlers"
 	"github.com/Ahlyx/Ahlyx-Labs/internal/shared"
 )
 
@@ -35,6 +36,7 @@ func main() {
 	urlRL  := shared.NewRateLimiter(rate.Every(6*time.Second), 10)  // 10/min
 	scanRL := shared.NewRateLimiter(rate.Every(12*time.Second), 5)  // 5/min
 	hwRL   := shared.NewRateLimiter(rate.Every(2*time.Second), 30)  // 30/min
+	pcapRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10)  // 10/min
 
 	// -----------------------------------------------------------------------
 	// Health check
@@ -72,6 +74,12 @@ func main() {
 		r.Get("/api/v1/hardware/disk",    hwhandlers.HandleDisk)
 		r.Get("/api/v1/hardware/network", hwhandlers.HandleNetwork)
 	})
+
+	// -----------------------------------------------------------------------
+	// PCAP relay routes
+	// -----------------------------------------------------------------------
+	r.With(pcapRL.Middleware).Get("/api/v1/pcap/session", pcaphandlers.NewSession)
+	r.Get("/ws/relay/{session_id}", pcaphandlers.HandleRelay)
 
 	addr := ":" + cfg.Port
 	log.Printf("ahlyx-labs listening on %s", addr)
