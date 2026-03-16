@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/robots.txt",      "destination": "/robots.txt" },
     { "source": "/sitemap.xml",     "destination": "/sitemap.xml" },
+    { "source": "/pcap/(.*)",        "destination": "/pcap/index.html" },
+    { "source": "/pcap",             "destination": "/pcap/index.html" },
     { "source": "/enrichment/(.*)", "destination": "/enrichment/index.html" },
     { "source": "/enrichment",      "destination": "/enrichment/index.html" },
     { "source": "/scanner/(.*)",    "destination": "/scanner/index.html" },
