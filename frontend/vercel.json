@@ -1,16 +1,19 @@
 {
   "rewrites": [
-    { "source": "/robots.txt",      "destination": "/robots.txt" },
-    { "source": "/sitemap.xml",     "destination": "/sitemap.xml" },
-    { "source": "/pcap/(.*)",        "destination": "/pcap/index.html" },
-    { "source": "/pcap",             "destination": "/pcap/index.html" },
-    { "source": "/enrichment/(.*)", "destination": "/enrichment/index.html" },
-    { "source": "/enrichment",      "destination": "/enrichment/index.html" },
-    { "source": "/scanner/(.*)",    "destination": "/scanner/index.html" },
-    { "source": "/scanner",         "destination": "/scanner/index.html" },
-    { "source": "/hardware/(.*)",   "destination": "/hardware/index.html" },
-    { "source": "/hardware",        "destination": "/hardware/index.html" },
-    { "source": "/privacy",         "destination": "/landing/privacy.html" },
-    { "source": "/",                "destination": "/landing/index.html" }
+    { "source": "/robots.txt",              "destination": "/robots.txt" },
+    { "source": "/sitemap.xml",             "destination": "/sitemap.xml" },
+    { "source": "/research/rustchain",      "destination": "/research/rustchain.html" },
+    { "source": "/research/(.*)",           "destination": "/research/index.html" },
+    { "source": "/research",                "destination": "/research/index.html" },
+    { "source": "/pcap/(.*)",               "destination": "/pcap/index.html" },
+    { "source": "/pcap",                    "destination": "/pcap/index.html" },
+    { "source": "/enrichment/(.*)",         "destination": "/enrichment/index.html" },
+    { "source": "/enrichment",              "destination": "/enrichment/index.html" },
+    { "source": "/scanner/(.*)",            "destination": "/scanner/index.html" },
+    { "source": "/scanner",                 "destination": "/scanner/index.html" },
+    { "source": "/hardware/(.*)",           "destination": "/hardware/index.html" },
+    { "source": "/hardware",                "destination": "/hardware/index.html" },
+    { "source": "/privacy",                 "destination": "/landing/privacy.html" },
+    { "source": "/",                        "destination": "/landing/index.html" }
   ]
 }

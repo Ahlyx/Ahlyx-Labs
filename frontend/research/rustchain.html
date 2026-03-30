@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustChain — Malicious Installer Analysis | Ahlyx Labs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <meta name="description" content="Security research: RustChain fake crypto project deploys SSH private keys to user machines and performs undisclosed hardware fingerprinting via curl-pipe-bash installer.">
+    <meta name="author" content="Ahlyx">
+    <link rel="canonical" href="https://ahlyxlabs.com/research/rustchain">
+    <meta property="og:title" content="RustChain — Malicious Installer Analysis | Ahlyx Labs">
+    <meta property="og:description" content="Fake proof-of-antiquity blockchain project distributing an installer that writes the operator's SSH private key to user machines and performs extensive undisclosed hardware fingerprinting.">
+    <meta property="og:url" content="https://ahlyxlabs.com/research/rustchain">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:creator" content="@AhIyxx">
+
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
+
+    <link rel="stylesheet" href="/research/rustchain.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/research" class="back-link">[ ← RESEARCH ]</a>
+            <div class="header-titles">
+                <span class="site-title">SECURITY RESEARCH</span>
+                <span class="site-subtitle">Ahlyx Labs — responsible disclosure</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- Report header -->
+        <div class="report-header">
+            <div class="report-tags">
+                <span class="tag threat">SUPPLY CHAIN</span>
+                <span class="tag threat">MALWARE</span>
+                <span class="tag status">REPORTED TO GITHUB ABUSE</span>
+                <span class="tag neutral">STATIC ANALYSIS</span>
+            </div>
+            <h1 class="report-title">Scottcjn / RustChain</h1>
+            <p class="report-subtitle">Malicious Installer: SSH Key Deployment &amp; Device Fingerprinting Operation</p>
+
+            <div class="report-meta-grid">
+                <div class="meta-cell">
+                    <div class="meta-label">DATE</div>
+                    <div class="meta-value">2026-03-18</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">SEVERITY</div>
+                    <div class="meta-value threat">HIGH — suspected malicious</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">REPORTED TO</div>
+                    <div class="meta-value">GitHub Abuse</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">STATUS</div>
+                    <div class="meta-value accent">Reported — awaiting review</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">RESEARCHER</div>
+                    <div class="meta-value">Ahlyx (@AhIyxx)</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">DISCLOSURE TYPE</div>
+                    <div class="meta-value">Abuse report — no vendor contact</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary table -->
+        <div class="section">
+            <div class="section-title">// REPORT SUMMARY</div>
+            <table class="summary-table">
+                <thead><tr><th>FIELD</th><th>VALUE</th></tr></thead>
+                <tbody>
+                    <tr><td>Repository</td><td>Scottcjn/RustChain</td></tr>
+                    <tr><td>Repository URL</td><td><a href="https://github.com/Scottcjn/RustChain" target="_blank" rel="noopener noreferrer">github.com/Scottcjn/RustChain</a></td></tr>
+                    <tr><td>Discovery Method</td><td>Automated secret scanner (ED25519 private key) → manual code review</td></tr>
+                    <tr><td>Initial Finding</td><td>Hardcoded ED25519 SSH private key in setup-github-ssh.sh</td></tr>
+                    <tr><td>Escalated Finding</td><td class="td-threat">Persistent data harvesting service distributed via curl-pipe-bash</td></tr>
+                    <tr><td>Key Files Reviewed</td><td>setup-github-ssh.sh, install-miner.sh, miners/linux/rustchain_linux_miner.py</td></tr>
+                    <tr><td>Rationale for Abuse Report</td><td>Repo owner is the likely threat actor — standard disclosure not appropriate</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <div class="section-title">// OVERVIEW</div>
+            <p class="prose">
+                RustChain presents itself as a proof-of-antiquity blockchain project that rewards users for mining on vintage hardware. It is distributed primarily through a <code>curl -sSL ... | bash</code> install command and offers token rewards (RTC) to users who run its miner software. The project operates a website at rustchain.org and claims a token listed on Solana as wRTC.
+            </p>
+            <p class="prose">
+                Investigation initiated when an automated secret scanner flagged a hardcoded ED25519 SSH private key in a setup script. Manual review revealed that unlike a typical accidental credential commit, <strong>this key was the intended payload of the script</strong> — designed to be written into the SSH directory of anyone who runs the installer. Further analysis of the miner code revealed extensive undisclosed hardware fingerprinting and data collection transmitted to a server under the repository owner's control.
+            </p>
+            <p class="prose">
+                Because the repository owner is the likely threat actor rather than a victim of a credential leak, this was escalated directly to GitHub abuse rather than filed as a standard responsible disclosure issue.
+            </p>
+        </div>
+
+        <!-- How it was found -->
+        <div class="section">
+            <div class="section-title">// HOW IT WAS FOUND</div>
+
+            <div class="finding" style="border-left-color: var(--accent);">
+                <div class="finding-header">
+                    <span class="finding-number">STEP 1</span>
+                    <span class="finding-title" style="color: var(--accent);">Automated Scanner</span>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The secret scanner flagged an ED25519 private key header in <code>setup-github-ssh.sh</code>. The key was associated with the email address <code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3457464d44405155414c57555e415a745359555d581a575b59">[email&#160;protected]</a></code>, which appeared in both the private key block and the embedded public key comment.</p>
+                    <div class="code-block" style="margin-top: 0.75rem;"><span class="code-highlight">-----BEGIN OPENSSH PRIVATE KEY-----</span>
+<span class="code-comment">// flagged by automated scanner in setup-github-ssh.sh</span></div>
+                </div>
+            </div>
+
+            <div class="finding" style="border-left-color: var(--accent);">
+                <div class="finding-header">
+                    <span class="finding-number">STEP 2</span>
+                    <span class="finding-title" style="color: var(--accent);">Distinguishing Accidental from Intentional</span>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">A typical accidental private key commit involves a developer's own key being committed unintentionally. This case was different: the key was the entire <strong>purpose</strong> of the script. <code>setup-github-ssh.sh</code> is a bash script designed to be run by users, and its function is to write the private key into the user's <code>~/.ssh/id_ed25519</code> file and add it to the SSH agent. This is not a credential that was accidentally included — it is a credential that the script <strong>intentionally deploys to other people's machines</strong>.</p>
+                </div>
+            </div>
+
+            <div class="finding" style="border-left-color: var(--accent);">
+                <div class="finding-header">
+                    <span class="finding-number">STEP 3</span>
+                    <span class="finding-title" style="color: var(--accent);">Full Miner Code Review</span>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The install script, Linux miner, macOS miner, fingerprint checks module, and node server code were all retrieved and reviewed. The full scope of data collection and the persistent service installation were confirmed across multiple files.</p>
+                </div>
+            </div>
+
+            <div class="finding" style="border-left-color: var(--accent);">
+                <div class="finding-header">
+                    <span class="finding-number">STEP 4</span>
+                    <span class="finding-title" style="color: var(--accent);">authorized_keys Verification</span>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">Before escalating, the full repository gitingest was searched for <code>authorized_keys</code> to determine whether the SSH key installation constituted a confirmed backdoor. No references were found. The SSH key is written to the user's <code>~/.ssh/</code> directory but the code does not add the corresponding public key to <code>authorized_keys</code> on the target machine. A traditional SSH backdoor was therefore not confirmed, though the deployment remains suspicious and unexplained.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical findings -->
+        <div class="section">
+            <div class="section-title">// TECHNICAL FINDINGS</div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="finding-number">FINDING 1</span>
+                    <span class="finding-title">SSH Private Key Written to User Machines</span>
+                    <span class="severity-badge">HIGH</span>
+                </div>
+                <div class="finding-meta">
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">FILE</div>
+                        <div class="meta-value" style="font-size:0.75rem;">setup-github-ssh.sh</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">KEY OWNER</div>
+                        <div class="meta-value" style="font-size:0.75rem;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="97f4e5eee7e3f2f6e2eff4f6fde2f9d7f0faf6fefbb9f4f8fa">[email&#160;protected]</a></div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">DESTINATION</div>
+                        <div class="meta-value" style="font-size:0.75rem;">~/.ssh/id_ed25519</div>
+                    </div>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The script writes a hardcoded ED25519 private key belonging to the repository owner into the user's SSH directory, sets appropriate permissions (<code>chmod 600</code>), adds it to the SSH agent via <code>ssh-add</code>, and tests the GitHub connection. Anyone who runs this script will have the repository owner's private key loaded into their SSH agent.</p>
+                    <div class="code-block" style="margin-top: 0.75rem;"><span class="code-comment"># public component of the deployed key</span>
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAu1gG8Zyhv45cUevRwuyr0sXLMBtQ0DlK9kdyF6FMss <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="680b1a11181c0d091d100b09021d06280f05090104460b0705">[email&#160;protected]</a></div>
+                    <p class="prose" style="margin-top: 0.75rem;">No legitimate use case was identified for distributing a private key to users. If the intent were to give users SSH access to a server, the correct approach is to distribute a public key, not a private one.</p>
+                </div>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="finding-number">FINDING 2</span>
+                    <span class="finding-title">Persistent Auto-Starting Service Without Clear Disclosure</span>
+                    <span class="severity-badge">HIGH</span>
+                </div>
+                <div class="finding-meta">
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">FILE</div>
+                        <div class="meta-value" style="font-size:0.75rem;">install-miner.sh</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">LINUX</div>
+                        <div class="meta-value" style="font-size:0.75rem;">systemd unit</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">MACOS</div>
+                        <div class="meta-value" style="font-size:0.75rem;">launchd plist</div>
+                    </div>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The installer creates and enables a system service that auto-starts on boot and restarts automatically if stopped. On macOS, a launchd plist with <code>RunAtLoad</code> and <code>KeepAlive</code> both set to true. The service is installed without prominent disclosure to the user before the installation proceeds.</p>
+                    <div class="code-block" style="margin-top: 0.75rem;"><span class="code-comment"># primary install method promoted in README</span>
+<span class="code-highlight">curl -sSL https://raw.githubusercontent.com/Scottcjn/Rustchain/main/install-miner.sh | bash</span>
+<span class="code-comment"># -s suppresses progress, -S shows errors only — minimises user visibility</span></div>
+                </div>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="finding-number">FINDING 3</span>
+                    <span class="finding-title">Extensive Undisclosed Hardware Fingerprinting</span>
+                    <span class="severity-badge">HIGH</span>
+                </div>
+                <div class="finding-meta">
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">FILE</div>
+                        <div class="meta-value" style="font-size:0.75rem;">rustchain_linux_miner.py</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">DESTINATION</div>
+                        <div class="meta-value" style="font-size:0.75rem;">https://rustchain.org</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">FREQUENCY</div>
+                        <div class="meta-value" style="font-size:0.75rem;">Launch + every 10 min</div>
+                    </div>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The miner collects and transmits the following data to the operator-controlled server at rustchain.org on every launch and every 10 minutes thereafter. No privacy policy exists for this data collection.</p>
+                    <div class="code-block" style="margin-top: 0.75rem;"><span class="code-comment"># data collected and transmitted to rustchain.org</span>
+socket.gethostname()           <span class="code-comment"># hostname</span>
+ip -o link / ifconfig -a       <span class="code-comment"># all MAC addresses</span>
+/sys/class/dmi/id/product_serial  <span class="code-comment"># hardware serial</span>
+/etc/machine-id                <span class="code-comment"># machine ID</span>
+lscpu                          <span class="code-comment"># full CPU model string</span>
+<span class="code-highlight"># timing fingerprints: cache latency (L1/L2/L3), thermal drift, clock skew, instruction jitter</span></div>
+                    <p class="prose" style="margin-top: 0.75rem;">Server-side code confirms permanent storage in SQLite with dedicated tables for MAC address hashes (<code>miner_macs</code>), hardware binding records (<code>hardware_bindings</code>), and fingerprint history (<code>miner_fingerprint_history</code>).</p>
+                </div>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="finding-number">FINDING 4</span>
+                    <span class="finding-title">Anti-VM and Cloud Environment Detection</span>
+                    <span class="severity-badge" style="color: #ffaa00; border-color: #ffaa00; background: rgba(255,170,0,0.08);">MEDIUM</span>
+                </div>
+                <div class="finding-meta">
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">FILE</div>
+                        <div class="meta-value" style="font-size:0.75rem;">fingerprint_checks.py</div>
+                    </div>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The module performs extensive detection of virtual machines and cloud environments including AWS EC2, Google Cloud Platform, Microsoft Azure, DigitalOcean, Linode, Vultr, Hetzner, Oracle Cloud, OVH, and Alibaba Cloud. Detection methods include DMI path inspection, environment variable checks, <code>/proc/cpuinfo</code> hypervisor flag detection, <code>systemd-detect-virt</code>, and probing the cloud metadata endpoint at <code>169.254.169.254</code>.</p>
+                    <p class="prose" style="margin-top: 0.75rem;">The stated purpose is to prevent emulated hardware from receiving mining rewards. However the combination of detailed VM detection, hardware fingerprinting, MAC address collection, and persistent service installation goes significantly beyond what is needed for a proof-of-antiquity consensus mechanism.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessment -->
+        <div class="section">
+            <div class="section-title">// ASSESSMENT</div>
+
+            <div class="assessment-grid">
+                <div class="assessment-box">
+                    <div class="assessment-box-title">// CONFIRMED</div>
+                    <ul class="assessment-list threat">
+                        <li>SSH private key belonging to the repository owner is written to user machines via a script designed for that purpose</li>
+                        <li>Persistent auto-starting service installed via curl-pipe-bash without adequate prior disclosure</li>
+                        <li>MAC addresses, hostnames, hardware serials, and detailed timing fingerprints collected and stored permanently on an operator-controlled server</li>
+                        <li>No privacy policy exists for collected data</li>
+                        <li>Token bounty system creates financial incentives for users to run the installer</li>
+                    </ul>
+                </div>
+                <div class="assessment-box">
+                    <div class="assessment-box-title">// NOT CONFIRMED</div>
+                    <ul class="assessment-list">
+                        <li>authorized_keys manipulation not found — traditional SSH backdoor cannot be confirmed from available code</li>
+                        <li>Reverse shell or remote command execution not found in miner code</li>
+                        <li>SSH key deployment purpose remains unexplained but unconfirmed as an active exploitation mechanism</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="actions-block" style="margin-top: 0.5rem;">
+                <p class="prose" style="color: var(--dim); font-size: 0.82rem;">The combination of a fake cryptocurrency project, curl-pipe-bash distribution, unexplained SSH key deployment to user machines, and extensive undisclosed hardware fingerprinting is consistent with a <strong>device fingerprinting operation</strong> or the groundwork for future credential harvesting. Whether or not the SSH key is currently being used for access, the pattern of behaviour warrants investigation by GitHub's trust and safety team.</p>
+            </div>
+        </div>
+
+        <!-- Actions taken -->
+        <div class="section">
+            <div class="section-title">// ACTIONS TAKEN</div>
+            <div class="actions-block">
+                <ul class="actions-list">
+                    <li>Reviewed install-miner.sh, rustchain_linux_miner.py, rustchain_mac_miner_v2.4.py, fingerprint_checks.py, and node/rustchain_v2_integrated_v2.2.1_rip200.py</li>
+                    <li>Searched full repository gitingest for authorized_keys — not found</li>
+                    <li>Searched for reverse shell patterns — not found</li>
+                    <li>Did not run any code, did not install the miner, did not test the SSH key</li>
+                    <li>Reported to GitHub abuse on 2026-03-18 with full technical documentation</li>
+                    <li>Did not contact the repository owner directly given the nature of the findings</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="section">
+            <div class="section-title">// DISCLOSURE TIMELINE</div>
+            <div class="timeline">
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-18</span>
+                    <span class="timeline-event">Automated scanner flags ED25519 private key in setup-github-ssh.sh</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-18</span>
+                    <span class="timeline-event">Manual review confirms key is intentionally written to user machines</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-18</span>
+                    <span class="timeline-event">Miner code reviewed — hardware fingerprinting and persistent service confirmed</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-18</span>
+                    <span class="timeline-event">Full repository searched for authorized_keys — not found</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-18</span>
+                    <span class="timeline-event">GitHub abuse report filed</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-30</span>
+                    <span class="timeline-event">Public writeup published — repository remains active as of publication date</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="report-footer-note">
+            This report was prepared for responsible disclosure purposes. No code was executed and no credentials were tested. All findings are based on static code analysis of publicly available source code.<br><br>
+            Researcher: Ahlyx (@AhIyxx) &nbsp;|&nbsp; Report date: 2026-03-18 &nbsp;|&nbsp; Published: 2026-03-30
+        </p>
+
+    </main>
+
+    <footer class="site-footer">
+        <a href="https://github.com/Ahlyx" target="
