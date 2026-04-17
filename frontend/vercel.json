@@ -3,6 +3,7 @@
     { "source": "/robots.txt",              "destination": "/robots.txt" },
     { "source": "/sitemap.xml",             "destination": "/sitemap.xml" },
     { "source": "/research/rustchain",      "destination": "/research/rustchain.html" },
+    { "source": "/research/onedragon",     "destination": "/research/onedragon.html" },
     { "source": "/research/(.*)",           "destination": "/research/index.html" },
     { "source": "/research",                "destination": "/research/index.html" },
     { "source": "/pcap/(.*)",               "destination": "/pcap/index.html" },

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneDragon — Privacy Policy Violation &amp; Data Exfiltration | Ahlyx Labs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <meta name="description" content="Security research: ZenlessZoneZero-OneDragon game automation tool forces-disables its own anonymization setting and exfiltrates game login usernames to Alibaba Cloud SLS, violating its stated privacy policy.">
+    <meta name="author" content="Ahlyx">
+    <link rel="canonical" href="https://ahlyxlabs.com/research/onedragon">
+    <meta property="og:title" content="OneDragon — Privacy Policy Violation &amp; Data Exfiltration | Ahlyx Labs">
+    <meta property="og:description" content="Game automation tool forces-disables its own anonymization setting at runtime, sends raw game login usernames to Alibaba Cloud SLS with sanitization explicitly bypassed, and transmits raw hostnames on every launch.">
+    <meta property="og:url" content="https://ahlyxlabs.com/research/onedragon">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:creator" content="@AhIyxx">
+
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
+
+    <link rel="stylesheet" href="/research/onedragon.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/research" class="back-link">[ ← RESEARCH ]</a>
+            <div class="header-titles">
+                <span class="site-title">SECURITY RESEARCH</span>
+                <span class="site-subtitle">Ahlyx Labs — responsible disclosure</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- Report header -->
+        <div class="report-header">
+            <div class="report-tags">
+                <span class="tag threat">PRIVACY</span>
+                <span class="tag threat">DATA EXFILTRATION</span>
+                <span class="tag status">PARTIALLY REMEDIATED</span>
+                <span class="tag neutral">STATIC ANALYSIS</span>
+            </div>
+            <h1 class="report-title">OneDragon-Anything / ZenlessZoneZero-OneDragon</h1>
+            <p class="report-subtitle">Privacy Policy Violation &amp; Undisclosed Data Exfiltration</p>
+
+            <div class="report-meta-grid">
+                <div class="meta-cell">
+                    <div class="meta-label">DATE</div>
+                    <div class="meta-value">2026-03-18</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">SEVERITY</div>
+                    <div class="meta-value threat">CRITICAL — privacy violation</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">REPORTED TO</div>
+                    <div class="meta-value">GitHub Issues (public)</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">STATUS</div>
+                    <div class="meta-value accent">PARTIALLY REMEDIATED</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">RESEARCHER</div>
+                    <div class="meta-value">Ahlyx (@AhIyxx)</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">DISCLOSURE TYPE</div>
+                    <div class="meta-value">Responsible disclosure — 30-day window</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary table -->
+        <div class="section">
+            <div class="section-title">// REPORT SUMMARY</div>
+            <table class="summary-table">
+                <thead><tr><th>FIELD</th><th>VALUE</th></tr></thead>
+                <tbody>
+                    <tr><td>Repository</td><td>OneDragon-Anything/ZenlessZoneZero-OneDragon</td></tr>
+                    <tr><td>Repository URL</td><td><a href="https://github.com/OneDragon-Anything/ZenlessZoneZero-OneDragon" target="_blank" rel="noopener noreferrer">github.com/OneDragon-Anything/ZenlessZoneZero-OneDragon</a></td></tr>
+                    <tr><td>Discovery Method</td><td>Automated secret scanner (Grafana token) → manual code review</td></tr>
+                    <tr><td>Initial Finding</td><td>Hardcoded Grafana Cloud auth token in config.py</td></tr>
+                    <tr><td>Escalated Finding</td><td class="td-threat">Telemetry system with privacy policy violations and data exfiltration</td></tr>
+                    <tr><td>Original Severity</td><td class="td-threat">CRITICAL</td></tr>
+                    <tr><td>Reported To</td><td>GitHub Issues (public issue filed)</td></tr>
+                    <tr><td>Status</td><td>Partially remediated — three of four findings patched, one remains</td></tr>
+                    <tr><td>Files Involved</td><td>telemetry_manager.py, event_collector.py, config.py, game_account_config.py</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <div class="section-title">// OVERVIEW</div>
+            <p class="prose">
+                ZenlessZoneZero-OneDragon is an open-source game automation tool for the miHoYo title Zenless Zone Zero. It automates daily tasks, manages multiple game accounts, and handles auto-login using stored credentials. The software is distributed on GitHub and has an active user base primarily in China.
+            </p>
+            <p class="prose">
+                This report was initiated when an automated secret scanner flagged a hardcoded Grafana Cloud authentication token in the repository. Manual review of the surrounding codebase revealed a significantly more serious issue: a purpose-built telemetry system that contradicted the project's published privacy policy in multiple ways, including the collection and transmission of <strong>game login usernames to an Alibaba Cloud server</strong> without user disclosure or consent.
+            </p>
+        </div>
+
+        <!-- How it was found -->
+        <div class="section">
+            <div class="section-title">// HOW IT WAS FOUND</div>
+
+            <div class="finding" style="border-left-color: var(--accent);">
+                <div class="finding-header">
+                    <span class="finding-number">STEP 1</span>
+                    <span class="finding-title" style="color: var(--accent);">Automated Secret Scanner</span>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The initial discovery came from running an automated secret scanner against recently updated public GitHub repositories. The scanner flagged a Grafana Cloud authentication token hardcoded in <code>src/zzz_od/telemetry/config.py</code>. This token authenticated against a Loki log aggregation instance and was also being written to users' local <code>config/telemetry.yml</code> files on first run.</p>
+                </div>
+            </div>
+
+            <div class="finding" style="border-left-color: var(--accent);">
+                <div class="finding-header">
+                    <span class="finding-number">STEP 2</span>
+                    <span class="finding-title" style="color: var(--accent);">Manual Code Review</span>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">After finding the Grafana token, the full telemetry subdirectory was retrieved and analysed across 15 source files. Review revealed that the Grafana/Loki backend was fully commented out and inactive — the real active backend was <strong>Alibaba Cloud SLS (Simple Log Service)</strong>. This shifted the investigation from a credential leak to a data collection audit.</p>
+                </div>
+            </div>
+
+            <div class="finding" style="border-left-color: var(--accent);">
+                <div class="finding-header">
+                    <span class="finding-number">STEP 3</span>
+                    <span class="finding-title" style="color: var(--accent);">Privacy Policy Comparison</span>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The project's <code>PRIVACY.md</code> was retrieved and compared against the code behaviour. The policy explicitly states that collected data is anonymous and that running configuration information is stored only on the user's local device. Both claims were found to be directly contradicted by the code.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical findings -->
+        <div class="section">
+            <div class="section-title">// TECHNICAL FINDINGS</div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="finding-number">FINDING 1</span>
+                    <span class="finding-title">Anonymization Forcibly Disabled</span>
+                    <span class="severity-badge">CRITICAL</span>
+                </div>
+                <div class="finding-meta">
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">FILE</div>
+                        <div class="meta-value" style="font-size:0.75rem;">telemetry_manager.py</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">POLICY CONTRADICTION</div>
+                        <div class="meta-value" style="font-size:0.75rem;">Policy claims data is anonymous</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">PATCH STATUS</div>
+                        <div class="meta-value td-accent" style="font-size:0.75rem;">PATCHED — commit b99f5ff1</div>
+                    </div>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The <code>PrivacySettings</code> data model defines <code>anonymize_user_data: bool = True</code> as the default. However, <code>TelemetryManager.initialize()</code> explicitly overrode this value after loading settings from disk, making it impossible for any user configuration to take effect. All three data collection flags were also force-enabled in the same function regardless of saved user preferences.</p>
+                    <div class="code-block" style="margin-top: 0.75rem;"><span class="code-highlight">self.privacy_settings.anonymize_user_data = False
+self.privacy_controller.settings.anonymize_user_data = False</span>
+<span class="code-comment"># both lines in TelemetryManager.initialize() — overrides any saved user preference</span></div>
+                    <p class="prose" style="margin-top: 0.75rem;">With the flag set to <code>False</code>, the <code>PrivacyController</code> fell back to a weaker filter-only mode that still passed many values through unmodified. Removed in commit <code>b99f5ff1</code> on 2026-04-16.</p>
+                </div>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="finding-number">FINDING 2</span>
+                    <span class="finding-title">Game Login Usernames Sent to Alibaba Cloud</span>
+                    <span class="severity-badge">CRITICAL</span>
+                </div>
+                <div class="finding-meta">
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">FILE</div>
+                        <div class="meta-value" style="font-size:0.75rem;">telemetry_manager.py</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">ENDPOINT</div>
+                        <div class="meta-value" style="font-size:0.75rem;">zzz-od-1.cn-hangzhou.log.aliyuncs.com</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">PATCH STATUS</div>
+                        <div class="meta-value td-accent" style="font-size:0.75rem;">PATCHED — commit b99f5ff1</div>
+                    </div>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The method <code>_report_multi_account_usage()</code> fired during initialization for any user with more than three game accounts configured. It read the <code>account</code> field from <code>GameAccountConfig</code> for each instance — the same credential used by the auto-login feature to authenticate with game servers. The payload included a list of raw login usernames, account count, and a persistent device identifier.</p>
+                    <p class="prose" style="margin-top: 0.75rem;">Critically, the two methods responsible for applying privacy filtering and sanitization to all other telemetry events explicitly skipped this event:</p>
+                    <div class="code-block" style="margin-top: 0.75rem;"><span class="code-highlight">def _should_apply_privacy(self, event_name: str) -> bool:
+    return event_name != 'multi_account_usage'
+
+def _should_apply_sanitizer(self, event_name: str) -> bool:
+    return event_name != 'multi_account_usage'</span>
+<span class="code-comment"># payload bypassed every privacy and sanitization layer before transmission</span></div>
+                </div>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="finding-number">FINDING 3</span>
+                    <span class="finding-title">Raw Hostname Sent on Every Launch — Unresolved</span>
+                    <span class="severity-badge">HIGH</span>
+                </div>
+                <div class="finding-meta">
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">FILE</div>
+                        <div class="meta-value" style="font-size:0.75rem;">telemetry_manager.py</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">ENDPOINT</div>
+                        <div class="meta-value" style="font-size:0.75rem;">zzz-od-1.cn-hangzhou.log.aliyuncs.com</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">PATCH STATUS</div>
+                        <div class="meta-value td-threat" style="font-size:0.75rem;">PARTIALLY PATCHED — persists</div>
+                    </div>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">At time of disclosure, <code>track_app_launch()</code> in <code>event_collector.py</code> constructed a <code>machine_id</code> string using <code>socket.gethostname()</code> and <code>platform.machine()</code>, then sent it as a plaintext property on every application launch. The hostname was not in <code>PrivacyController.SENSITIVE_KEYS</code>, so even the partial filtering that ran on other events did not redact this value.</p>
+                    <p class="prose" style="margin-top: 0.75rem;"><strong>Status: Partially patched.</strong> <code>event_collector.py</code> was deleted in commit <code>b99f5ff1</code>, but the current <code>telemetry_manager.py</code> continues to send <code>platform.node()</code> (the raw computer hostname) on every launch:</p>
+                    <div class="code-block" style="margin-top: 0.75rem;"><span class="code-highlight">self._send_event("app_launched", {
+    "machine_id": f"{platform.node()}-{platform.machine()}",
+    ...
+})</span>
+
+<span class="code-comment"># _generate_user_id() derives a persistent UUID from the same hostname string:</span>
+@staticmethod
+def _generate_user_id() -> str:
+    machine_id = f"{platform.node()}-{platform.machine()}"
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, machine_id))</div>
+                    <p class="prose" style="margin-top: 0.75rem;">Users are still trackable across sessions via a stable identifier derived from their computer name. There is no opt-out mechanism visible in the current codebase. The Alibaba Cloud SLS endpoint remains active and unchanged.</p>
+                </div>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="finding-number">FINDING 4</span>
+                    <span class="finding-title">Leaked Grafana Credential</span>
+                    <span class="severity-badge" style="color: #ffaa00; border-color: #ffaa00; background: rgba(255,170,0,0.08);">MEDIUM</span>
+                </div>
+                <div class="finding-meta">
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">FILE</div>
+                        <div class="meta-value" style="font-size:0.75rem;">config.py</div>
+                    </div>
+                    <div class="finding-meta-cell">
+                        <div class="meta-label">PATCH STATUS</div>
+                        <div class="meta-value td-accent" style="font-size:0.75rem;">PATCHED — commit 7228bc70</div>
+                    </div>
+                </div>
+                <div class="finding-body">
+                    <p class="prose">The Grafana Cloud authentication token was hardcoded as a fallback value in <code>config.py</code> and written to users' local <code>config/telemetry.yml</code> on first run. The Loki backend was inactive at time of discovery, so this did not affect users directly, but the token was publicly exposed in the repository. <code>_load_from_env()</code> was removed in commit <code>7228bc70</code> on 2026-03-22. The token should be rotated.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data flow -->
+        <div class="section">
+            <div class="section-title">// DATA FLOW SUMMARY (AT TIME OF DISCLOSURE)</div>
+            <p class="prose">For a user with more than three game accounts configured, on every application launch:</p>
+            <div class="timeline" style="margin-top: 0.5rem;">
+                <div class="timeline-row">
+                    <span class="timeline-date">Step 1</span>
+                    <span class="timeline-event">App starts and <code>TelemetryManager.initialize()</code> is called silently</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">Step 2</span>
+                    <span class="timeline-event"><code>anonymize_user_data</code> forcibly set to <code>False</code>, overriding any saved user preference</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">Step 3</span>
+                    <span class="timeline-event"><code>AliyunWebTrackingClient</code> initialized pointing to <code>zzz-od-1.cn-hangzhou.log.aliyuncs.com</code></span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">Step 4</span>
+                    <span class="timeline-event">Persistent device UUID generated from <code>socket.gethostname()</code> + <code>platform.machine()</code></span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">Step 5</span>
+                    <span class="timeline-event"><code>app_launched</code> event fires, sending the raw hostname string to Alibaba Cloud</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">Step 6</span>
+                    <span class="timeline-event"><code>_report_multi_account_usage()</code> reads the <code>account</code> field (login username) for each configured instance</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date" style="color: var(--threat);">Step 7</span>
+                    <span class="timeline-event" style="color: var(--threat);">Privacy filter SKIPPED — hardcoded bypass for this event</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date" style="color: var(--threat);">Step 8</span>
+                    <span class="timeline-event" style="color: var(--threat);">Data sanitizer SKIPPED — hardcoded bypass for this event</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date" style="color: var(--threat);">Step 9</span>
+                    <span class="timeline-event" style="color: var(--threat);">Payload with raw login usernames, account count, and machine UUID sent to Alibaba Cloud SLS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy policy contradictions -->
+        <div class="section">
+            <div class="section-title">// PRIVACY POLICY CONTRADICTIONS</div>
+            <table class="summary-table">
+                <thead><tr><th>POLICY CLAIMS</th><th>CODE BEHAVIOUR (AT DISCLOSURE)</th><th>CURRENT STATUS</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td>Data collected is anonymous</td>
+                        <td><code>anonymize_user_data</code> force-set to <code>False</code> at runtime</td>
+                        <td class="td-accent">Patched</td>
+                    </tr>
+                    <tr>
+                        <td>Configuration info stored only on local device</td>
+                        <td>Login usernames sent to Alibaba Cloud SLS</td>
+                        <td class="td-accent">Patched</td>
+                    </tr>
+                    <tr>
+                        <td>Only anonymous error logs and performance metrics collected</td>
+                        <td>Hostname, login usernames, and machine UUID collected</td>
+                        <td class="td-threat">Partially patched — hostname persists</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- What was not found -->
+        <div class="section">
+            <div class="section-title">// WHAT WAS NOT FOUND</div>
+            <div class="assessment-grid">
+                <div class="assessment-box">
+                    <div class="assessment-box-title">// NOT IN SCOPE</div>
+                    <ul class="assessment-list">
+                        <li>Password exfiltration — the <code>.password</code> field exists in <code>GameAccountConfig</code> alongside <code>.account</code>, but no telemetry code was found reading the password field</li>
+                        <li>Active Grafana/Loki collection — the token was leaked but the backend was inactive</li>
+                        <li>Payment data collection — miHoYo handles payments in-browser; the app does not have access to that flow</li>
+                    </ul>
+                </div>
+                <div class="assessment-box">
+                    <div class="assessment-box-title">// NOTABLE OBSERVATIONS</div>
+                    <ul class="assessment-list">
+                        <li>The <code>TelemetryUISupport</code> class had a full privacy settings backend built, suggesting anonymization was intended to be user-controllable — it was never surfaced in the UI and has since been deleted</li>
+                        <li>Neither remediation commit references the disclosed issue; critical fixes were folded into unrelated commit messages</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintainer response -->
+        <div class="section">
+            <div class="section-title">// MAINTAINER RESPONSE</div>
+            <div class="actions-block">
+                <p class="prose">A maintainer (m1boy) responded to the GitHub issue with the following (reproduced for accuracy):</p>
+                <div class="code-block" style="margin-top: 0.75rem; white-space: pre-wrap; color: var(--dim);">"The key retained for this project has been deprecated. The related services have been discontinued and will be removed in future updates. [...] This data is stored separately on secure servers and has not been utilized to date. We also hope that it never will be used in the future. [...] If you cannot accept our approach and decide to stop running this project, no further reports will be sent."</div>
+                <p class="prose" style="margin-top: 0.75rem;">The acknowledgment that data was stored on external servers confirms collection occurred. The response does not address the privacy policy contradictions directly, does not commit to updating the policy, and does not mention the persistent hostname collection that remains in the current codebase.</p>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="section">
+            <div class="section-title">// REMEDIATION TIMELINE</div>
+            <div class="timeline">
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-18</span>
+                    <span class="timeline-event">Automated scanner flags Grafana token in config.py</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-18</span>
+                    <span class="timeline-event">Manual review of telemetry module begins</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-18</span>
+                    <span class="timeline-event">Privacy policy violations confirmed across four findings</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-18</span>
+                    <span class="timeline-event">GitHub issue filed with full technical documentation</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-03-22</span>
+                    <span class="timeline-event">Maintainers remove Grafana token loading in commit 7228bc70 ("chore: remove dead code") — 4 days after disclosure</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-04-16</span>
+                    <span class="timeline-event">Remaining 10 telemetry files deleted in commit b99f5ff1, buried inside a character gameplay feature commit ("feat: 希希芙识别") — 29 days after disclosure, one day before the 30-day window</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-04-17</span>
+                    <span class="timeline-event">Maintainer response received via GitHub issue</span>
+                </div>
+                <div class="timeline-row">
+                    <span class="timeline-date">2026-04-17</span>
+                    <span class="timeline-event">Public disclosure — 30-day window elapsed</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current status -->
+        <div class="section">
+            <div class="section-title">// CURRENT STATUS (2026-04-17)</div>
+            <div class="actions-block">
+                <p class="prose">Findings 1, 2, and 4 have been patched. Finding 3 (hostname collection) persists in the refactored <code>telemetry_manager.py</code>. Users are still tracked by a deterministic UUID derived from their computer name on every launch, transmitted to Alibaba Cloud SLS with no opt-out mechanism and no disclosure in the current privacy policy.</p>
+                <p class="prose" style="margin-top: 0.75rem;">Users who ran this software with more than three game accounts configured between the initial telemetry implementation and the April 16 patch should assume their game login usernames were transmitted to Alibaba Cloud SLS.</p>
+            </div>
+        </div>
+
+        <p class="report-footer-note">
+            This report was prepared for responsible disclosure purposes. No credentials were used or tested. All findings are based on static code analysis of publicly available source code.<br><br>
+            Researcher: Ahlyx (@AhIyxx) &nbsp;|&nbsp; Original report: 2026-03-18 &nbsp;|&nbsp; Updated: 2026-04-17
+        </p>
+
+    </main>
+
+    <footer class="site-footer">
+        <a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a>
+        <span class="sep">|</span>
+        <a href="https://twitter.com/AhIyxx" target="_blank" rel="noopener noreferrer">@AhIyxx</a>
+        <span class="sep">|</span>
+        <a href="/privacy">Privacy Policy</a>
+    </footer>
+
+</body>
+</html>
