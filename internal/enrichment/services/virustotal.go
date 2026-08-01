@@ -59,6 +59,7 @@ func FetchVirusTotalIP(apiKey, ip string) (*models.VTIPData, models.SourceMetada
 					Malicious  *int `json:"malicious"`
 					Harmless   *int `json:"harmless"`
 					Suspicious *int `json:"suspicious"`
+					Undetected *int `json:"undetected"`
 				} `json:"last_analysis_stats"`
 				LastAnalysisDate         *int64 `json:"last_analysis_date"`
 				PopularThreatClassification struct {
@@ -83,6 +84,7 @@ func FetchVirusTotalIP(apiKey, ip string) (*models.VTIPData, models.SourceMetada
 		MaliciousVotes:    attrs.LastAnalysisStats.Malicious,
 		HarmlessVotes:     attrs.LastAnalysisStats.Harmless,
 		SuspiciousVotes:   attrs.LastAnalysisStats.Suspicious,
+		UndetectedVotes:   attrs.LastAnalysisStats.Undetected,
 		LastAnalysisDate:  attrs.LastAnalysisDate,
 		AssociatedMalware: malware,
 	}, meta

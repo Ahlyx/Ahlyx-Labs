@@ -18,6 +18,42 @@ const (
 // ErrSubnetTooLarge is returned when the CIDR prefix is shorter than /24.
 var ErrSubnetTooLarge = errors.New("subnet too large: maximum allowed prefix length is /24")
 
+// ErrOutOfScope is returned when the target is not within a private,
+// loopback, or link-local range. The scanner only ever authorizes the
+// caller to test their own network, never arbitrary internet hosts.
+var ErrOutOfScope = errors.New("out of scope: only private (RFC1918), loopback, and link-local targets are allowed")
+
+// inScopeBlocks are the only ranges the scanner is permitted to touch.
+var inScopeBlocks = mustParseCIDRs(
+	"10.0.0.0/8",
+	"172.16.0.0/12",
+	"192.168.0.0/16",
+	"127.0.0.0/8",
+	"169.254.0.0/16",
+)
+
+func mustParseCIDRs(cidrs ...string) []*net.IPNet {
+	blocks := make([]*net.IPNet, 0, len(cidrs))
+	for _, c := range cidrs {
+		_, block, err := net.ParseCIDR(c)
+		if err != nil {
+			panic(err)
+		}
+		blocks = append(blocks, block)
+	}
+	return blocks
+}
+
+// InScope reports whether ip falls within an authorized range.
+func InScope(ip net.IP) bool {
+	for _, block := range inScopeBlocks {
+		if block.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
 // Scan accepts a CIDR range or single IP string and returns scan results.
 // For a CIDR, all host addresses (network and broadcast excluded) are scanned.
 // For a single IP, that address alone is scanned.
@@ -46,6 +82,9 @@ func resolveTargets(input string) ([]net.IP, string, error) {
 		if ones < maxSubnetBits {
 			return nil, "", ErrSubnetTooLarge
 		}
+		if !InScope(network.IP) {
+			return nil, "", ErrOutOfScope
+		}
 		ips := enumerateHosts(network)
 		return ips, input, nil
 	}
@@ -54,6 +93,9 @@ func resolveTargets(input string) ([]net.IP, string, error) {
 	ip := net.ParseIP(input)
 	if ip == nil {
 		return nil, "", fmt.Errorf("invalid input: %q is not a valid IP address or CIDR range", input)
+	}
+	if !InScope(ip) {
+		return nil, "", ErrOutOfScope
 	}
 	return []net.IP{ip}, input, nil
 }

@@ -32,6 +32,10 @@ func NewScanHandler() http.HandlerFunc {
 		}
 
 		if err := validateInput(subnet); err != nil {
+			if errors.Is(err, scanner.ErrOutOfScope) {
+				writeError(w, http.StatusForbidden, err.Error())
+				return
+			}
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -42,6 +46,10 @@ func NewScanHandler() http.HandlerFunc {
 		if err != nil {
 			if errors.Is(err, scanner.ErrSubnetTooLarge) {
 				writeError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			if errors.Is(err, scanner.ErrOutOfScope) {
+				writeError(w, http.StatusForbidden, err.Error())
 				return
 			}
 			writeError(w, http.StatusInternalServerError, "scan failed: "+err.Error())
@@ -57,8 +65,9 @@ func NewScanHandler() http.HandlerFunc {
 	}
 }
 
-// validateInput checks that the input is a valid CIDR or single IP and that
-// CIDR ranges are not larger than /24.
+// validateInput checks that the input is a valid CIDR or single IP, that
+// CIDR ranges are not larger than /24, and that the target is within an
+// authorized (private/loopback/link-local) range.
 func validateInput(input string) error {
 	// Try CIDR.
 	if _, network, err := net.ParseCIDR(input); err == nil {
@@ -66,11 +75,17 @@ func validateInput(input string) error {
 		if ones < 24 {
 			return scanner.ErrSubnetTooLarge
 		}
+		if !scanner.InScope(network.IP) {
+			return scanner.ErrOutOfScope
+		}
 		return nil
 	}
 
 	// Try single IP.
-	if net.ParseIP(input) != nil {
+	if ip := net.ParseIP(input); ip != nil {
+		if !scanner.InScope(ip) {
+			return scanner.ErrOutOfScope
+		}
 		return nil
 	}
 

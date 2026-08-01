@@ -98,21 +98,6 @@ document.querySelectorAll('.tab').forEach(tab => {
     });
 });
 
-// Example queries
-document.querySelectorAll('.example').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const type = btn.dataset.type;
-        const value = btn.dataset.value;
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`.tab[data-type="${type}"]`).classList.add('active');
-        currentType = type;
-        document.getElementById('searchPrefix').textContent = prefixes[type];
-        document.getElementById('searchInput').placeholder = placeholders[type];
-        document.getElementById('searchInput').value = value;
-        performSearch(value, type);
-    });
-});
-
 // Search on enter
 document.getElementById('searchInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') {
@@ -126,6 +111,42 @@ document.getElementById('searchBtn').addEventListener('click', () => {
     const value = document.getElementById('searchInput').value.trim();
     if (value) performSearch(value, currentType);
 });
+
+// ---------------------------------------------------------------------------
+// Verdict computation
+//
+// The IP tool returns a real composite score/tier from the backend
+// (threat_score / threat_tier — weighted AbuseIPDB + VirusTotal signal,
+// see internal/enrichment/models/threat.go). Other tools still report a
+// single is_malicious boolean, so they fall back to a two-state verdict.
+// ---------------------------------------------------------------------------
+const TIER_LABELS = {
+    critical: '⚠ CRITICAL THREAT',
+    high: '⚠ HIGH THREAT',
+    medium: '⚠ MEDIUM RISK',
+    low: '⚑ LOW RISK',
+    clean: '✓ CLEAN'
+};
+
+function getVerdict(data, type) {
+    if (type === 'ip' && data.threat_tier) {
+        return {
+            tier: data.threat_tier,
+            score: data.threat_score,
+            isMalicious: data.threat_tier === 'high' || data.threat_tier === 'critical',
+            label: TIER_LABELS[data.threat_tier] || TIER_LABELS.clean
+        };
+    }
+    const isMalicious = !!(data.is_malicious || data.is_tor ||
+        (data.abuse && data.abuse.abuse_score >= 80) ||
+        (data.virustotal && data.virustotal.malicious_votes > 0));
+    return {
+        tier: isMalicious ? 'high' : 'clean',
+        score: null,
+        isMalicious,
+        label: isMalicious ? TIER_LABELS.high : TIER_LABELS.clean
+    };
+}
 
 async function performSearch(value, type) {
     const resultsSection = document.getElementById('resultsSection');
@@ -173,14 +194,12 @@ async function performSearch(value, type) {
 
         renderResults(data, type);
 
-        const isMalicious = data.is_malicious || data.is_tor ||
-            (data.abuse && data.abuse.abuse_score >= 80) ||
-            (data.virustotal && data.virustotal.malicious_votes > 0);
+        const verdict = getVerdict(data, type);
         if (typeof gtag !== 'undefined') {
             gtag('event', 'enrichment_result', {
                 query_type: type,
                 source_count: data.sources ? data.sources.length : 0,
-                has_threat: isMalicious
+                has_threat: verdict.isMalicious
             });
         }
 
@@ -212,7 +231,7 @@ async function performSearch(value, type) {
             gtag('event', 'enrichment_error', { query_type: type });
         }
         const errBanner = document.createElement('div');
-        errBanner.className = 'verdict-banner malicious';
+        errBanner.className = 'verdict-banner tier-critical';
         const errDot = document.createElement('div');
         errDot.className = 'verdict-dot';
         const errMsg = document.createElement('span');
@@ -230,16 +249,18 @@ function renderResults(data, type) {
     container.innerHTML = '';
 
     // Verdict banner
-    const isMalicious = data.is_malicious || data.is_tor ||
-        (data.abuse && data.abuse.abuse_score >= 80) ||
-        (data.virustotal && data.virustotal.malicious_votes > 0);
+    const verdict = getVerdict(data, type);
 
     const banner = document.createElement('div');
-    banner.className = `verdict-banner ${isMalicious ? 'malicious' : 'clean'}`;
-    banner.innerHTML = `
-        <div class="verdict-dot"></div>
-        ${isMalicious ? '⚠ THREAT DETECTED' : '✓ CLEAN'}
-    `;
+    banner.className = `verdict-banner tier-${verdict.tier}`;
+    const dot = document.createElement('div');
+    dot.className = 'verdict-dot';
+    const label = document.createElement('span');
+    label.textContent = verdict.score !== null
+        ? `${verdict.label} — ${verdict.score}/100`
+        : verdict.label;
+    banner.appendChild(dot);
+    banner.appendChild(label);
     container.appendChild(banner);
 
     // Sources
@@ -345,6 +366,8 @@ function renderIPCards(data, grid) {
     }
     grid.appendChild(createCard('METADATA', [
         ['ip', data.ip],
+        ['threat_score', data.threat_score !== undefined && data.threat_score !== null ? `${data.threat_score}/100` : undefined],
+        ['threat_tier', data.threat_tier],
         ['is_bogon', data.is_bogon],
         ['is_tor', data.is_tor],
         ['query_time', data.timestamp],
@@ -453,14 +476,13 @@ function renderHashCards(data, grid) {
 }
 
 function addToHistory(value, type, data) {
-    const isMalicious = data.is_malicious || data.is_tor ||
-        (data.abuse && data.abuse.abuse_score >= 80) ||
-        (data.virustotal && data.virustotal.malicious_votes > 0);
+    const verdict = getVerdict(data, type);
 
     history.unshift({
         value,
         type,
-        isMalicious,
+        tier: verdict.tier,
+        isMalicious: verdict.isMalicious,
         timestamp: new Date().toLocaleTimeString()
     });
 
@@ -491,8 +513,8 @@ function renderHistory() {
         valueEl.textContent = item.value;
 
         const verdictEl = document.createElement('span');
-        verdictEl.className = `history-verdict ${item.isMalicious ? 'malicious' : 'clean'}`;
-        verdictEl.textContent = item.isMalicious ? '⚠ THREAT' : '✓ CLEAN';
+        verdictEl.className = `history-verdict tier-${item.tier || (item.isMalicious ? 'high' : 'clean')}`;
+        verdictEl.textContent = TIER_LABELS[item.tier] || (item.isMalicious ? '⚠ THREAT' : '✓ CLEAN');
 
         const timeEl = document.createElement('span');
         timeEl.className = 'history-time';

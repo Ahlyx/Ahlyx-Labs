@@ -42,10 +42,11 @@ type AbuseData struct {
 
 // VTIPData holds VirusTotal analysis stats for an IP address.
 type VTIPData struct {
-	MaliciousVotes   *int     `json:"malicious_votes"`
-	HarmlessVotes    *int     `json:"harmless_votes"`
-	SuspiciousVotes  *int     `json:"suspicious_votes"`
-	LastAnalysisDate *int64   `json:"last_analysis_date"`
+	MaliciousVotes    *int     `json:"malicious_votes"`
+	HarmlessVotes     *int     `json:"harmless_votes"`
+	SuspiciousVotes   *int     `json:"suspicious_votes"`
+	UndetectedVotes   *int     `json:"undetected_votes"`
+	LastAnalysisDate  *int64   `json:"last_analysis_date"`
 	AssociatedMalware []string `json:"associated_malware"`
 }
 
@@ -58,6 +59,8 @@ type IPResponse struct {
 	VirusTotal  *VTIPData    `json:"virustotal"`
 	IsBogon     *bool        `json:"is_bogon"`
 	IsTor       *bool        `json:"is_tor"`
+	ThreatScore *int         `json:"threat_score"`
+	ThreatTier  *string      `json:"threat_tier"`
 }
 
 // ---------------------------------------------------------------------------
