@@ -11,7 +11,7 @@
   <circle cx="512" cy="512" r="270" fill="none" stroke="#343A40" stroke-width="3"/>
   <defs><path id="brandArc" d="M 178 492 A 348 348 0 0 1 846 492"/><path id="subtitleArc" d="M 292 443 A 235 235 0 0 1 732 443"/></defs>
   <text class="brand" font-size="68" fill="#E8E4DC"><textPath href="#brandArc" startOffset="50%" text-anchor="middle">AhlyxLabs</textPath></text>
-  <text class="meta" font-size="15" style="letter-spacing:0" fill="#A6ACB3"><textPath href="#subtitleArc" startOffset="50%" text-anchor="middle">SECURITY ENGINEERING · INDEPENDENT RESEARCH</textPath></text>
+  <text class="meta" font-size="22" style="letter-spacing:0" fill="#A6ACB3"><textPath href="#subtitleArc" startOffset="50%" text-anchor="middle">SECURITY ENGINEERING · INDEPENDENT RESEARCH</textPath></text>
   <circle cx="840" cy="512" r="7" fill="#FFB347"/><circle cx="184" cy="512" r="7" fill="#FFB347"/><circle cx="512" cy="840" r="7" fill="#FFB347"/>
   <g stroke="#FFB347" fill="none" stroke-linejoin="round"><rect x="182" y="481" width="220" height="88" rx="8" stroke-width="7"/><rect x="622" y="481" width="220" height="88" rx="8" stroke-width="7"/><g stroke-width="3" opacity=".42"><line x1="237" y1="481" x2="237" y2="569"/><line x1="292" y1="481" x2="292" y2="569"/><line x1="347" y1="481" x2="347" y2="569"/><line x1="677" y1="481" x2="677" y2="569"/><line x1="732" y1="481" x2="732" y2="569"/><line x1="787" y1="481" x2="787" y2="569"/><line x1="182" y1="510" x2="402" y2="510"/><line x1="182" y1="540" x2="402" y2="540"/><line x1="622" y1="510" x2="842" y2="510"/><line x1="622" y1="540" x2="842" y2="540"/></g></g>
   <line x1="402" y1="525" x2="432" y2="525" stroke="#E8E4DC" stroke-width="7"/><line x1="592" y1="525" x2="622" y2="525" stroke="#E8E4DC" stroke-width="7"/>
