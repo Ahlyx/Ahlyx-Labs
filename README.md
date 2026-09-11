@@ -8,7 +8,7 @@
 
 ## Overview
 
-Ahlyx Labs consolidates three security tools into a single monorepo: a multi-source **Security Enrichment API**, a TCP **Network Scanner** with OT/ICS port awareness, and a real-time **Hardware Dashboard**. A single Go binary on [Render](https://render.com) serves all backend routes; a Vercel deployment serves all frontends as static files under the `ahlyxlabs.com` domain.
+Ahlyx Labs brings together four live security utilities in one monorepo: a multi-source **Security Enrichment API**, a TCP **Network Scanner** with OT/ICS port awareness, a real-time **Hardware Dashboard**, and **PCAP Agent** for browser-visible local packet analysis. A single Go binary on [Render](https://render.com) serves all backend routes; a Vercel deployment serves all frontends as static files under the `ahlyxlabs.com` domain.
 
 ---
 
@@ -43,6 +43,14 @@ Real-time system telemetry for the host running the backend (Render VM).
 | `GET /api/v1/hardware/ram` | Total, used, available, swap |
 | `GET /api/v1/hardware/disk` | Per-partition usage + I/O totals |
 | `GET /api/v1/hardware/network` | Per-interface addresses + traffic totals |
+
+### PCAP Agent
+Local packet capture with a browser relay for live analysis. The agent and browser connect to the same temporary relay session; the browser WebSocket does not initiate packet capture.
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/v1/pcap/session` | Create a short-lived relay session and return its browser/agent WebSocket URL |
+| `GET /ws/relay/{session_id}?role=agent|browser` | Relay packet-analysis frames between the local agent and browser |
 
 ### Health Check
 ```
@@ -134,7 +142,13 @@ cp .env.example .env
 go run ./cmd/server
 ```
 
-Server starts on `http://localhost:8080`. Open any `frontend/*/index.html` directly in a browser or serve the `frontend/` directory with a static server.
+Server starts on `http://localhost:8080`. Serve the frontend directory so deployment-style absolute asset paths resolve correctly:
+
+```bash
+python -m http.server 4173 --directory frontend
+```
+
+Then open `http://localhost:4173/landing/`, `http://localhost:4173/services/`, or any other tool directory. The Go backend is separate from this static preview; tool pages use the deployed API by default.
 
 ### Docker
 ```bash

@@ -6,23 +6,22 @@
     <link rel="icon" href="/assets/brand/ahlyxlabs-favicon.svg" type="image/svg+xml">
     <title>Privacy Policy — Ahlyx Labs</title>
     <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/assets/site.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
-
         :root {
-            --bg: #0a0e1a;
-            --bg-panel: #0d1321;
-            --bg-elevated: #111827;
-            --border: #1a2a4a;
-            --border-accent: #005f6b;
-            --accent: #00e5ff;
-            --accent-dim: rgba(0, 229, 255, 0.08);
-            --white: #e0f7fa;
-            --dim: #546e7a;
-            --muted: #37474f;
-            --font-mono: 'Share Tech Mono', monospace;
-            --font-body: 'Exo 2', sans-serif;
-            --glow: 0 0 10px rgba(0, 229, 255, 0.15);
+            --bg: #090a0b;
+            --bg-panel: #111317;
+            --bg-elevated: #171a1f;
+            --border: #343a40;
+            --border-accent: #d8952a;
+            --accent: #ffb347;
+            --accent-dim: rgba(255, 179, 71, 0.09);
+            --white: #e8e4dc;
+            --dim: #a6acb3;
+            --muted: #789aa5;
+            --font-mono: 'IBM Plex Mono', 'Cascadia Mono', Consolas, monospace;
+            --font-body: 'IBM Plex Sans', Inter, system-ui, sans-serif;
+            --glow: none;
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,6 +38,7 @@
 
         a { color: var(--accent); text-decoration: none; }
         a:hover { opacity: 0.8; }
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
         .page-header {
             padding: 2.5rem 1.5rem 2rem;
@@ -51,6 +51,10 @@
             color: var(--dim);
             display: inline-block;
             margin-bottom: 1.25rem;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
             transition: color 0.15s ease;
         }
         .back-link:hover { color: var(--accent); opacity: 1; }
@@ -153,7 +157,7 @@
 <body>
 
     <header class="page-header">
-        <a href="/" class="back-link">[ ← BACK ]</a>
+        <button class="back-link" type="button" onclick="history.length > 1 ? history.back() : location.assign('/')">[ &larr; BACK ]</button>
         <h1 class="page-title">PRIVACY POLICY</h1>
         <p class="page-subtitle">Last updated: March 2026</p>
     </header>
