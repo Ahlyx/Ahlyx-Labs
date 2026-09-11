@@ -24,6 +24,6 @@
   </g>
   <text x="610" y="165" class="brand" font-size="96" fill="#E8E4DC">AhlyxLabs</text>
   <line x1="612" y1="207" x2="1505" y2="207" stroke="#343A40" stroke-width="2"/>
-  <text x="615" y="266" class="meta" font-size="23" letter-spacing="2.4" fill="#FFB347">SECURITY ENGINEERING · AGENT SECURITY · DEVELOPER TOOLING</text>
-  <text x="615" y="315" class="meta" font-size="20" letter-spacing="2" fill="#A6ACB3">OPEN-SOURCE TOOLS · INDEPENDENT RESEARCH · FIXED-SCOPE PROJECTS</text>
+  <text x="615" y="266" class="meta" font-size="23" letter-spacing="2.4" textLength="790" lengthAdjust="spacingAndGlyphs" fill="#FFB347">SECURITY ENGINEERING · AGENT SECURITY · DEVELOPER TOOLING</text>
+  <text x="615" y="315" class="meta" font-size="20" letter-spacing="2" textLength="690" lengthAdjust="spacingAndGlyphs" fill="#A6ACB3">OPEN-SOURCE TOOLS · INDEPENDENT RESEARCH · FIXED-SCOPE PROJECTS</text>
 </svg>
