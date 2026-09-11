@@ -1,110 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/assets/brand/ahlyxlabs-favicon.svg" type="image/svg+xml">
-    <title>Ahlyx Labs</title>
-
-    <!-- SEO -->
-    <meta name="description" content="Ahlyx Labs — security tools for threat intelligence, network scanning, and system monitoring. Built by Ahlyx.">
-    <meta name="keywords" content="security tools, threat intelligence, network scanner, OT ICS security, cybersecurity">
-    <meta property="og:title" content="Ahlyx Labs">
-    <meta property="og:description" content="Security tooling by Ahlyx — threat intelligence, network scanning, hardware monitoring">
+    <title>Ahlyx Labs — Security Engineering &amp; Independent Research</title>
+    <meta name="description" content="Ahlyx Labs is an independent security and software lab building open-source tools, publishing security research, and taking on small fixed-scope engineering work.">
+    <meta name="keywords" content="security engineering, agent security, developer tooling, independent security research, MCP security">
+    <meta property="og:title" content="Ahlyx Labs — Security Engineering &amp; Independent Research">
+    <meta property="og:description" content="Open-source tools, independent security research, and small fixed-scope engineering work.">
     <meta property="og:url" content="https://ahlyxlabs.com">
     <meta property="og:type" content="website">
     <link rel="canonical" href="https://ahlyxlabs.com">
-
-    <!-- Analytics -->
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
-
     <link rel="stylesheet" href="/assets/site.css">
     <link rel="stylesheet" href="/landing/style.css">
 </head>
 <body>
-
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
         <div class="header-inner">
-            <a class="brand-lockup" href="/" aria-label="Ahlyx Labs home">
-                <img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs">
-            </a>
+            <a class="brand-lockup" href="/" aria-label="Ahlyx Labs home"><img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs"></a>
             <nav class="site-nav" aria-label="Primary navigation">
-                <a href="/#work">Work</a>
-                <a href="/#services">Services</a>
-                <a href="/#research">Research</a>
-                <a href="/#lab">Lab</a>
-                <a href="/#about">About</a>
-                <a href="/#contact">Contact</a>
-                <a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href="#work">Work</a><a href="#services">Services</a><a href="#research">Research</a><a href="#lab">Lab</a><a href="#about">About</a><a href="#contact">Contact</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a>
             </nav>
         </div>
     </header>
-
-    <main class="tools-section">
-        <div class="tools-grid">
-
-            <article class="card">
-                <h2 class="card-title">Security Enrichment API</h2>
-                <p class="card-desc">Threat intelligence aggregation across 7 sources</p>
-                <a href="/enrichment" class="card-btn">[ LAUNCH → ]</a>
-            </article>
-
-            <article class="card">
-                <h2 class="card-title">Network Scanner</h2>
-                <p class="card-desc">TCP port scanning with OT/ICS protocol detection</p>
-                <a href="/scanner" class="card-btn">[ LAUNCH → ]</a>
-            </article>
-
-            <article class="card">
-                <h2 class="card-title">Hardware Dashboard</h2>
-                <p class="card-desc">Live system metrics: CPU, RAM, disk, network</p>
-                <a href="/hardware" class="card-btn">[ LAUNCH → ]</a>
-            </article>
-
-            <article class="card">
-                <h2 class="card-title">PCAP Agent</h2>
-                <p class="card-desc">Live network packet capture with real-time threat detection and browser dashboard</p>
-                <a href="/pcap" class="card-btn">[ LAUNCH → ]</a>
-            </article>
-
-            <article class="card">
-                <h2 class="card-title">Baptisia</h2>
-                <p class="card-desc">Safety-enforcing DSL for ICS/OT systems, compiles to C</p>
-                <a href="https://github.com/Ahlyx/Baptisia" target="_blank" rel="noopener noreferrer" class="card-btn">[ LAUNCH → ]</a>
-            </article>
-
-            <article class="card">
-                <h2 class="card-title">Security Research</h2>
-                <p class="card-desc">Independent findings, responsible disclosure, and supply chain analysis</p>
-                <a href="/research" class="card-btn">[ LAUNCH → ]</a>
-            </article>
-
-        </div>
+    <main id="main-content">
+        <section class="hero section-shell" aria-labelledby="hero-title">
+            <div class="hero-copy">
+                <p class="eyebrow">/ Independent security &amp; software lab</p>
+                <h1 id="hero-title">Security engineering, agent security &amp; developer tooling.</h1>
+                <p class="hero-summary">Open-source tools, independent security research, and small fixed-scope engineering work.</p>
+                <div class="hero-actions"><a class="button button-primary" href="mailto:alex@ahlyxlabs.com?subject=Ahlyx%20Labs%20project%20inquiry">Work with me <span aria-hidden="true">&rarr;</span></a><a class="button button-secondary" href="#work">Explore work <span aria-hidden="true">&rarr;</span></a></div>
+                <p class="hero-meta">Open source &middot; independent &middot; security / systems / tooling</p>
+            </div>
+            <div class="hero-mark"><img src="/assets/brand/ahlyxlabs-badge.svg" alt="Ahlyx Labs circular satellite badge"></div>
+        </section>
+        <section class="content-section section-shell" id="services" aria-labelledby="services-title">
+            <div class="section-heading"><p class="section-number">01 / Services</p><div><h2 id="services-title">Focused help for small, well-defined projects.</h2><p>Clear scope, practical deliverables, and no inflated consulting promises.</p></div></div>
+            <div class="service-list">
+                <article class="service-entry"><div class="service-id">A</div><div><h3>MCP / AI-agent security review</h3><p>Static review of a small MCP server or agent integration: permissions, secrets, trust boundaries, sensitive operations, logging, input handling, and remediation.</p></div><p class="service-price">from $75</p></article>
+                <article class="service-entry"><div class="service-id">B</div><div><h3>Developer tooling &amp; automation</h3><p>Small utilities, API integrations, parsers, reporting workflows, logging/audit tools, Dockerization, test automation, and focused Go, Python, or Rust work.</p></div><p class="service-price">from $100</p></article>
+                <article class="service-entry"><div class="service-id">C</div><div><h3>Static security code review</h3><p>Concise inspection of small open-source projects and developer tools for obvious security, privacy, configuration, and supply-chain risks.</p></div><p class="service-price">from $75</p></article>
+            </div>
+            <a class="text-link" href="mailto:alex@ahlyxlabs.com?subject=Ahlyx%20Labs%20project%20inquiry">Discuss a project <span aria-hidden="true">&rarr;</span></a>
+        </section>
+        <section class="content-section section-shell" id="work" aria-labelledby="work-title">
+            <div class="section-heading"><p class="section-number">02 / Featured work</p><div><h2 id="work-title">Tools and systems work.</h2><p>Selected practical projects across security engineering, systems, and developer tooling.</p></div></div>
+            <div class="work-list">
+                <article class="work-item"><p class="work-number">01</p><div class="work-main"><h3>AuditMCP</h3><p>Local-first MCP auditing with tamper-evident logs and automatic secret redaction.</p><p class="tag-list">Rust / MCP / SQLite / Security</p></div><a class="text-link" href="https://github.com/Ahlyx/auditmcp" target="_blank" rel="noopener noreferrer">View project <span aria-hidden="true">&rarr;</span></a></article>
+                <article class="work-item"><p class="work-number">02</p><div class="work-main"><h3>Conveyance</h3><p>Security engineering R&amp;D exploring credential isolation and phone-approved, second-device authorization.</p><p class="tag-list">Android / Security / Systems R&amp;D</p></div><a class="text-link" href="https://github.com/Ahlyx/Conveyance" target="_blank" rel="noopener noreferrer">View project <span aria-hidden="true">&rarr;</span></a></article>
+                <article class="work-item"><p class="work-number">03</p><div class="work-main"><h3>Security Enrichment</h3><p>Threat-intelligence enrichment for IPs, domains, URLs, and file hashes across multiple security data sources.</p><p class="tag-list">Go / Threat intelligence / Web API</p></div><div class="work-actions"><a class="text-link" href="/enrichment">Use tool <span aria-hidden="true">&rarr;</span></a><a class="text-link subtle-link" href="https://github.com/Ahlyx/Ahlyx-Labs" target="_blank" rel="noopener noreferrer">View source <span aria-hidden="true">&rarr;</span></a></div></article>
+            </div>
+        </section>
+        <section class="content-section section-shell" id="research" aria-labelledby="research-title">
+            <div class="section-heading"><p class="section-number">03 / Security research</p><div><h2 id="research-title">Public findings, responsibly reported.</h2><p>Static analysis and manual review of publicly available code, with disclosure status retained alongside each report.</p></div></div>
+            <div class="research-list">
+                <article class="research-entry"><p class="research-meta">2026-03-18 &middot; Supply chain &middot; Reported</p><h3>RustChain — Malicious Installer</h3><p>A malicious installer analysis covering SSH key deployment, undisclosed hardware fingerprinting, and persistent service behavior.</p><a class="text-link" href="/research/rustchain">Read writeup <span aria-hidden="true">&rarr;</span></a></article>
+                <article class="research-entry"><p class="research-meta">2026-03-18 &middot; Privacy &middot; Disclosed</p><h3>OneDragon — Telemetry Policy Violation</h3><p>A review of anonymization bypasses and transmission of account usernames and hostnames contrary to a published privacy policy.</p><a class="text-link" href="/research/onedragon">Read writeup <span aria-hidden="true">&rarr;</span></a></article>
+            </div>
+            <a class="text-link" href="/research">View all research <span aria-hidden="true">&rarr;</span></a>
+        </section>
+        <section class="content-section section-shell" id="lab" aria-labelledby="lab-title">
+            <div class="section-heading"><p class="section-number">04 / Lab</p><div><h2 id="lab-title">Experiments and live utilities.</h2><p>Earlier tools and active research experiments that complement the featured work.</p></div></div>
+            <div class="lab-grid">
+                <article class="lab-entry"><p class="lab-status">Experimental / R&amp;D</p><h3>Baptisia</h3><p>A safety-enforcing DSL for ICS/OT systems that compiles to C.</p><a class="text-link" href="https://github.com/Ahlyx/Baptisia" target="_blank" rel="noopener noreferrer">View project <span aria-hidden="true">&rarr;</span></a></article>
+                <article class="lab-entry"><p class="lab-status">Live utility</p><h3>PCAP Agent</h3><p>Local network packet capture with real-time browser analysis.</p><a class="text-link" href="/pcap">Open tool <span aria-hidden="true">&rarr;</span></a></article>
+                <article class="lab-entry"><p class="lab-status">Live utility</p><h3>Network Scanner</h3><p>TCP scanning with OT/ICS protocol awareness.</p><a class="text-link" href="/scanner">Open tool <span aria-hidden="true">&rarr;</span></a></article>
+                <article class="lab-entry"><p class="lab-status">Live utility</p><h3>Hardware Dashboard</h3><p>Backend host telemetry for CPU, memory, disk, and network.</p><a class="text-link" href="/hardware">Open tool <span aria-hidden="true">&rarr;</span></a></article>
+            </div>
+        </section>
+        <section class="content-section section-shell about-section" id="about" aria-labelledby="about-title"><p class="section-number">05 / About</p><div><h2 id="about-title">An independent lab run by Alex.</h2><p>Ahlyx Labs focuses on security tooling, agent security, systems programming, automation, and independent research.</p></div></section>
+        <section class="contact-section" id="contact" aria-labelledby="contact-title"><div class="section-shell contact-inner"><p class="section-number">06 / Contact</p><div><h2 id="contact-title">Have a small project?</h2><p>Send what you are trying to build or review, the relevant repository or documentation, and your expected timeframe.</p></div><a class="button button-primary" href="mailto:alex@ahlyxlabs.com?subject=Ahlyx%20Labs%20project%20inquiry">Discuss a project <span aria-hidden="true">&rarr;</span></a></div></section>
     </main>
-
-    <footer class="site-footer">
-        <a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a>
-        <span class="sep">|</span>
-        <a href="https://twitter.com/AhIyxx" target="_blank" rel="noopener noreferrer">@AhIyxx</a>
-        <span class="sep">|</span>
-        <a href="/privacy">Privacy Policy</a>
-    </footer>
-
-    <div id="consent-banner" class="consent-banner hidden" role="dialog" aria-label="Cookie consent">
-        <p class="consent-text">
-            This site uses analytics to improve your experience.
-            We use Google Analytics and Vercel Analytics.
-            Vercel Analytics collects no personal data.
-            Google Analytics is only enabled with your consent.
-        </p>
-        <div class="consent-actions">
-            <button id="consent-accept" class="consent-btn consent-btn-accept">[ ACCEPT ]</button>
-            <button id="consent-decline" class="consent-btn consent-btn-decline">[ DECLINE ]</button>
-        </div>
-    </div>
-
+    <footer class="site-footer"><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a><span class="sep" aria-hidden="true">|</span><a href="https://twitter.com/AhIyxx" target="_blank" rel="noopener noreferrer">@AhIyxx</a><span class="sep" aria-hidden="true">|</span><a href="mailto:alex@ahlyxlabs.com">alex@ahlyxlabs.com</a><span class="sep" aria-hidden="true">|</span><a href="/privacy">Privacy Policy</a></footer>
+    <div id="consent-banner" class="consent-banner hidden" role="dialog" aria-label="Cookie consent"><p class="consent-text">This site uses Vercel Analytics and, with your consent, Google Analytics to understand how the site is used.</p><div class="consent-actions"><button id="consent-accept" class="consent-btn consent-btn-accept">Accept</button><button id="consent-decline" class="consent-btn consent-btn-decline">Decline</button></div></div>
     <script src="/landing/app.js"></script>
 </body>
 </html>
