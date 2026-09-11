@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+    --bg: #090a0b;
+    --surface: #111317;
+    --surface-raised: #171a1f;
+    --text: #e8e4dc;
+    --text-muted: #a6acb3;
+    --amber: #ffb347;
+    --amber-dim: #d8952a;
+    --danger: #ff5a4f;
+    --success: #58b47a;
+    --technical: #789aa5;
+    --border: #343a40;
+    --font-brand: 'Audiowide', 'Arial Black', sans-serif;
+    --font-body: 'IBM Plex Sans', Inter, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Cascadia Mono', Consolas, monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+}
+
+a { color: inherit; }
+
+:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}

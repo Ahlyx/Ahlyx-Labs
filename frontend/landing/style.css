@@ -1,21 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
-
 :root {
-    --bg: #0a0e1a;
-    --bg-panel: #0d1321;
-    --bg-elevated: #111827;
-    --border: #1a2a4a;
-    --border-accent: #005f6b;
-    --accent: #00e5ff;
-    --accent-dim: rgba(0, 229, 255, 0.08);
-    --threat: #ff4444;
-    --threat-dim: rgba(255, 68, 68, 0.08);
-    --white: #e0f7fa;
-    --dim: #546e7a;
-    --muted: #37474f;
-    --font-mono: 'Share Tech Mono', monospace;
-    --font-body: 'Exo 2', sans-serif;
-    --glow: 0 0 10px rgba(0, 229, 255, 0.15);
+    --bg-panel: var(--surface);
+    --bg-elevated: var(--surface-raised);
+    --border-accent: var(--amber-dim);
+    --accent: var(--amber);
+    --accent-dim: rgba(255, 179, 71, 0.08);
+    --threat: var(--danger);
+    --threat-dim: rgba(255, 90, 79, 0.08);
+    --white: var(--text);
+    --dim: var(--text-muted);
+    --muted: var(--technical);
+    --glow: 0 0 18px rgba(255, 179, 71, 0.1);
 }
 
 *, *::before, *::after {
@@ -31,8 +25,8 @@ html {
 body {
     background: var(--bg);
     color: var(--white);
-    font-family: var(--font-mono);
-    font-weight: 300;
+    font-family: var(--font-body);
+    font-weight: 400;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -51,26 +45,53 @@ a:hover {
 /* ── Header ────────────────────────────────────────────────── */
 
 .site-header {
-    text-align: center;
-    padding: 4rem 1.5rem 3rem;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(9, 10, 11, 0.96);
     border-bottom: 1px solid var(--border);
 }
 
-.site-title {
-    font-family: var(--font-mono);
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    color: var(--accent);
-    text-shadow: var(--glow);
-    letter-spacing: 0.08em;
-    line-height: 1.1;
+.header-inner {
+    width: min(1440px, calc(100% - 3rem));
+    min-height: 5.25rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
 }
 
-.site-subtitle {
+.brand-lockup {
+    width: clamp(11rem, 20vw, 15.5rem);
+    display: block;
+    flex: 0 0 auto;
+}
+
+.brand-lockup img { display: block; width: 100%; height: auto; }
+
+.site-nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.1rem;
     font-family: var(--font-mono);
-    font-size: 0.9rem;
-    color: var(--dim);
-    margin-top: 0.6rem;
-    letter-spacing: 0.04em;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.site-nav a {
+    color: var(--text-muted);
+    padding: 0.55rem 0;
+    border-bottom: 1px solid transparent;
+}
+
+.site-nav a:hover {
+    color: var(--amber);
+    border-bottom-color: var(--amber);
+    opacity: 1;
 }
 
 /* ── Tool grid ─────────────────────────────────────────────── */
@@ -114,8 +135,8 @@ a:hover {
 }
 
 .card-desc {
-    font-size: 0.88rem;
-    color: var(--dim);
+    font-size: 0.96rem;
+    color: var(--text-muted);
     line-height: 1.5;
     flex: 1;
 }
@@ -240,9 +261,8 @@ a:hover {
 /* ── Responsive ────────────────────────────────────────────── */
 
 @media (max-width: 480px) {
-    .site-header {
-        padding: 2.5rem 1rem 2rem;
-    }
+    .header-inner { width: min(100% - 2rem, 1440px); min-height: auto; padding: 0.85rem 0; align-items: flex-start; flex-direction: column; gap: 0.4rem; }
+    .site-nav { justify-content: flex-start; gap: 0.25rem 0.85rem; }
 
     .tools-section {
         padding: 2rem 1rem;
