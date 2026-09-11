@@ -4,13 +4,13 @@ body { min-width: 320px; overflow-x: hidden; }
 .site-header { position: sticky; top: 0; z-index: 20; background: rgba(9, 10, 11, .96); border-bottom: 1px solid var(--border); }
 .header-inner, .section-shell { width: min(calc(100% - 3rem), 1240px); margin: 0 auto; }
 .header-inner { min-height: 6.5rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
-.brand-lockup { display: block; width: clamp(14rem, 26vw, 24rem); flex: 0 0 auto; }
+.brand-lockup { display: block; width: clamp(22rem, 35vw, 34rem); flex: 0 0 auto; }
 .brand-lockup img { display: block; width: 100%; height: auto; }
 .brand-context { display: block; margin-top: .3rem; color: var(--amber); font: .56rem/1.2 var(--font-mono); letter-spacing: .045em; text-transform: uppercase; white-space: nowrap; }
 .site-nav { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .25rem 1.1rem; font: .72rem/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
 .site-nav a { color: var(--text-muted); text-decoration: none; padding: .55rem 0; border-bottom: 1px solid transparent; }
 .site-nav a:hover { color: var(--amber); border-bottom-color: var(--amber); }
-.hero { min-height: min(580px, calc(100vh - 5.25rem)); display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(220px, .55fr); align-items: center; gap: clamp(2rem, 5vw, 5rem); padding-top: clamp(3rem, 6vw, 5rem); padding-bottom: clamp(3rem, 6vw, 5rem); }
+.hero { min-height: min(580px, calc(100vh - 5.25rem)); display: grid; grid-template-columns: minmax(0, 1fr) minmax(485px, .7fr); align-items: center; gap: clamp(2rem, 4vw, 4rem); padding-top: clamp(3rem, 6vw, 5rem); padding-bottom: clamp(3rem, 6vw, 5rem); }
 .eyebrow, .section-number, .hero-meta, .tag-list, .research-meta, .lab-status { margin: 0; color: var(--amber); font: .75rem/1.4 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
 h1, h2, h3, p { margin-top: 0; }
 h1, h2, h3 { color: var(--text); }
@@ -23,7 +23,7 @@ h1 { max-width: 13ch; margin: 1.25rem 0; font: 400 clamp(2.8rem, 5.2vw, 5.5rem)/
 .button-primary:hover { background: var(--text); border-color: var(--text); }
 .button-secondary:hover { border-color: var(--amber); color: var(--amber); }
 .hero-meta { margin-top: 1.4rem; color: var(--technical); font-size: .68rem; }
-.hero-mark { align-self: start; justify-self: end; width: min(100%, 330px); margin-top: clamp(.75rem, 1.25vw, 1.25rem); }
+.hero-mark { align-self: start; justify-self: end; width: min(100%, 485px); margin-top: clamp(.75rem, 1.25vw, 1.25rem); }
 .hero-mark img { display: block; width: 100%; height: auto; }
 .content-section { padding-top: clamp(4.5rem, 9vw, 8rem); }
 .content-section:last-of-type { padding-bottom: clamp(4.5rem, 9vw, 8rem); }
