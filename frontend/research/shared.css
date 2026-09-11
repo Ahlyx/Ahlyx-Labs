@@ -4,7 +4,7 @@
 .site-header { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--border); background: rgba(9, 10, 11, .96); }
 .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; width: min(calc(100% - 3rem), 1120px); min-height: 5.25rem; margin: 0 auto; }
 .header-identity { display: flex; align-items: center; gap: 1rem; min-width: 0; }
-.brand-lockup { display: block; width: clamp(12rem, 22vw, 18rem); flex: 0 0 auto; }
+.brand-lockup { display: block; width: clamp(22rem, 35vw, 34rem); flex: 0 0 auto; }
 .brand-lockup img { display: block; width: 100%; height: auto; }
 .back-button { padding: .45rem 0; border: 0; border-bottom: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; font: .72rem/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
 .back-button:hover { color: var(--amber); border-bottom-color: var(--amber); }
