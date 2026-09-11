@@ -1,0 +1,53 @@
+main { display: flex; flex: 1; flex-direction: column; gap: clamp(2.25rem, 4vw, 3.5rem); width: min(calc(100% - 3rem), 1120px); margin: 0 auto; padding: clamp(3rem, 7vw, 6rem) 0; }
+.report-header { padding-bottom: clamp(2.25rem, 5vw, 3.75rem); border-bottom: 1px solid var(--border); }
+.report-tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.25rem; }
+.tag, .severity-badge { padding: .22rem .5rem; border: 1px solid var(--border); font: .65rem/1.25 var(--font-mono); letter-spacing: .07em; text-transform: uppercase; }
+.tag.threat, .severity-badge { border-color: color-mix(in srgb, var(--danger) 70%, var(--border)); color: var(--danger); }
+.tag.status { border-color: color-mix(in srgb, var(--amber) 60%, var(--border)); color: var(--amber); }
+.tag.neutral { color: var(--technical); }
+.report-title { max-width: 24ch; margin: 0 0 .75rem; color: var(--text); font: 400 clamp(2rem, 4.5vw, 4.5rem)/1 var(--font-brand); letter-spacing: -.04em; overflow-wrap: anywhere; }
+.report-subtitle { max-width: 65ch; margin: 0 0 2rem; color: var(--text-muted); font-size: clamp(1rem, 1.4vw, 1.18rem); line-height: 1.6; }
+.report-meta-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+.meta-cell { min-height: 5.5rem; padding: 1rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); }
+.meta-label { margin-bottom: .4rem; color: var(--technical); font: .65rem/1.3 var(--font-mono); letter-spacing: .08em; }
+.meta-value { color: var(--text); font-size: .94rem; line-height: 1.4; }
+.meta-value.threat { color: var(--danger); }
+.meta-value.accent { color: var(--success); }
+.section { display: flex; flex-direction: column; gap: 1.15rem; }
+.section-title { padding-bottom: .8rem; border-bottom: 1px solid var(--border); color: var(--amber); font: .72rem/1.4 var(--font-mono); letter-spacing: .09em; }
+.prose { max-width: 48rem; margin: 0; color: var(--text-muted); font: 400 clamp(1.06rem, 1.3vw, 1.13rem)/1.72 var(--font-body); }
+.prose strong { color: var(--text); font-weight: 600; }
+.prose code, code { padding: .08em .3em; background: var(--surface); color: var(--technical); font: .88em var(--font-mono); }
+.summary-table { width: 100%; min-width: 640px; border-collapse: collapse; color: var(--text); font-size: .93rem; line-height: 1.55; }
+.summary-table th { padding: .75rem 1rem; border: 1px solid var(--border); background: var(--surface); color: var(--technical); font: .67rem/1.3 var(--font-mono); letter-spacing: .08em; text-align: left; }
+.summary-table td { padding: .85rem 1rem; border: 1px solid var(--border); vertical-align: top; }
+.summary-table td:first-child { width: 31%; color: var(--text-muted); font: .78rem/1.5 var(--font-mono); }
+.td-threat { color: var(--danger) !important; }
+.td-accent { color: var(--success) !important; }
+.finding { border: 1px solid var(--border); border-left: 3px solid var(--danger); background: var(--surface); }
+.finding-header { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem 1rem; padding: .9rem 1.1rem; border-bottom: 1px solid var(--border); }
+.finding-number { color: var(--technical); font: .66rem var(--font-mono); letter-spacing: .08em; }
+.finding-title { flex: 1; color: var(--danger); font-size: 1rem; font-weight: 600; }
+.finding-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); border-bottom: 1px solid var(--border); }
+.finding-meta-cell { padding: .7rem 1rem; border-right: 1px solid var(--border); color: var(--text-muted); font: .75rem/1.5 var(--font-mono); }
+.finding-body { padding: 1.25rem; }
+.code-block { overflow-x: auto; padding: 1rem; border: 1px solid var(--border); background: #070809; color: var(--text); font: .8rem/1.6 var(--font-mono); white-space: pre; }
+.code-comment { color: var(--text-muted); }
+.code-highlight { color: var(--danger); }
+.assessment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.assessment-box, .actions-block { padding: 1.25rem; border: 1px solid var(--border); background: var(--surface); }
+.assessment-box-title { margin-bottom: .85rem; padding-bottom: .65rem; border-bottom: 1px solid var(--border); color: var(--technical); font: .68rem var(--font-mono); letter-spacing: .08em; }
+.assessment-list, .actions-list { display: flex; flex-direction: column; gap: .7rem; margin: 0; padding: 0; list-style: none; }
+.assessment-list li, .actions-list li { position: relative; padding-left: 1.1rem; color: var(--text-muted); font-size: .97rem; line-height: 1.6; }
+.assessment-list li::before { position: absolute; left: 0; color: var(--amber); content: '→'; }
+.assessment-list.threat li::before { color: var(--danger); }
+.actions-block { max-width: 52rem; border-left: 3px solid var(--amber); }
+.actions-list li::before { position: absolute; left: 0; color: var(--success); content: '✓'; }
+.timeline { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.timeline-row { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 1.25rem; padding: .85rem 1rem; border-top: 1px solid var(--border); }
+.timeline-row:first-child { border-top: 0; }
+.timeline-date { color: var(--technical); font: .72rem/1.5 var(--font-mono); }
+.timeline-event { color: var(--text-muted); font-size: .98rem; line-height: 1.6; }
+.report-footer-note { max-width: 52rem; margin: 0; padding-top: 1.25rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: .9rem; line-height: 1.7; }
+@media (max-width: 760px) { .report-meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .assessment-grid { grid-template-columns: 1fr; } }
+@media (max-width: 680px) { main { width: calc(100% - 2rem); padding-top: 3.5rem; padding-bottom: 4.5rem; } .report-meta-grid { grid-template-columns: 1fr; } .meta-cell { min-height: auto; } .finding-meta { grid-template-columns: 1fr; } .finding-meta-cell { border-right: 0; border-top: 1px solid var(--border); } .timeline-row { grid-template-columns: 1fr; gap: .25rem; padding: .85rem 0; } .summary-table { min-width: 580px; } .section:has(.summary-table) { overflow-x: auto; } .finding-body, .assessment-box, .actions-block { padding: 1rem; } }
