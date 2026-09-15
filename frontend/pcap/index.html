@@ -43,7 +43,7 @@
             <span class="made-by">live network analysis</span>
         </div>
         <div class="header-meta">
-            <span class="version-tag">v0.1.0</span>
+            <span class="version-tag">v0.4.0</span>
             <span class="status-dot" id="statusDot"></span>
             <span class="status-text" id="statusText">CONNECTING...</span>
         </div>
@@ -69,7 +69,7 @@
                     <div class="prereq-row">
                         <span class="prereq-platform">Linux</span>
                         <code class="setup-cmd">sudo apt-get install -y libpcap-dev</code>
-                        <span class="prereq-note">// must run with sudo</span>
+                        <span class="prereq-note">// capture may require sudo</span>
                     </div>
                     <div class="prereq-row">
                         <span class="prereq-platform">macOS</span>
@@ -93,19 +93,19 @@
                         <tbody>
                             <tr>
                                 <td class="setup-td-dim">Linux (amd64)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-linux-amd64</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.0" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-linux-amd64</a></td>
                             </tr>
                             <tr>
                                 <td class="setup-td-dim">Windows (amd64)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-windows-amd64.exe</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.0/pcap-agent.exe" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent.exe</a></td>
                             </tr>
                             <tr>
                                 <td class="setup-td-dim">macOS (Intel)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-darwin-amd64</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.0" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-darwin-amd64</a></td>
                             </tr>
                             <tr>
                                 <td class="setup-td-dim">macOS (Apple Silicon)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-darwin-arm64</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.0" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-darwin-arm64</a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -119,17 +119,29 @@
 
                 <div class="setup-block">
                     <div class="setup-block-title">// usage</div>
-                    <div class="setup-code-block">
+                    <div class="setup-platform-grid">
+                    <div class="setup-code-block setup-platform-card">
+                        <span class="setup-platform-title">Windows PowerShell (run elevated)</span>
+                        <span class="setup-cmd-comment">// start with automatic interface selection</span>
+                        <span class="setup-cmd-line">.\pcap-agent start</span>
+                        <span class="setup-cmd-comment">// advanced: select an interface explicitly</span>
+                        <span class="setup-cmd-line">.\pcap-agent list-interfaces</span>
+                        <span class="setup-cmd-line">.\pcap-agent start --interface "&lt;interface&gt;"</span>
+                    </div>
+                    <div class="setup-code-block setup-platform-card">
+                        <span class="setup-platform-title">Linux</span>
                         <span class="setup-cmd-comment">// list available network interfaces</span>
-                        <span class="setup-cmd-line">sudo ./pcap-agent list-interfaces</span>
-                        <span class="setup-cmd-comment">// start capturing on default interface (local mode)</span>
-                        <span class="setup-cmd-line">sudo ./pcap-agent start</span>
-                        <span class="setup-cmd-comment">// capture on a specific interface</span>
-                        <span class="setup-cmd-line">sudo ./pcap-agent start --interface eth0</span>
-                        <span class="setup-cmd-comment">// use a custom local WebSocket port</span>
-                        <span class="setup-cmd-line">sudo ./pcap-agent start --port 8888</span>
-                        <span class="setup-cmd-comment">// relay mode — stream to ahlyxlabs.com/pcap?session=&lt;id&gt;</span>
-                        <span class="setup-cmd-line">sudo ./pcap-agent start --relay</span>
+                        <span class="setup-cmd-line">sudo ./pcap-agent-linux-amd64 list-interfaces</span>
+                        <span class="setup-cmd-comment">// start on a selected interface</span>
+                        <span class="setup-cmd-line">sudo ./pcap-agent-linux-amd64 start --interface "&lt;interface&gt;"</span>
+                    </div>
+                    <div class="setup-code-block setup-platform-card">
+                        <span class="setup-platform-title">macOS (Apple Silicon)</span>
+                        <span class="setup-cmd-comment">// list available network interfaces</span>
+                        <span class="setup-cmd-line">sudo ./pcap-agent-darwin-arm64 list-interfaces</span>
+                        <span class="setup-cmd-comment">// start on a selected interface</span>
+                        <span class="setup-cmd-line">sudo ./pcap-agent-darwin-arm64 start --interface "&lt;interface&gt;"</span>
+                    </div>
                     </div>
                     <div class="setup-block-title">// modes</div>
                     <div class="setup-mode">
@@ -186,31 +198,45 @@
     <div class="pcap-col">
         <div class="download-banner" id="downloadBanner">
             <span class="download-label">// agent not running — download and start pcap-agent to begin</span>
-            <a href="https://github.com/Ahlyx/pcap-agent/releases" class="download-btn" target="_blank" rel="noopener noreferrer">[ DOWNLOAD AGENT ]</a>
-            <span class="download-cmd">then run: sudo ./pcap-agent start</span>
+            <a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.0" class="download-btn" target="_blank" rel="noopener noreferrer">[ DOWNLOAD v0.4.0 ]</a>
+            <span class="download-cmd">then use the platform-specific command in Setup</span>
         </div>
 
         <div class="panel" id="flow-panel">
             <div class="panel-title">// live packet flow</div>
-            <div class="flow-wrapper">
-                <table class="flow-table">
+            <div class="flow-wrapper live-flow-wrapper" id="flow-scroll">
+                <table class="flow-table live-flow-table">
+                    <colgroup>
+                        <col class="flow-col-time">
+                        <col class="flow-col-endpoint">
+                        <col class="flow-col-endpoint">
+                        <col class="flow-col-service">
+                        <col class="flow-col-bytes">
+                    </colgroup>
                     <thead><tr>
                         <th>TIME</th>
                         <th>SRC</th>
                         <th>DST</th>
-                        <th>PORT</th>
-                        <th>PROTO</th>
+                        <th>SERVICE</th>
                         <th>BYTES</th>
                     </tr></thead>
                     <tbody id="flow-body"></tbody>
                 </table>
             </div>
+            <button class="flow-live-control" id="flow-live-control" type="button" hidden aria-live="polite"></button>
         </div>
 
         <div class="panel" id="alerts-panel">
             <div class="panel-title">// alerts</div>
             <div id="alerts-list">
                 <div class="panel-empty">// no alerts detected</div>
+            </div>
+        </div>
+
+        <div class="panel" id="mac-panel">
+            <div class="panel-title">// mac observations</div>
+            <div id="mac-list">
+                <div class="panel-empty">// no MAC observations yet</div>
             </div>
         </div>
 

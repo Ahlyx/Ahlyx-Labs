@@ -61,6 +61,9 @@ const MAX_FLOWS      = 200;
 const MAX_ALERTS     = 50;
 const MAX_DNS        = 100;
 const MAX_ENRICHMENT = 50;
+const MAX_MACS       = 50;
+const FLOW_FOLLOW_THRESHOLD = 16;
+const MAX_PENDING_FLOWS = MAX_FLOWS;
 
 const OT_PORTS = new Set([502, 102, 44818, 4840, 20000, 47808, 9600, 1962,
                            18245, 4000, 2222, 1089, 1090, 1091]);
@@ -73,6 +76,12 @@ let ws             = null;
 let reconnectTimer = null;
 let threatIPs      = new Set();
 let statsData      = { packets: 0, bytes: 0, flows: 0, alerts: 0 };
+const renderedAlerts = new Map();
+let pendingFlowCount = 0;
+let followingFlows = true;
+let pendingFlows = [];
+let flowTouchStartY = null;
+let lastFlowScrollTop = 0;
 
 // ---------------------------------------------------------------------------
 // Connection management
@@ -125,6 +134,7 @@ function handleMessage(msg) {
         case 'dns':         addDNS(msg);         break;
         case 'stats':       updateStats(msg);    break;
         case 'enrichment':  addEnrichment(msg);  break;
+        case 'mac':         addMAC(msg);          break;
         case 'status':      /* no-op for now */  break;
     }
 }
@@ -141,18 +151,18 @@ function setStatus(state) {
         dot.className   = 'status-dot online';
         text.className  = 'status-text status-connected';
         text.textContent = SESSION_ID
-            ? `● CONNECTED — relay mode | session: ${SESSION_ID}`
-            : '● CONNECTED — local mode';
+            ? `CONNECTED — relay mode | session: ${SESSION_ID}`
+            : 'CONNECTED — local mode';
         banner.classList.add('hidden');
     } else if (state === 'connecting') {
         dot.className   = 'status-dot';
         text.className  = 'status-text status-connecting';
-        text.textContent = '● CONNECTING...';
+        text.textContent = 'CONNECTING...';
         banner.classList.remove('hidden');
     } else {
         dot.className   = 'status-dot offline';
         text.className  = 'status-text status-disconnected';
-        text.textContent = '● DISCONNECTED';
+        text.textContent = 'DISCONNECTED';
         banner.classList.remove('hidden');
     }
 }
@@ -161,41 +171,65 @@ function setStatus(state) {
 // Flow table
 // ---------------------------------------------------------------------------
 function addFlow(msg) {
+    const scrollContainer = document.getElementById('flow-scroll');
+    const atTop = !scrollContainer || scrollContainer.scrollTop <= FLOW_FOLLOW_THRESHOLD;
+
+    if (!followingFlows || !atTop) {
+        if (followingFlows) {
+            followingFlows = false;
+        }
+        pendingFlows.push(msg);
+        if (pendingFlows.length > MAX_PENDING_FLOWS) pendingFlows.shift();
+        pendingFlowCount = pendingFlows.length;
+        updateFlowLiveControl();
+        return;
+    }
+
+    if (!followingFlows) mergePendingFlows();
+    renderFlow(msg);
+    followingFlows = true;
+    pendingFlowCount = 0;
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+    lastFlowScrollTop = 0;
+    updateFlowLiveControl();
+}
+
+function renderFlow(msg) {
     const tbody = document.getElementById('flow-body');
 
     const tr = document.createElement('tr');
     tr.classList.add('row-new');
     setTimeout(function () { tr.classList.remove('row-new'); }, 500);
 
+    const src = msg.src || msg.src_ip || '';
+    const dst = msg.dst || msg.dst_ip || '';
     const isOT     = isOTPort(msg.dst_port);
-    const isThreat = threatIPs.has(msg.src_ip) || threatIPs.has(msg.dst_ip);
+    const isThreat = threatIPs.has(src) || threatIPs.has(dst);
 
     const tdTime  = document.createElement('td');
     const tdSrc   = document.createElement('td');
     const tdDst   = document.createElement('td');
-    const tdPort  = document.createElement('td');
-    const tdProto = document.createElement('td');
+    const tdService = document.createElement('td');
     const tdBytes = document.createElement('td');
 
     tdTime.className  = 'col-dim';
-    tdSrc.className   = isThreat ? 'col-threat' : '';
-    tdDst.className   = isThreat ? 'col-threat' : '';
-    tdPort.className  = isOT     ? 'col-ot'     : 'col-dim';
-    tdProto.className = isOT     ? 'col-ot'     : '';
+    tdSrc.className   = 'flow-ip' + (isThreat ? ' col-threat' : '');
+    tdDst.className   = 'flow-ip' + (isThreat ? ' col-threat' : '');
+    tdService.className = isOT ? 'col-ot' : 'col-dim';
     tdBytes.className = 'col-dim';
 
     tdTime.textContent  = formatTime(msg.timestamp);
-    tdSrc.textContent   = msg.src_ip;
-    tdDst.textContent   = msg.dst_ip;
-    tdPort.textContent  = isOT ? msg.dst_port + ' ⚠ OT' : msg.dst_port;
-    tdProto.textContent = msg.protocol;
+    tdSrc.textContent   = formatFlowIP(src);
+    tdSrc.title         = src;
+    tdDst.textContent   = formatFlowIP(dst);
+    tdDst.title         = dst;
+    tdService.textContent = String(msg.dst_port || '?') + '/' + String(msg.protocol || '?') + (isOT ? ' ⚠ OT' : '');
     tdBytes.textContent = formatBytes(msg.bytes);
 
     tr.appendChild(tdTime);
     tr.appendChild(tdSrc);
     tr.appendChild(tdDst);
-    tr.appendChild(tdPort);
-    tr.appendChild(tdProto);
+    tr.appendChild(tdService);
     tr.appendChild(tdBytes);
 
     tbody.insertBefore(tr, tbody.firstChild);
@@ -205,48 +239,168 @@ function addFlow(msg) {
     }
 }
 
+function mergePendingFlows() {
+    if (!pendingFlows.length) return;
+
+    const buffered = pendingFlows;
+    pendingFlows = [];
+    pendingFlowCount = 0;
+    buffered.forEach(renderFlow);
+}
+
+function handleFlowScroll() {
+    const scrollContainer = document.getElementById('flow-scroll');
+    if (!scrollContainer) return;
+    const scrollTop = scrollContainer.scrollTop;
+    let pausedThisEvent = false;
+
+    if (followingFlows && scrollTop > lastFlowScrollTop) {
+        followingFlows = false;
+        pausedThisEvent = true;
+    }
+
+    if (!followingFlows && !pausedThisEvent && scrollTop <= FLOW_FOLLOW_THRESHOLD && scrollTop < lastFlowScrollTop) {
+        mergePendingFlows();
+        followingFlows = true;
+        scrollContainer.scrollTop = 0;
+    }
+    lastFlowScrollTop = scrollContainer.scrollTop;
+    updateFlowLiveControl();
+}
+
+function pauseFlowLive() {
+    if (!followingFlows) return;
+    followingFlows = false;
+    updateFlowLiveControl();
+}
+
+function handleFlowWheel(event) {
+    if (event.deltaY > 0) pauseFlowLive();
+}
+
+function handleFlowTouchStart(event) {
+    const touch = event.touches && event.touches[0];
+    flowTouchStartY = touch ? touch.clientY : null;
+}
+
+function handleFlowTouchMove(event) {
+    const touch = event.touches && event.touches[0];
+    if (touch && flowTouchStartY != null && touch.clientY < flowTouchStartY) pauseFlowLive();
+}
+
+function handleFlowTouchEnd() {
+    flowTouchStartY = null;
+}
+
+function jumpToLive() {
+    const scrollContainer = document.getElementById('flow-scroll');
+    mergePendingFlows();
+    followingFlows = true;
+    pendingFlowCount = 0;
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+    lastFlowScrollTop = 0;
+    updateFlowLiveControl();
+}
+
+function updateFlowLiveControl() {
+    const control = document.getElementById('flow-live-control');
+    if (!control) return;
+
+    control.hidden = followingFlows;
+    if (followingFlows) return;
+    control.textContent = pendingFlowCount
+        ? pendingFlowCount + ' new packet' + (pendingFlowCount === 1 ? '' : 's') + ' · Jump to live'
+        : 'LIVE PAUSED · Jump to live';
+}
+
 // ---------------------------------------------------------------------------
 // Alerts
 // ---------------------------------------------------------------------------
+// Alert identity/severity handling. Agent-side suppression is authoritative;
+// this map is a browser safety layer for reconnects and repeated updates.
 function addAlert(msg) {
     const list = document.getElementById('alerts-list');
-
-    // Remove empty placeholder.
     const empty = list.querySelector('.panel-empty');
     if (empty) list.removeChild(empty);
 
-    const entry = document.createElement('div');
-    entry.className = 'alert-entry';
-
-    const textSpan = document.createElement('span');
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'alert-time';
-    timeSpan.textContent = formatTime(null);
-
-    if (msg.alert_type === 'beaconing') {
-        const interval = msg.interval_ms != null ? msg.interval_ms.toFixed(0) : '?';
-        textSpan.textContent = '⚠ BEACONING — ' + msg.src + ' → ' + msg.dst +
-            ' — interval: ' + interval + 'ms × ' + msg.count + ' connections';
-    } else if (msg.alert_type === 'port_scan') {
-        const ports = Array.isArray(msg.ports_hit) ? msg.ports_hit.length : '?';
-        const win   = msg.window_seconds != null ? msg.window_seconds : '?';
-        textSpan.textContent = '⚠ PORT SCAN — ' + msg.src +
-            ' — ' + ports + ' unique ports in ' + win + 's';
-    } else {
-        textSpan.textContent = '⚠ ' + (msg.alert_type || 'ALERT').toUpperCase() +
-            ' — ' + msg.src + ' → ' + msg.dst;
+    const id = alertID(msg);
+    let rendered = renderedAlerts.get(id);
+    if (!rendered) {
+        const entry = document.createElement('div');
+        const textSpan = document.createElement('span');
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'alert-time';
+        entry.appendChild(textSpan);
+        entry.appendChild(timeSpan);
+        rendered = { entry: entry, text: textSpan, time: timeSpan };
+        renderedAlerts.set(id, rendered);
+        list.insertBefore(entry, list.firstChild);
+        statsData.alerts++;
+        updateStatsDisplay();
     }
 
-    entry.appendChild(textSpan);
-    entry.appendChild(timeSpan);
-    list.insertBefore(entry, list.firstChild);
+    const severity = normalizeSeverity(msg.severity);
+    rendered.entry.className = 'alert-entry severity-' + severity;
+    rendered.text.textContent = alertText(msg, severity);
+    rendered.time.textContent = formatTime(msg.timestamp);
 
     while (list.children.length > MAX_ALERTS) {
-        list.removeChild(list.lastChild);
+        const removed = list.lastChild;
+        for (const [alertID, item] of renderedAlerts.entries()) {
+            if (item.entry === removed) renderedAlerts.delete(alertID);
+        }
+        list.removeChild(removed);
     }
+}
 
-    statsData.alerts++;
-    updateStatsDisplay();
+function alertID(msg) {
+    if (typeof msg.id === 'string' && msg.id) return msg.id;
+    return ['legacy', msg.alert_type || '', msg.subtype || '', msg.src || '', msg.dst || '', msg.dst_port || ''].join('|');
+}
+
+function normalizeSeverity(severity) {
+    const value = typeof severity === 'string' ? severity.toLowerCase() : 'info';
+    return ['info', 'notice', 'warning', 'critical'].includes(value) ? value : 'info';
+}
+
+function alertText(msg, severity) {
+    const prefix = severity.toUpperCase();
+    const src = msg.src || '';
+    const dst = msg.dst || '';
+    const source = formatEndpoint(src, msg.src_port);
+    const destination = formatEndpoint(dst, msg.dst_port);
+    if (msg.alert_type === 'periodic_connection') {
+        const interval = msg.interval_ms != null ? Number(msg.interval_ms).toFixed(0) : '?';
+        const jitter = msg.jitter_pct != null ? ' jitter ' + (Number(msg.jitter_pct) * 100).toFixed(1) + '%' : '';
+        return prefix + ' periodic connection — ' + source + ' → ' + destination + ' — ' + interval + 'ms' + jitter + ' × ' + (msg.count || '?');
+    }
+    if (msg.alert_type === 'possible_port_scan') {
+        const ports = Array.isArray(msg.ports_hit) ? msg.ports_hit.length : '?';
+        const evidence = Array.isArray(msg.ports_hit) && msg.ports_hit.length ? ' (' + msg.ports_hit.join(', ') + ')' : '';
+        return prefix + ' possible port scan — ' + source + ' → ' + destination + ' — ' + ports + ' unique ports in ' + (msg.window_seconds || '?') + 's' + evidence;
+    }
+    if (msg.subtype === 'tcp_retransmission') return prefix + ' TCP retransmission — ' + source + ' → ' + destination;
+    if (msg.subtype === 'tcp_reset') return prefix + ' TCP reset — ' + source + ' → ' + destination;
+    if (msg.subtype === 'possible_syn_flood') return prefix + ' possible SYN flood — ' + source + ' → ' + destination + ' — ' + (msg.count || '?') + ' half-open sessions';
+    if (msg.alert_type === 'mac_multi_ip') return prefix + ' MAC associated with multiple IP addresses — ' + src;
+    return prefix + ' ' + String(msg.subtype || msg.alert_type || 'alert').replaceAll('_', ' ') + ' — ' + source + (dst ? ' → ' + destination : '');
+}
+
+function formatEndpoint(ip, port) {
+    if (!ip) return '';
+    return port ? ip + ':' + port : ip;
+}
+
+function formatFlowIP(ip) {
+    if (!ip) return '';
+    const value = String(ip);
+    if (!value.includes(':') || value.length <= 24) return value;
+    const groups = value.split(':');
+    const compressedAt = groups.indexOf('');
+    const prefix = compressedAt >= 0
+        ? groups.slice(0, compressedAt).join(':') + '::' + (groups[compressedAt + 1] || '')
+        : groups.slice(0, 3).join(':');
+    return prefix + ':…:' + groups.slice(-2).join(':');
 }
 
 // ---------------------------------------------------------------------------
@@ -443,6 +597,30 @@ function addEnrichment(msg) {
 }
 
 // ---------------------------------------------------------------------------
+// MAC observations
+// ---------------------------------------------------------------------------
+function addMAC(msg) {
+    const list = document.getElementById('mac-list');
+    if (!list) return;
+    const empty = list.querySelector('.panel-empty');
+    if (empty) list.removeChild(empty);
+
+    const entry = document.createElement('div');
+    entry.className = 'mac-entry';
+    const mac = document.createElement('span');
+    mac.textContent = msg.mac || 'unknown MAC';
+    const details = document.createElement('span');
+    const parts = [msg.ip, msg.vendor].filter(Boolean);
+    if (msg.locally_administered) parts.push('locally administered MAC');
+    details.className = 'mac-details';
+    details.textContent = parts.join(' | ') || 'MAC observation';
+    entry.appendChild(mac);
+    entry.appendChild(details);
+    list.insertBefore(entry, list.firstChild);
+    while (list.children.length > MAX_MACS) list.removeChild(list.lastChild);
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 function formatBytes(bytes) {
@@ -457,11 +635,8 @@ function formatTime(timestamp) {
     if (!timestamp) {
         return new Date().toTimeString().slice(0, 8);
     }
-    try {
-        return new Date(timestamp).toTimeString().slice(0, 8);
-    } catch (e) {
-        return new Date().toTimeString().slice(0, 8);
-    }
+    const date = new Date(timestamp);
+    return Number.isNaN(date.getTime()) ? new Date().toTimeString().slice(0, 8) : date.toTimeString().slice(0, 8);
 }
 
 function isOTPort(port) {
@@ -497,6 +672,17 @@ function toggleSetup(forceCollapse) {
 document.addEventListener('DOMContentLoaded', function () {
     var toggle = document.getElementById('setupToggle');
     if (toggle) { toggle.addEventListener('click', toggleSetup); }
+    var flowScroll = document.getElementById('flow-scroll');
+    var flowControl = document.getElementById('flow-live-control');
+    if (flowScroll) {
+        flowScroll.addEventListener('scroll', handleFlowScroll);
+        flowScroll.addEventListener('wheel', handleFlowWheel, { passive: true });
+        flowScroll.addEventListener('touchstart', handleFlowTouchStart, { passive: true });
+        flowScroll.addEventListener('touchmove', handleFlowTouchMove, { passive: true });
+        flowScroll.addEventListener('touchend', handleFlowTouchEnd, { passive: true });
+    }
+    if (flowControl) { flowControl.addEventListener('click', jumpToLive); }
+    updateFlowLiveControl();
 });
 
 // Patch setStatus to auto-collapse the setup panel when the agent connects.

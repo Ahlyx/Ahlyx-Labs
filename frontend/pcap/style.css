@@ -338,17 +338,6 @@ main {
 .status-connecting { color: var(--dim); }
 .status-disconnected { color: var(--threat); }
 
-.status-dot-live {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: var(--glow);
-    animation: pulse 2s infinite;
-    margin-right: 0.4rem;
-}
-
 /* ── Download banner ───────────────────────────────────────── */
 
 .download-banner {
@@ -517,6 +506,39 @@ main {
 
 .flow-wrapper { max-height: 400px; overflow-y: auto; }
 
+.live-flow-wrapper { overflow-x: hidden; }
+
+.live-flow-table { table-layout: fixed; }
+
+.live-flow-table .flow-col-time { width: 5.75rem; }
+.live-flow-table .flow-col-service { width: 6.5rem; }
+.live-flow-table .flow-col-bytes { width: 5.5rem; }
+
+.live-flow-table th,
+.live-flow-table td { padding-left: 0.5rem; padding-right: 0.5rem; }
+
+.live-flow-table .flow-ip {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.flow-live-control {
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    border: 1px solid var(--border-accent);
+    background: var(--accent-dim);
+    padding: 0.3rem 0.55rem;
+    cursor: pointer;
+}
+
+.flow-live-control:hover {
+    background: var(--accent);
+    color: var(--bg);
+}
+
 .col-threat { color: var(--threat); }
 .col-ot { color: var(--threat); }
 .col-dim { color: var(--dim); }
@@ -533,7 +555,6 @@ main {
 .alert-entry {
     font-family: var(--font-mono);
     font-size: 0.75rem;
-    color: var(--threat);
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -544,6 +565,25 @@ main {
 .alert-entry:last-child { border-bottom: none; }
 
 .alert-time { color: var(--muted); font-size: 0.65rem; flex-shrink: 0; }
+
+.alert-entry.severity-info { color: var(--accent); }
+.alert-entry.severity-notice { color: var(--text); }
+.alert-entry.severity-warning { color: #f0b429; }
+.alert-entry.severity-critical { color: var(--threat); }
+
+.mac-entry {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.mac-entry:last-child { border-bottom: none; }
+.mac-details { color: var(--muted); font-size: 0.68rem; text-align: right; }
 
 /* ── Enrichment entries ────────────────────────────────────── */
 
@@ -752,6 +792,21 @@ main {
     gap: 0.2rem;
 }
 
+.setup-platform-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+}
+
+.setup-platform-card { gap: 0.2rem; }
+
+.setup-platform-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text);
+    margin-bottom: 0.15rem;
+}
+
 .setup-cmd-line {
     display: block;
     font-family: var(--font-mono);
@@ -814,4 +869,6 @@ main {
     .hero h1 { font-size: 1.75rem; }
     .header-inner { gap: 1rem; }
     .consent-banner { padding: 1rem; flex-direction: column; gap: 0.75rem; }
+    .live-flow-wrapper { overflow-x: auto; }
+    .live-flow-table { min-width: 580px; }
 }
