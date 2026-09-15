@@ -203,14 +203,20 @@
 
         <div class="panel" id="flow-panel">
             <div class="panel-title">// live packet flow</div>
-            <div class="flow-wrapper" id="flow-scroll">
-                <table class="flow-table">
+            <div class="flow-wrapper live-flow-wrapper" id="flow-scroll">
+                <table class="flow-table live-flow-table">
+                    <colgroup>
+                        <col class="flow-col-time">
+                        <col class="flow-col-endpoint">
+                        <col class="flow-col-endpoint">
+                        <col class="flow-col-service">
+                        <col class="flow-col-bytes">
+                    </colgroup>
                     <thead><tr>
                         <th>TIME</th>
                         <th>SRC</th>
                         <th>DST</th>
-                        <th>PORT</th>
-                        <th>PROTO</th>
+                        <th>SERVICE</th>
                         <th>BYTES</th>
                     </tr></thead>
                     <tbody id="flow-body"></tbody>

@@ -338,17 +338,6 @@ main {
 .status-connecting { color: var(--dim); }
 .status-disconnected { color: var(--threat); }
 
-.status-dot-live {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: var(--glow);
-    animation: pulse 2s infinite;
-    margin-right: 0.4rem;
-}
-
 /* ── Download banner ───────────────────────────────────────── */
 
 .download-banner {
@@ -516,6 +505,23 @@ main {
 .flow-table td { padding: 0.4rem 0.75rem; vertical-align: top; }
 
 .flow-wrapper { max-height: 400px; overflow-y: auto; }
+
+.live-flow-wrapper { overflow-x: hidden; }
+
+.live-flow-table { table-layout: fixed; }
+
+.live-flow-table .flow-col-time { width: 5.75rem; }
+.live-flow-table .flow-col-service { width: 6.5rem; }
+.live-flow-table .flow-col-bytes { width: 5.5rem; }
+
+.live-flow-table th,
+.live-flow-table td { padding-left: 0.5rem; padding-right: 0.5rem; }
+
+.live-flow-table .flow-ip {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 .flow-live-control {
     align-self: flex-start;
@@ -863,4 +869,6 @@ main {
     .hero h1 { font-size: 1.75rem; }
     .header-inner { gap: 1rem; }
     .consent-banner { padding: 1rem; flex-direction: column; gap: 0.75rem; }
+    .live-flow-wrapper { overflow-x: auto; }
+    .live-flow-table { min-width: 580px; }
 }

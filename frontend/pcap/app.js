@@ -63,6 +63,7 @@ const MAX_DNS        = 100;
 const MAX_ENRICHMENT = 50;
 const MAX_MACS       = 50;
 const FLOW_FOLLOW_THRESHOLD = 16;
+const MAX_PENDING_FLOWS = MAX_FLOWS;
 
 const OT_PORTS = new Set([502, 102, 44818, 4840, 20000, 47808, 9600, 1962,
                            18245, 4000, 2222, 1089, 1090, 1091]);
@@ -78,6 +79,7 @@ let statsData      = { packets: 0, bytes: 0, flows: 0, alerts: 0 };
 const renderedAlerts = new Map();
 let pendingFlowCount = 0;
 let followingFlows = true;
+let pendingFlows = [];
 
 // ---------------------------------------------------------------------------
 // Connection management
@@ -147,18 +149,18 @@ function setStatus(state) {
         dot.className   = 'status-dot online';
         text.className  = 'status-text status-connected';
         text.textContent = SESSION_ID
-            ? `● CONNECTED — relay mode | session: ${SESSION_ID}`
-            : '● CONNECTED — local mode';
+            ? `CONNECTED — relay mode | session: ${SESSION_ID}`
+            : 'CONNECTED — local mode';
         banner.classList.add('hidden');
     } else if (state === 'connecting') {
         dot.className   = 'status-dot';
         text.className  = 'status-text status-connecting';
-        text.textContent = '● CONNECTING...';
+        text.textContent = 'CONNECTING...';
         banner.classList.remove('hidden');
     } else {
         dot.className   = 'status-dot offline';
         text.className  = 'status-text status-disconnected';
-        text.textContent = '● DISCONNECTED';
+        text.textContent = 'DISCONNECTED';
         banner.classList.remove('hidden');
     }
 }
@@ -167,10 +169,28 @@ function setStatus(state) {
 // Flow table
 // ---------------------------------------------------------------------------
 function addFlow(msg) {
-    const tbody = document.getElementById('flow-body');
     const scrollContainer = document.getElementById('flow-scroll');
-    const wasFollowing = !scrollContainer || scrollContainer.scrollTop <= FLOW_FOLLOW_THRESHOLD;
-    const previousHeight = scrollContainer ? scrollContainer.scrollHeight : 0;
+    const atTop = !scrollContainer || scrollContainer.scrollTop <= FLOW_FOLLOW_THRESHOLD;
+
+    if (!atTop) {
+        followingFlows = false;
+        pendingFlows.push(msg);
+        if (pendingFlows.length > MAX_PENDING_FLOWS) pendingFlows.shift();
+        pendingFlowCount = pendingFlows.length;
+        updateFlowLiveControl();
+        return;
+    }
+
+    if (!followingFlows) mergePendingFlows();
+    renderFlow(msg);
+    followingFlows = true;
+    pendingFlowCount = 0;
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+    updateFlowLiveControl();
+}
+
+function renderFlow(msg) {
+    const tbody = document.getElementById('flow-body');
 
     const tr = document.createElement('tr');
     tr.classList.add('row-new');
@@ -184,52 +204,43 @@ function addFlow(msg) {
     const tdTime  = document.createElement('td');
     const tdSrc   = document.createElement('td');
     const tdDst   = document.createElement('td');
-    const tdPort  = document.createElement('td');
-    const tdProto = document.createElement('td');
+    const tdService = document.createElement('td');
     const tdBytes = document.createElement('td');
 
     tdTime.className  = 'col-dim';
-    tdSrc.className   = isThreat ? 'col-threat' : '';
-    tdDst.className   = isThreat ? 'col-threat' : '';
-    tdPort.className  = isOT     ? 'col-ot'     : 'col-dim';
-    tdProto.className = isOT     ? 'col-ot'     : '';
+    tdSrc.className   = 'flow-ip' + (isThreat ? ' col-threat' : '');
+    tdDst.className   = 'flow-ip' + (isThreat ? ' col-threat' : '');
+    tdService.className = isOT ? 'col-ot' : 'col-dim';
     tdBytes.className = 'col-dim';
 
     tdTime.textContent  = formatTime(msg.timestamp);
-    tdSrc.textContent   = src;
-    tdDst.textContent   = dst;
-    tdPort.textContent  = isOT ? msg.dst_port + ' ⚠ OT' : msg.dst_port;
-    tdProto.textContent = msg.protocol;
+    tdSrc.textContent   = formatFlowIP(src);
+    tdSrc.title         = src;
+    tdDst.textContent   = formatFlowIP(dst);
+    tdDst.title         = dst;
+    tdService.textContent = String(msg.dst_port || '?') + '/' + String(msg.protocol || '?') + (isOT ? ' ⚠ OT' : '');
     tdBytes.textContent = formatBytes(msg.bytes);
 
     tr.appendChild(tdTime);
     tr.appendChild(tdSrc);
     tr.appendChild(tdDst);
-    tr.appendChild(tdPort);
-    tr.appendChild(tdProto);
+    tr.appendChild(tdService);
     tr.appendChild(tdBytes);
 
     tbody.insertBefore(tr, tbody.firstChild);
-    const insertedHeight = scrollContainer
-        ? Math.max(0, scrollContainer.scrollHeight - previousHeight)
-        : 0;
 
     while (tbody.children.length > MAX_FLOWS) {
         tbody.removeChild(tbody.lastChild);
     }
+}
 
-    if (!scrollContainer) return;
+function mergePendingFlows() {
+    if (!pendingFlows.length) return;
 
-    if (wasFollowing) {
-        followingFlows = true;
-        pendingFlowCount = 0;
-        scrollContainer.scrollTop = 0;
-    } else {
-        followingFlows = false;
-        scrollContainer.scrollTop += insertedHeight;
-        pendingFlowCount++;
-    }
-    updateFlowLiveControl();
+    const buffered = pendingFlows;
+    pendingFlows = [];
+    pendingFlowCount = 0;
+    buffered.forEach(renderFlow);
 }
 
 function handleFlowScroll() {
@@ -237,8 +248,9 @@ function handleFlowScroll() {
     if (!scrollContainer) return;
 
     if (scrollContainer.scrollTop <= FLOW_FOLLOW_THRESHOLD) {
+        mergePendingFlows();
         followingFlows = true;
-        pendingFlowCount = 0;
+        scrollContainer.scrollTop = 0;
     } else {
         followingFlows = false;
     }
@@ -247,9 +259,10 @@ function handleFlowScroll() {
 
 function jumpToLive() {
     const scrollContainer = document.getElementById('flow-scroll');
-    if (scrollContainer) scrollContainer.scrollTop = 0;
+    mergePendingFlows();
     followingFlows = true;
     pendingFlowCount = 0;
+    if (scrollContainer) scrollContainer.scrollTop = 0;
     updateFlowLiveControl();
 }
 
@@ -340,6 +353,14 @@ function alertText(msg, severity) {
 function formatEndpoint(ip, port) {
     if (!ip) return '';
     return port ? ip + ':' + port : ip;
+}
+
+function formatFlowIP(ip) {
+    if (!ip) return '';
+    const value = String(ip);
+    if (!value.includes(':') || value.length <= 24) return value;
+    const groups = value.split(':');
+    return groups.slice(0, 4).join(':') + ':…:' + groups[groups.length - 1];
 }
 
 // ---------------------------------------------------------------------------

@@ -12,6 +12,12 @@ const windowsSetup = page.slice(page.indexOf('Windows PowerShell'), page.indexOf
 assert.ok(windowsSetup.includes('.\\pcap-agent-windows-amd64.exe list-interfaces'));
 assert.ok(windowsSetup.includes('.\\pcap-agent-windows-amd64.exe start --interface'));
 assert.ok(!windowsSetup.includes('sudo'), 'Windows instructions do not present sudo');
+assert.equal((page.match(/id="statusDot"/g) || []).length, 1, 'the header has one status-dot element');
+assert.ok(!page.includes('status-dot-live'), 'the unused second status-dot styling is removed');
+const flowTableMarkup = page.slice(page.indexOf('id="flow-panel"'), page.indexOf('id="alerts-panel"'));
+assert.equal((flowTableMarkup.match(/<th>/g) || []).length, 5, 'the live flow table has five desktop columns');
+assert.ok(flowTableMarkup.includes('<th>SERVICE</th>'));
+assert.ok(!flowTableMarkup.includes('<th>PORT</th>') && !flowTableMarkup.includes('<th>PROTO</th>'), 'the old separate port/protocol columns are absent');
 
 class Element {
     constructor() {
@@ -71,6 +77,16 @@ vm.createContext(context);
 vm.runInContext(fs.readFileSync(__dirname + '/app.js', 'utf8'), context);
 
 const timestamp = '2026-09-14T12:34:56Z';
+context.setStatus('connected');
+assert.equal(element('statusDot').className, 'status-dot online');
+assert.ok(!element('statusText').textContent.includes('●'), 'status text does not render a second dot');
+context.setStatus('connecting');
+assert.equal(element('statusDot').className, 'status-dot');
+assert.equal(element('statusText').textContent, 'CONNECTING...');
+context.setStatus('disconnected');
+assert.equal(element('statusDot').className, 'status-dot offline');
+assert.equal(element('statusText').textContent, 'DISCONNECTED');
+
 const examples = [
     { id: 'rtx', type: 'alert', alert_type: 'tcp_anomaly', subtype: 'tcp_retransmission', severity: 'info', src: 'a', dst: 'b', timestamp },
     { id: 'reset', type: 'alert', alert_type: 'tcp_anomaly', subtype: 'tcp_reset', severity: 'info', src: 'a', dst: 'b', timestamp },
@@ -85,6 +101,7 @@ assert.ok(alerts.children.some(entry => entry.className.includes('severity-info'
 assert.ok(alerts.children.some(entry => entry.className.includes('severity-notice')));
 assert.ok(alerts.children.some(entry => entry.className.includes('severity-warning')));
 assert.ok(alerts.children.some(entry => entry.children[0].textContent.includes('TCP retransmission')));
+assert.ok(alerts.children.some(entry => entry.className.includes('severity-info') && entry.children[0].textContent.includes('TCP retransmission')), 'TCP retransmissions remain informational');
 assert.ok(alerts.children.some(entry => entry.children[0].textContent.includes('possible SYN flood')));
 assert.equal(alerts.children[0].children[1].textContent, context.formatTime(timestamp), 'backend timestamp is rendered');
 
@@ -100,29 +117,63 @@ context.addMAC({ type: 'mac', mac: '02:00:00:00:00:01', ip: '192.0.2.10', locall
 assert.ok(macs.children[0].children[1].textContent.includes('locally administered MAC'));
 
 context.addFlow({ type: 'flow', src: '192.0.2.1', dst: '198.51.100.1', dst_port: 443, protocol: 'TCP', bytes: 42, timestamp });
-assert.equal(element('flow-body').children[0].children[1].textContent, '192.0.2.1', 'current flow src field is consumed');
+assert.equal(element('flow-body').children[0].children.length, 5, 'TIME, SRC, DST, SERVICE, and BYTES are rendered');
+assert.equal(element('flow-body').children[0].children[1].textContent, '192.0.2.1', 'IPv4 source remains intact');
+assert.equal(element('flow-body').children[0].children[1].title, '192.0.2.1', 'full IPv4 source is available as a tooltip');
+assert.equal(element('flow-body').children[0].children[3].textContent, '443/TCP', 'service combines destination port and protocol');
+
+const longIPv6 = '2601:8c0:1081:ede0:abcd:ef01:2345:bb8b';
+assert.equal(context.formatFlowIP(longIPv6), '2601:8c0:1081:ede0:…:bb8b', 'long IPv6 display uses a middle ellipsis');
+context.addFlow({ type: 'flow', src: longIPv6, dst: '198.51.100.2', dst_port: 19341, protocol: 'UDP', bytes: 42, timestamp });
+assert.equal(element('flow-body').children[0].children[1].textContent, '2601:8c0:1081:ede0:…:bb8b', 'long IPv6 is presentation-truncated in the table');
+assert.equal(element('flow-body').children[0].children[1].title, longIPv6, 'full IPv6 is preserved in the tooltip');
+assert.equal(element('flow-body').children[0].children[2].textContent, '198.51.100.2', 'IPv4 destination remains intact');
+assert.equal(element('flow-body').children[0].children[3].textContent, '19341/UDP', 'UDP service combines destination port and protocol');
 
 flowScroll.scrollTop = 80;
 context.handleFlowScroll();
 const pausedViewport = flowScroll.scrollTop;
 const pausedHeight = flowScroll.scrollHeight;
-context.addFlow({ type: 'flow', src: '192.0.2.2', dst: '198.51.100.2', dst_port: 443, protocol: 'TCP', bytes: 42, timestamp });
-assert.equal(flowScroll.scrollTop, pausedViewport + (flowScroll.scrollHeight - pausedHeight), 'prepended packets preserve a paused viewport');
-assert.equal(vm.runInContext('pendingFlowCount', context), 1, 'paused follow mode counts new packets');
+const pausedRows = flowBody.children.length;
+context.addFlow({ type: 'flow', src: 'paused-older', dst: '198.51.100.2', dst_port: 443, protocol: 'TCP', bytes: 42, timestamp });
+context.addFlow({ type: 'flow', src: 'paused-newer', dst: '198.51.100.3', dst_port: 443, protocol: 'TCP', bytes: 42, timestamp });
+assert.equal(flowBody.children.length, pausedRows, 'paused mode does not mutate visible flow rows');
+assert.equal(flowScroll.scrollHeight, pausedHeight, 'paused mode does not change the table height');
+assert.equal(flowScroll.scrollTop, pausedViewport, 'paused mode does not compensate scroll position');
+assert.equal(vm.runInContext('pendingFlows.length', context), 2, 'paused packets are buffered in memory');
+assert.equal(vm.runInContext('pendingFlowCount', context), 2, 'paused follow mode counts buffered packets');
 assert.equal(element('flow-live-control').hidden, false, 'paused follow mode shows a jump-to-live control');
 
 context.jumpToLive();
 assert.equal(flowScroll.scrollTop, 0, 'jump-to-live returns to the newest packet');
 assert.equal(vm.runInContext('pendingFlowCount', context), 0, 'jump-to-live clears pending packets');
+assert.equal(vm.runInContext('pendingFlows.length', context), 0, 'jump-to-live empties the flow buffer');
 assert.equal(element('flow-live-control').hidden, true, 'jump-to-live hides the pending control');
+assert.equal(flowBody.children[0].children[1].textContent, 'paused-newer', 'jump-to-live merges buffered packets newest first');
+assert.equal(flowBody.children[1].children[1].textContent, 'paused-older', 'jump-to-live retains buffered packet order');
 
 flowScroll.scrollTop = 80;
 context.handleFlowScroll();
-context.addFlow({ type: 'flow', src: '192.0.2.3', dst: '198.51.100.3', dst_port: 443, protocol: 'TCP', bytes: 42, timestamp });
+context.addFlow({ type: 'flow', src: 'manual-older', dst: '198.51.100.4', dst_port: 443, protocol: 'TCP', bytes: 42, timestamp });
+context.addFlow({ type: 'flow', src: 'manual-newer', dst: '198.51.100.5', dst_port: 443, protocol: 'TCP', bytes: 42, timestamp });
 assert.equal(vm.runInContext('followingFlows', context), false, 'scrolling away pauses live follow');
 flowScroll.scrollTop = 0;
 context.handleFlowScroll();
 assert.equal(vm.runInContext('followingFlows', context), true, 'returning to the top resumes live follow');
 assert.equal(vm.runInContext('pendingFlowCount', context), 0, 'returning to the top clears pending packets');
+assert.equal(flowBody.children[0].children[1].textContent, 'manual-newer', 'returning to the top merges buffered packets newest first');
+
+const maxFlows = vm.runInContext('MAX_FLOWS', context);
+flowScroll.scrollTop = 80;
+context.handleFlowScroll();
+const visibleRowsBeforeBulk = flowBody.children.length;
+for (let index = 0; index <= maxFlows; index++) {
+    context.addFlow({ type: 'flow', src: 'buffer-' + index, dst: '198.51.100.6', dst_port: 443, protocol: 'TCP', bytes: 42, timestamp });
+}
+assert.equal(vm.runInContext('pendingFlows.length', context), maxFlows, 'the paused flow buffer is bounded');
+assert.equal(flowBody.children.length, visibleRowsBeforeBulk, 'buffering does not alter visible rows before resuming');
+context.jumpToLive();
+assert.equal(flowBody.children.length, maxFlows, 'the normal row cap applies after buffered packets merge');
+assert.equal(flowBody.children[0].children[1].textContent, 'buffer-' + maxFlows, 'the latest buffered packet is rendered first');
 
 console.log('pcap frontend protocol tests passed');
