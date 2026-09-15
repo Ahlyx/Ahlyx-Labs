@@ -45,7 +45,17 @@ Real-time system telemetry for the host running the backend (Render VM).
 | `GET /api/v1/hardware/network` | Per-interface addresses + traffic totals |
 
 ### PCAP Agent
-Local packet capture with a browser relay for live analysis. The agent and browser connect to the same temporary relay session; the browser WebSocket does not initiate packet capture.
+`pcap-agent` performs packet capture and analysis locally. The production browser UI is maintained in `frontend/pcap/`; the agent repository does not bundle that frontend.
+
+**Local mode (default)** keeps packet analysis on the monitored machine:
+
+```text
+browser at ahlyxlabs.com/pcap -> ws://localhost:7777/ws -> local pcap-agent
+```
+
+The production page connects directly to the local agent. The agent emits flow and alert telemetry; it does not send raw packet payloads.
+
+**Optional relay mode** remains available when a remote browser session is intentionally needed. In that mode, the agent and browser connect to the same short-lived Ahlyx Labs relay session; the browser WebSocket does not initiate packet capture.
 
 | Endpoint | Description |
 |---|---|
@@ -67,15 +77,19 @@ Ahlyx-Labs/
 │   ├── shared/                 ← cache, config, middleware, rate limiter, response helpers
 │   ├── enrichment/             ← handlers, services (one file per source), models, validators
 │   ├── scanner/                ← TCP scanner logic, OT/ICS port map, handler
-│   └── hardware/               ← system telemetry handler and models
-└── frontend/
-    ├── landing/
-    ├── enrichment/
-    ├── scanner/
-    ├── hardware/
-    ├── robots.txt
-    ├── sitemap.xml
-    └── vercel.json
+│   ├── hardware/               ← system telemetry handler and models
+│   └── pcap/                   ← optional relay session and WebSocket handlers
+├── frontend/
+│   ├── landing/
+│   ├── enrichment/
+│   ├── scanner/
+│   ├── hardware/
+│   ├── pcap/                   ← production local-agent browser UI
+│   ├── robots.txt
+│   ├── sitemap.xml
+│   └── vercel.json
+└── tests/
+    └── pcap/                   ← frontend PCAP regression tests
 ```
 
 **Backend:** Go 1.25 · [chi](https://github.com/go-chi/chi) router · per-IP token-bucket rate limiting (`golang.org/x/time/rate`) · in-memory TTL cache (`sync.RWMutex`) · Dockerized for Render
