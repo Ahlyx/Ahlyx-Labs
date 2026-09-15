@@ -62,6 +62,7 @@ const MAX_ALERTS     = 50;
 const MAX_DNS        = 100;
 const MAX_ENRICHMENT = 50;
 const MAX_MACS       = 50;
+const FLOW_FOLLOW_THRESHOLD = 16;
 
 const OT_PORTS = new Set([502, 102, 44818, 4840, 20000, 47808, 9600, 1962,
                            18245, 4000, 2222, 1089, 1090, 1091]);
@@ -75,6 +76,8 @@ let reconnectTimer = null;
 let threatIPs      = new Set();
 let statsData      = { packets: 0, bytes: 0, flows: 0, alerts: 0 };
 const renderedAlerts = new Map();
+let pendingFlowCount = 0;
+let followingFlows = true;
 
 // ---------------------------------------------------------------------------
 // Connection management
@@ -165,6 +168,9 @@ function setStatus(state) {
 // ---------------------------------------------------------------------------
 function addFlow(msg) {
     const tbody = document.getElementById('flow-body');
+    const scrollContainer = document.getElementById('flow-scroll');
+    const wasFollowing = !scrollContainer || scrollContainer.scrollTop <= FLOW_FOLLOW_THRESHOLD;
+    const previousHeight = scrollContainer ? scrollContainer.scrollHeight : 0;
 
     const tr = document.createElement('tr');
     tr.classList.add('row-new');
@@ -204,10 +210,58 @@ function addFlow(msg) {
     tr.appendChild(tdBytes);
 
     tbody.insertBefore(tr, tbody.firstChild);
+    const insertedHeight = scrollContainer
+        ? Math.max(0, scrollContainer.scrollHeight - previousHeight)
+        : 0;
 
     while (tbody.children.length > MAX_FLOWS) {
         tbody.removeChild(tbody.lastChild);
     }
+
+    if (!scrollContainer) return;
+
+    if (wasFollowing) {
+        followingFlows = true;
+        pendingFlowCount = 0;
+        scrollContainer.scrollTop = 0;
+    } else {
+        followingFlows = false;
+        scrollContainer.scrollTop += insertedHeight;
+        pendingFlowCount++;
+    }
+    updateFlowLiveControl();
+}
+
+function handleFlowScroll() {
+    const scrollContainer = document.getElementById('flow-scroll');
+    if (!scrollContainer) return;
+
+    if (scrollContainer.scrollTop <= FLOW_FOLLOW_THRESHOLD) {
+        followingFlows = true;
+        pendingFlowCount = 0;
+    } else {
+        followingFlows = false;
+    }
+    updateFlowLiveControl();
+}
+
+function jumpToLive() {
+    const scrollContainer = document.getElementById('flow-scroll');
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+    followingFlows = true;
+    pendingFlowCount = 0;
+    updateFlowLiveControl();
+}
+
+function updateFlowLiveControl() {
+    const control = document.getElementById('flow-live-control');
+    if (!control) return;
+
+    control.hidden = followingFlows;
+    if (followingFlows) return;
+    control.textContent = pendingFlowCount
+        ? pendingFlowCount + ' new packet' + (pendingFlowCount === 1 ? '' : 's') + ' · Jump to live'
+        : 'LIVE PAUSED · Jump to live';
 }
 
 // ---------------------------------------------------------------------------
@@ -557,6 +611,11 @@ function toggleSetup(forceCollapse) {
 document.addEventListener('DOMContentLoaded', function () {
     var toggle = document.getElementById('setupToggle');
     if (toggle) { toggle.addEventListener('click', toggleSetup); }
+    var flowScroll = document.getElementById('flow-scroll');
+    var flowControl = document.getElementById('flow-live-control');
+    if (flowScroll) { flowScroll.addEventListener('scroll', handleFlowScroll); }
+    if (flowControl) { flowControl.addEventListener('click', jumpToLive); }
+    updateFlowLiveControl();
 });
 
 // Patch setStatus to auto-collapse the setup panel when the agent connects.

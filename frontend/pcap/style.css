@@ -517,6 +517,22 @@ main {
 
 .flow-wrapper { max-height: 400px; overflow-y: auto; }
 
+.flow-live-control {
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    border: 1px solid var(--border-accent);
+    background: var(--accent-dim);
+    padding: 0.3rem 0.55rem;
+    cursor: pointer;
+}
+
+.flow-live-control:hover {
+    background: var(--accent);
+    color: var(--bg);
+}
+
 .col-threat { color: var(--threat); }
 .col-ot { color: var(--threat); }
 .col-dim { color: var(--dim); }
@@ -768,6 +784,21 @@ main {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+}
+
+.setup-platform-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+}
+
+.setup-platform-card { gap: 0.2rem; }
+
+.setup-platform-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text);
+    margin-bottom: 0.15rem;
 }
 
 .setup-cmd-line {
