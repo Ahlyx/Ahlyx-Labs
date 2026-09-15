@@ -122,13 +122,40 @@ assert.equal(element('flow-body').children[0].children[1].textContent, '192.0.2.
 assert.equal(element('flow-body').children[0].children[1].title, '192.0.2.1', 'full IPv4 source is available as a tooltip');
 assert.equal(element('flow-body').children[0].children[3].textContent, '443/TCP', 'service combines destination port and protocol');
 
-const longIPv6 = '2601:8c0:1081:ede0:abcd:ef01:2345:bb8b';
-assert.equal(context.formatFlowIP(longIPv6), '2601:8c0:1081:ede0:…:bb8b', 'long IPv6 display uses a middle ellipsis');
-context.addFlow({ type: 'flow', src: longIPv6, dst: '198.51.100.2', dst_port: 19341, protocol: 'UDP', bytes: 42, timestamp });
-assert.equal(element('flow-body').children[0].children[1].textContent, '2601:8c0:1081:ede0:…:bb8b', 'long IPv6 is presentation-truncated in the table');
+const longIPv6 = '2601:8c0:1081:ede0:c1eb:735c:72fc:bb8b';
+assert.equal(context.formatFlowIP(longIPv6), '2601:8c0:1081:…:72fc:bb8b', 'long global IPv6 preserves a prefix and final two hextets');
+const globalIPv6Flow = { type: 'flow', src: longIPv6, dst: '198.51.100.2', dst_port: 19341, protocol: 'UDP', bytes: 42, timestamp };
+context.addFlow(globalIPv6Flow);
+assert.equal(globalIPv6Flow.src, longIPv6, 'IPv6 presentation does not mutate the flow record');
+assert.equal(element('flow-body').children[0].children[1].textContent, '2601:8c0:1081:…:72fc:bb8b', 'long global IPv6 is presentation-truncated in the table');
 assert.equal(element('flow-body').children[0].children[1].title, longIPv6, 'full IPv6 is preserved in the tooltip');
 assert.equal(element('flow-body').children[0].children[2].textContent, '198.51.100.2', 'IPv4 destination remains intact');
 assert.equal(element('flow-body').children[0].children[3].textContent, '19341/UDP', 'UDP service combines destination port and protocol');
+
+const linkLocalIPv6 = 'fe80::4e50:ddff:fe63:42e4';
+assert.equal(context.formatFlowIP(linkLocalIPv6), 'fe80::4e50:…:fe63:42e4', 'link-local IPv6 preserves useful prefix and suffix context');
+context.addFlow({ type: 'flow', src: linkLocalIPv6, dst: '198.51.100.3', dst_port: 53, protocol: 'UDP', bytes: 42, timestamp });
+assert.equal(element('flow-body').children[0].children[1].textContent, 'fe80::4e50:…:fe63:42e4', 'link-local IPv6 uses a single middle ellipsis');
+assert.equal(element('flow-body').children[0].children[1].title, linkLocalIPv6, 'full link-local IPv6 is preserved in the tooltip');
+
+const wheelRows = flowBody.children.length;
+context.handleFlowWheel({ deltaY: 1 });
+assert.equal(vm.runInContext('followingFlows', context), false, 'one downward wheel gesture immediately pauses live follow');
+flowScroll.scrollTop = 1;
+context.handleFlowScroll();
+assert.equal(vm.runInContext('followingFlows', context), false, 'the intentional pause survives the immediate downward near-top scroll event');
+context.addFlow({ type: 'flow', src: 'wheel-buffered', dst: '198.51.100.4', dst_port: 443, protocol: 'TCP', bytes: 42, timestamp });
+assert.equal(flowBody.children.length, wheelRows, 'a packet after one wheel gesture is buffered instead of rendered');
+assert.equal(vm.runInContext('pendingFlows.length', context), 1, 'the wheel-paused packet enters the pending buffer');
+context.handleFlowWheel({ deltaY: -1 });
+assert.equal(vm.runInContext('followingFlows', context), false, 'upward wheel movement while paused does not resume live follow');
+flowScroll.scrollTop = 80;
+context.handleFlowScroll();
+flowScroll.scrollTop = 0;
+context.handleFlowScroll();
+assert.equal(vm.runInContext('followingFlows', context), true, 'manually returning to the top resumes wheel-paused live follow');
+assert.equal(vm.runInContext('pendingFlows.length', context), 0, 'returning to the top merges the wheel-paused packet');
+assert.equal(flowBody.children[0].children[1].textContent, 'wheel-buffered', 'the wheel-paused packet is rendered after resuming');
 
 flowScroll.scrollTop = 80;
 context.handleFlowScroll();

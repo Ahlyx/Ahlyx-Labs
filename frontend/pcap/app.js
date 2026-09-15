@@ -80,6 +80,8 @@ const renderedAlerts = new Map();
 let pendingFlowCount = 0;
 let followingFlows = true;
 let pendingFlows = [];
+let flowTouchStartY = null;
+let lastFlowScrollTop = 0;
 
 // ---------------------------------------------------------------------------
 // Connection management
@@ -172,8 +174,10 @@ function addFlow(msg) {
     const scrollContainer = document.getElementById('flow-scroll');
     const atTop = !scrollContainer || scrollContainer.scrollTop <= FLOW_FOLLOW_THRESHOLD;
 
-    if (!atTop) {
-        followingFlows = false;
+    if (!followingFlows || !atTop) {
+        if (followingFlows) {
+            followingFlows = false;
+        }
         pendingFlows.push(msg);
         if (pendingFlows.length > MAX_PENDING_FLOWS) pendingFlows.shift();
         pendingFlowCount = pendingFlows.length;
@@ -186,6 +190,7 @@ function addFlow(msg) {
     followingFlows = true;
     pendingFlowCount = 0;
     if (scrollContainer) scrollContainer.scrollTop = 0;
+    lastFlowScrollTop = 0;
     updateFlowLiveControl();
 }
 
@@ -246,15 +251,45 @@ function mergePendingFlows() {
 function handleFlowScroll() {
     const scrollContainer = document.getElementById('flow-scroll');
     if (!scrollContainer) return;
+    const scrollTop = scrollContainer.scrollTop;
+    let pausedThisEvent = false;
 
-    if (scrollContainer.scrollTop <= FLOW_FOLLOW_THRESHOLD) {
+    if (followingFlows && scrollTop > lastFlowScrollTop) {
+        followingFlows = false;
+        pausedThisEvent = true;
+    }
+
+    if (!followingFlows && !pausedThisEvent && scrollTop <= FLOW_FOLLOW_THRESHOLD && scrollTop < lastFlowScrollTop) {
         mergePendingFlows();
         followingFlows = true;
         scrollContainer.scrollTop = 0;
-    } else {
-        followingFlows = false;
     }
+    lastFlowScrollTop = scrollContainer.scrollTop;
     updateFlowLiveControl();
+}
+
+function pauseFlowLive() {
+    if (!followingFlows) return;
+    followingFlows = false;
+    updateFlowLiveControl();
+}
+
+function handleFlowWheel(event) {
+    if (event.deltaY > 0) pauseFlowLive();
+}
+
+function handleFlowTouchStart(event) {
+    const touch = event.touches && event.touches[0];
+    flowTouchStartY = touch ? touch.clientY : null;
+}
+
+function handleFlowTouchMove(event) {
+    const touch = event.touches && event.touches[0];
+    if (touch && flowTouchStartY != null && touch.clientY < flowTouchStartY) pauseFlowLive();
+}
+
+function handleFlowTouchEnd() {
+    flowTouchStartY = null;
 }
 
 function jumpToLive() {
@@ -263,6 +298,7 @@ function jumpToLive() {
     followingFlows = true;
     pendingFlowCount = 0;
     if (scrollContainer) scrollContainer.scrollTop = 0;
+    lastFlowScrollTop = 0;
     updateFlowLiveControl();
 }
 
@@ -360,7 +396,11 @@ function formatFlowIP(ip) {
     const value = String(ip);
     if (!value.includes(':') || value.length <= 24) return value;
     const groups = value.split(':');
-    return groups.slice(0, 4).join(':') + ':…:' + groups[groups.length - 1];
+    const compressedAt = groups.indexOf('');
+    const prefix = compressedAt >= 0
+        ? groups.slice(0, compressedAt).join(':') + '::' + (groups[compressedAt + 1] || '')
+        : groups.slice(0, 3).join(':');
+    return prefix + ':…:' + groups.slice(-2).join(':');
 }
 
 // ---------------------------------------------------------------------------
@@ -634,7 +674,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (toggle) { toggle.addEventListener('click', toggleSetup); }
     var flowScroll = document.getElementById('flow-scroll');
     var flowControl = document.getElementById('flow-live-control');
-    if (flowScroll) { flowScroll.addEventListener('scroll', handleFlowScroll); }
+    if (flowScroll) {
+        flowScroll.addEventListener('scroll', handleFlowScroll);
+        flowScroll.addEventListener('wheel', handleFlowWheel, { passive: true });
+        flowScroll.addEventListener('touchstart', handleFlowTouchStart, { passive: true });
+        flowScroll.addEventListener('touchmove', handleFlowTouchMove, { passive: true });
+        flowScroll.addEventListener('touchend', handleFlowTouchEnd, { passive: true });
+    }
     if (flowControl) { flowControl.addEventListener('click', jumpToLive); }
     updateFlowLiveControl();
 });
