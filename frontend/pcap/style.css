@@ -533,7 +533,6 @@ main {
 .alert-entry {
     font-family: var(--font-mono);
     font-size: 0.75rem;
-    color: var(--threat);
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -544,6 +543,25 @@ main {
 .alert-entry:last-child { border-bottom: none; }
 
 .alert-time { color: var(--muted); font-size: 0.65rem; flex-shrink: 0; }
+
+.alert-entry.severity-info { color: var(--accent); }
+.alert-entry.severity-notice { color: var(--text); }
+.alert-entry.severity-warning { color: #f0b429; }
+.alert-entry.severity-critical { color: var(--threat); }
+
+.mac-entry {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.mac-entry:last-child { border-bottom: none; }
+.mac-details { color: var(--muted); font-size: 0.68rem; text-align: right; }
 
 /* ── Enrichment entries ────────────────────────────────────── */
 

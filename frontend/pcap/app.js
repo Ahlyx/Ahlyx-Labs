@@ -61,6 +61,7 @@ const MAX_FLOWS      = 200;
 const MAX_ALERTS     = 50;
 const MAX_DNS        = 100;
 const MAX_ENRICHMENT = 50;
+const MAX_MACS       = 50;
 
 const OT_PORTS = new Set([502, 102, 44818, 4840, 20000, 47808, 9600, 1962,
                            18245, 4000, 2222, 1089, 1090, 1091]);
@@ -73,6 +74,7 @@ let ws             = null;
 let reconnectTimer = null;
 let threatIPs      = new Set();
 let statsData      = { packets: 0, bytes: 0, flows: 0, alerts: 0 };
+const renderedAlerts = new Map();
 
 // ---------------------------------------------------------------------------
 // Connection management
@@ -125,6 +127,7 @@ function handleMessage(msg) {
         case 'dns':         addDNS(msg);         break;
         case 'stats':       updateStats(msg);    break;
         case 'enrichment':  addEnrichment(msg);  break;
+        case 'mac':         addMAC(msg);          break;
         case 'status':      /* no-op for now */  break;
     }
 }
@@ -167,8 +170,10 @@ function addFlow(msg) {
     tr.classList.add('row-new');
     setTimeout(function () { tr.classList.remove('row-new'); }, 500);
 
+    const src = msg.src || msg.src_ip || '';
+    const dst = msg.dst || msg.dst_ip || '';
     const isOT     = isOTPort(msg.dst_port);
-    const isThreat = threatIPs.has(msg.src_ip) || threatIPs.has(msg.dst_ip);
+    const isThreat = threatIPs.has(src) || threatIPs.has(dst);
 
     const tdTime  = document.createElement('td');
     const tdSrc   = document.createElement('td');
@@ -185,8 +190,8 @@ function addFlow(msg) {
     tdBytes.className = 'col-dim';
 
     tdTime.textContent  = formatTime(msg.timestamp);
-    tdSrc.textContent   = msg.src_ip;
-    tdDst.textContent   = msg.dst_ip;
+    tdSrc.textContent   = src;
+    tdDst.textContent   = dst;
     tdPort.textContent  = isOT ? msg.dst_port + ' ⚠ OT' : msg.dst_port;
     tdProto.textContent = msg.protocol;
     tdBytes.textContent = formatBytes(msg.bytes);
@@ -208,45 +213,79 @@ function addFlow(msg) {
 // ---------------------------------------------------------------------------
 // Alerts
 // ---------------------------------------------------------------------------
+// Alert identity/severity handling. Agent-side suppression is authoritative;
+// this map is a browser safety layer for reconnects and repeated updates.
 function addAlert(msg) {
     const list = document.getElementById('alerts-list');
-
-    // Remove empty placeholder.
     const empty = list.querySelector('.panel-empty');
     if (empty) list.removeChild(empty);
 
-    const entry = document.createElement('div');
-    entry.className = 'alert-entry';
-
-    const textSpan = document.createElement('span');
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'alert-time';
-    timeSpan.textContent = formatTime(null);
-
-    if (msg.alert_type === 'beaconing') {
-        const interval = msg.interval_ms != null ? msg.interval_ms.toFixed(0) : '?';
-        textSpan.textContent = '⚠ BEACONING — ' + msg.src + ' → ' + msg.dst +
-            ' — interval: ' + interval + 'ms × ' + msg.count + ' connections';
-    } else if (msg.alert_type === 'port_scan') {
-        const ports = Array.isArray(msg.ports_hit) ? msg.ports_hit.length : '?';
-        const win   = msg.window_seconds != null ? msg.window_seconds : '?';
-        textSpan.textContent = '⚠ PORT SCAN — ' + msg.src +
-            ' — ' + ports + ' unique ports in ' + win + 's';
-    } else {
-        textSpan.textContent = '⚠ ' + (msg.alert_type || 'ALERT').toUpperCase() +
-            ' — ' + msg.src + ' → ' + msg.dst;
+    const id = alertID(msg);
+    let rendered = renderedAlerts.get(id);
+    if (!rendered) {
+        const entry = document.createElement('div');
+        const textSpan = document.createElement('span');
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'alert-time';
+        entry.appendChild(textSpan);
+        entry.appendChild(timeSpan);
+        rendered = { entry: entry, text: textSpan, time: timeSpan };
+        renderedAlerts.set(id, rendered);
+        list.insertBefore(entry, list.firstChild);
+        statsData.alerts++;
+        updateStatsDisplay();
     }
 
-    entry.appendChild(textSpan);
-    entry.appendChild(timeSpan);
-    list.insertBefore(entry, list.firstChild);
+    const severity = normalizeSeverity(msg.severity);
+    rendered.entry.className = 'alert-entry severity-' + severity;
+    rendered.text.textContent = alertText(msg, severity);
+    rendered.time.textContent = formatTime(msg.timestamp);
 
     while (list.children.length > MAX_ALERTS) {
-        list.removeChild(list.lastChild);
+        const removed = list.lastChild;
+        for (const [alertID, item] of renderedAlerts.entries()) {
+            if (item.entry === removed) renderedAlerts.delete(alertID);
+        }
+        list.removeChild(removed);
     }
+}
 
-    statsData.alerts++;
-    updateStatsDisplay();
+function alertID(msg) {
+    if (typeof msg.id === 'string' && msg.id) return msg.id;
+    return ['legacy', msg.alert_type || '', msg.subtype || '', msg.src || '', msg.dst || '', msg.dst_port || ''].join('|');
+}
+
+function normalizeSeverity(severity) {
+    const value = typeof severity === 'string' ? severity.toLowerCase() : 'info';
+    return ['info', 'notice', 'warning', 'critical'].includes(value) ? value : 'info';
+}
+
+function alertText(msg, severity) {
+    const prefix = severity.toUpperCase();
+    const src = msg.src || '';
+    const dst = msg.dst || '';
+    const source = formatEndpoint(src, msg.src_port);
+    const destination = formatEndpoint(dst, msg.dst_port);
+    if (msg.alert_type === 'periodic_connection') {
+        const interval = msg.interval_ms != null ? Number(msg.interval_ms).toFixed(0) : '?';
+        const jitter = msg.jitter_pct != null ? ' jitter ' + (Number(msg.jitter_pct) * 100).toFixed(1) + '%' : '';
+        return prefix + ' periodic connection — ' + source + ' → ' + destination + ' — ' + interval + 'ms' + jitter + ' × ' + (msg.count || '?');
+    }
+    if (msg.alert_type === 'possible_port_scan') {
+        const ports = Array.isArray(msg.ports_hit) ? msg.ports_hit.length : '?';
+        const evidence = Array.isArray(msg.ports_hit) && msg.ports_hit.length ? ' (' + msg.ports_hit.join(', ') + ')' : '';
+        return prefix + ' possible port scan — ' + source + ' → ' + destination + ' — ' + ports + ' unique ports in ' + (msg.window_seconds || '?') + 's' + evidence;
+    }
+    if (msg.subtype === 'tcp_retransmission') return prefix + ' TCP retransmission — ' + source + ' → ' + destination;
+    if (msg.subtype === 'tcp_reset') return prefix + ' TCP reset — ' + source + ' → ' + destination;
+    if (msg.subtype === 'possible_syn_flood') return prefix + ' possible SYN flood — ' + source + ' → ' + destination + ' — ' + (msg.count || '?') + ' half-open sessions';
+    if (msg.alert_type === 'mac_multi_ip') return prefix + ' MAC associated with multiple IP addresses — ' + src;
+    return prefix + ' ' + String(msg.subtype || msg.alert_type || 'alert').replaceAll('_', ' ') + ' — ' + source + (dst ? ' → ' + destination : '');
+}
+
+function formatEndpoint(ip, port) {
+    if (!ip) return '';
+    return port ? ip + ':' + port : ip;
 }
 
 // ---------------------------------------------------------------------------
@@ -443,6 +482,30 @@ function addEnrichment(msg) {
 }
 
 // ---------------------------------------------------------------------------
+// MAC observations
+// ---------------------------------------------------------------------------
+function addMAC(msg) {
+    const list = document.getElementById('mac-list');
+    if (!list) return;
+    const empty = list.querySelector('.panel-empty');
+    if (empty) list.removeChild(empty);
+
+    const entry = document.createElement('div');
+    entry.className = 'mac-entry';
+    const mac = document.createElement('span');
+    mac.textContent = msg.mac || 'unknown MAC';
+    const details = document.createElement('span');
+    const parts = [msg.ip, msg.vendor].filter(Boolean);
+    if (msg.locally_administered) parts.push('locally administered MAC');
+    details.className = 'mac-details';
+    details.textContent = parts.join(' | ') || 'MAC observation';
+    entry.appendChild(mac);
+    entry.appendChild(details);
+    list.insertBefore(entry, list.firstChild);
+    while (list.children.length > MAX_MACS) list.removeChild(list.lastChild);
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 function formatBytes(bytes) {
@@ -457,11 +520,8 @@ function formatTime(timestamp) {
     if (!timestamp) {
         return new Date().toTimeString().slice(0, 8);
     }
-    try {
-        return new Date(timestamp).toTimeString().slice(0, 8);
-    } catch (e) {
-        return new Date().toTimeString().slice(0, 8);
-    }
+    const date = new Date(timestamp);
+    return Number.isNaN(date.getTime()) ? new Date().toTimeString().slice(0, 8) : date.toTimeString().slice(0, 8);
 }
 
 function isOTPort(port) {
