@@ -43,7 +43,7 @@
             <span class="made-by">live network analysis</span>
         </div>
         <div class="header-meta">
-            <span class="version-tag">v0.4.0</span>
+            <span class="version-tag">v0.4.1</span>
             <span class="status-dot" id="statusDot"></span>
             <span class="status-text" id="statusText">CONNECTING...</span>
         </div>
@@ -89,23 +89,23 @@
                     <div class="setup-block-title">// installation</div>
                     <div class="setup-option-label">// option 1 &mdash; download binary (recommended)</div>
                     <table class="setup-table">
-                        <thead><tr><th>Platform</th><th>File</th></tr></thead>
+                        <thead><tr><th>Platform</th><th>Download</th></tr></thead>
                         <tbody>
                             <tr>
-                                <td class="setup-td-dim">Linux (amd64)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.0" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-linux-amd64</a></td>
+                                <td class="setup-td-dim">Linux</td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.1/pcap-agent-linux.tar.gz" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-linux.tar.gz</a></td>
                             </tr>
                             <tr>
-                                <td class="setup-td-dim">Windows (amd64)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.0/pcap-agent.exe" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent.exe</a></td>
+                                <td class="setup-td-dim">Windows</td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.1/pcap-agent-windows.zip" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-windows.zip</a></td>
                             </tr>
                             <tr>
                                 <td class="setup-td-dim">macOS (Intel)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.0" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-darwin-amd64</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.1/pcap-agent-macos-intel.tar.gz" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-macos-intel.tar.gz</a></td>
                             </tr>
                             <tr>
                                 <td class="setup-td-dim">macOS (Apple Silicon)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.0" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-darwin-arm64</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.1/pcap-agent-macos-apple-silicon.tar.gz" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-macos-apple-silicon.tar.gz</a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -122,7 +122,9 @@
                     <div class="setup-platform-grid">
                     <div class="setup-code-block setup-platform-card">
                         <span class="setup-platform-title">Windows PowerShell (run elevated)</span>
-                        <span class="setup-cmd-comment">// start with automatic interface selection</span>
+                        <span class="setup-cmd-comment">// 1. download and extract</span>
+                        <span class="setup-cmd-comment">// 2. open PowerShell in this folder</span>
+                        <span class="setup-cmd-comment">// 3. start with automatic interface selection</span>
                         <span class="setup-cmd-line">.\pcap-agent start</span>
                         <span class="setup-cmd-comment">// advanced: select an interface explicitly</span>
                         <span class="setup-cmd-line">.\pcap-agent list-interfaces</span>
@@ -130,17 +132,23 @@
                     </div>
                     <div class="setup-code-block setup-platform-card">
                         <span class="setup-platform-title">Linux</span>
-                        <span class="setup-cmd-comment">// list available network interfaces</span>
-                        <span class="setup-cmd-line">sudo ./pcap-agent-linux-amd64 list-interfaces</span>
-                        <span class="setup-cmd-comment">// start on a selected interface</span>
-                        <span class="setup-cmd-line">sudo ./pcap-agent-linux-amd64 start --interface "&lt;interface&gt;"</span>
+                        <span class="setup-cmd-comment">// 1. download and extract</span>
+                        <span class="setup-cmd-comment">// 2. open a terminal in this folder</span>
+                        <span class="setup-cmd-comment">// 3. start with automatic interface selection</span>
+                        <span class="setup-cmd-line">./pcap-agent start</span>
+                        <span class="setup-cmd-comment">// advanced: list or select an interface (use sudo if required)</span>
+                        <span class="setup-cmd-line">./pcap-agent list-interfaces</span>
+                        <span class="setup-cmd-line">./pcap-agent start --interface "&lt;interface&gt;"</span>
                     </div>
                     <div class="setup-code-block setup-platform-card">
-                        <span class="setup-platform-title">macOS (Apple Silicon)</span>
-                        <span class="setup-cmd-comment">// list available network interfaces</span>
-                        <span class="setup-cmd-line">sudo ./pcap-agent-darwin-arm64 list-interfaces</span>
-                        <span class="setup-cmd-comment">// start on a selected interface</span>
-                        <span class="setup-cmd-line">sudo ./pcap-agent-darwin-arm64 start --interface "&lt;interface&gt;"</span>
+                        <span class="setup-platform-title">macOS</span>
+                        <span class="setup-cmd-comment">// 1. download and extract</span>
+                        <span class="setup-cmd-comment">// 2. open a terminal in this folder</span>
+                        <span class="setup-cmd-comment">// 3. start with automatic interface selection</span>
+                        <span class="setup-cmd-line">./pcap-agent start</span>
+                        <span class="setup-cmd-comment">// advanced: list or select an interface (use sudo if required)</span>
+                        <span class="setup-cmd-line">./pcap-agent list-interfaces</span>
+                        <span class="setup-cmd-line">./pcap-agent start --interface "&lt;interface&gt;"</span>
                     </div>
                     </div>
                     <div class="setup-block-title">// modes</div>
@@ -198,7 +206,7 @@
     <div class="pcap-col">
         <div class="download-banner" id="downloadBanner">
             <span class="download-label">// agent not running — download and start pcap-agent to begin</span>
-            <a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.0" class="download-btn" target="_blank" rel="noopener noreferrer">[ DOWNLOAD v0.4.0 ]</a>
+            <a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.1" class="download-btn" target="_blank" rel="noopener noreferrer">[ DOWNLOAD v0.4.1 ]</a>
             <span class="download-cmd">then use the platform-specific command in Setup</span>
         </div>
 

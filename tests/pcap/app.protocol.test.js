@@ -1,21 +1,36 @@
-// Run with: node frontend/pcap/app.protocol.test.js
+// Run with: node tests/pcap/app.protocol.test.js
 // Exercises the production script with a tiny DOM/WebSocket shim; no browser
 // framework or production dependency is required.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const page = fs.readFileSync(__dirname + '/index.html', 'utf8');
+const pcapDir = __dirname + '/../../frontend/pcap';
+const page = fs.readFileSync(pcapDir + '/index.html', 'utf8');
+const styles = fs.readFileSync(pcapDir + '/style.css', 'utf8');
+assert.ok(styles.includes('.live-flow-table'), 'the production PCAP stylesheet is present');
 assert.ok(!page.includes('v0.1.0'), 'the stale release version is absent');
-assert.ok(page.includes('v0.4.0'), 'the stable release version is shown');
+assert.ok(page.includes('v0.4.1'), 'the stable release version is shown');
+assert.ok(!page.includes('v0.4.0'), 'the previous stable release version is absent');
 assert.ok(!page.includes('v0.4.0-rc.1'), 'the release-candidate version is absent');
+assert.ok(!page.includes('pcap-agent-linux-amd64'), 'the old Linux architecture-named asset is absent');
+assert.ok(!page.includes('pcap-agent-darwin-amd64'), 'the old macOS Intel architecture-named asset is absent');
+assert.ok(!page.includes('pcap-agent-darwin-arm64'), 'the old macOS Apple Silicon architecture-named asset is absent');
+assert.ok(page.includes('/releases/download/v0.4.1/pcap-agent-windows.zip'), 'Windows download targets the packaged stable asset');
+assert.ok(page.includes('/releases/download/v0.4.1/pcap-agent-linux.tar.gz'), 'Linux download targets the packaged stable asset');
+assert.ok(page.includes('/releases/download/v0.4.1/pcap-agent-macos-intel.tar.gz'), 'macOS Intel download targets the packaged stable asset');
+assert.ok(page.includes('/releases/download/v0.4.1/pcap-agent-macos-apple-silicon.tar.gz'), 'macOS Apple Silicon download targets the packaged stable asset');
+assert.ok(page.includes('macOS (Apple Silicon)'), 'Apple Silicon is named clearly in the platform choices');
 const windowsSetup = page.slice(page.indexOf('Windows PowerShell'), page.indexOf('setup-platform-title">Linux'));
 assert.ok(windowsSetup.includes('.\\pcap-agent start'));
 assert.ok(windowsSetup.includes('.\\pcap-agent list-interfaces'));
 assert.ok(windowsSetup.includes('.\\pcap-agent start --interface'));
 assert.ok(!windowsSetup.includes('sudo'), 'Windows instructions do not present sudo');
 assert.ok(!page.includes('pcap-agent-windows-amd64.exe'), 'the old Windows artifact name is absent');
-assert.ok(page.includes('/releases/download/v0.4.0/pcap-agent.exe'), 'Windows download targets the stable artifact');
+const linuxSetup = page.slice(page.indexOf('setup-platform-title">Linux'), page.indexOf('setup-platform-title">macOS'));
+const macSetup = page.slice(page.indexOf('setup-platform-title">macOS'), page.indexOf('setup-block-title">// modes'));
+assert.ok(linuxSetup.includes('./pcap-agent start'), 'Linux primary command uses the extracted binary name');
+assert.ok(macSetup.includes('./pcap-agent start'), 'macOS primary command uses the extracted binary name');
 assert.equal((page.match(/id="statusDot"/g) || []).length, 1, 'the header has one status-dot element');
 assert.ok(!page.includes('status-dot-live'), 'the unused second status-dot styling is removed');
 const flowTableMarkup = page.slice(page.indexOf('id="flow-panel"'), page.indexOf('id="alerts-panel"'));
@@ -63,11 +78,32 @@ flowBody.insertBefore = function (child, before) {
     return result;
 };
 
-function FakeWebSocket() { this.readyState = 0; }
+const sockets = [];
+const timers = new Map();
+let nextTimerID = 1;
+
+function FakeWebSocket(url) {
+    this.url = url;
+    this.readyState = 0;
+    this.listeners = new Map();
+    sockets.push(this);
+}
 FakeWebSocket.OPEN = 1;
 FakeWebSocket.CONNECTING = 0;
-FakeWebSocket.prototype.addEventListener = function () {};
-FakeWebSocket.prototype.close = function () {};
+FakeWebSocket.CLOSING = 2;
+FakeWebSocket.CLOSED = 3;
+FakeWebSocket.prototype.addEventListener = function (type, listener) {
+    if (!this.listeners.has(type)) this.listeners.set(type, []);
+    this.listeners.get(type).push(listener);
+};
+FakeWebSocket.prototype.emit = function (type, event) {
+    if (type === 'open') this.readyState = FakeWebSocket.OPEN;
+    if (type === 'close') this.readyState = FakeWebSocket.CLOSED;
+    (this.listeners.get(type) || []).forEach(listener => listener(event || {}));
+};
+FakeWebSocket.prototype.close = function () {
+    this.emit('close', { code: 1000, reason: '', wasClean: true });
+};
 
 const context = {
     console, URLSearchParams, Date, Number, String, Array, Object, Map, Set,
@@ -75,10 +111,33 @@ const context = {
     dataLayer: [],
     window: { location: { search: '' }, dataLayer: [] },
     document: { getElementById: element, createElement: () => new Element(), addEventListener: () => {} },
-    WebSocket: FakeWebSocket, setTimeout: callback => callback(), clearTimeout: () => {},
+    WebSocket: FakeWebSocket,
+    setTimeout: callback => { const id = nextTimerID++; timers.set(id, callback); return id; },
+    clearTimeout: id => timers.delete(id),
 };
 vm.createContext(context);
-vm.runInContext(fs.readFileSync(__dirname + '/app.js', 'utf8'), context);
+vm.runInContext(fs.readFileSync(pcapDir + '/app.js', 'utf8'), context);
+
+assert.equal(sockets.length, 1, 'initial load creates one WebSocket');
+const firstSocket = sockets[0];
+firstSocket.emit('open');
+assert.equal(element('statusDot').className, 'status-dot online');
+assert.equal(vm.runInContext('reconnectAttempts', context), 0, 'opening resets reconnect attempts');
+
+firstSocket.emit('close', { code: 1006, reason: '', wasClean: false });
+assert.equal(element('statusDot').className, 'status-dot offline', 'actual close sets disconnected status');
+const reconnectID = vm.runInContext('reconnectTimer', context);
+assert.ok(reconnectID, 'a close schedules a reconnect');
+firstSocket.emit('close', { code: 1006, reason: '', wasClean: false });
+assert.equal(vm.runInContext('reconnectTimer', context), reconnectID, 'duplicate close events do not schedule competing reconnects');
+assert.equal(sockets.length, 1, 'no second socket exists before the scheduled reconnect');
+timers.get(reconnectID)();
+assert.equal(sockets.length, 2, 'the scheduled reconnect creates exactly one replacement socket');
+const replacementSocket = sockets[1];
+replacementSocket.emit('open');
+assert.equal(vm.runInContext('reconnectTimer', context), null, 'successful reconnect clears reconnect state');
+assert.equal(vm.runInContext('reconnectAttempts', context), 0, 'successful reconnect resets attempt count');
+assert.equal(element('statusDot').className, 'status-dot online', 'an open socket remains connected without packet activity');
 
 const timestamp = '2026-09-14T12:34:56Z';
 context.setStatus('connected');

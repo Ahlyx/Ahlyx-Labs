@@ -74,6 +74,7 @@ const OT_PROTOCOLS = new Set(['Modbus', 'S7comm', 'EtherNet/IP', 'OPC-UA',
 
 let ws             = null;
 let reconnectTimer = null;
+let reconnectAttempts = 0;
 let threatIPs      = new Set();
 let statsData      = { packets: 0, bytes: 0, flows: 0, alerts: 0 };
 const renderedAlerts = new Map();
@@ -91,17 +92,28 @@ function connect() {
         return;
     }
 
+    if (reconnectTimer !== null) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+    }
+
     setStatus('connecting');
 
-    console.log('Connecting WebSocket to:', WS_URL);
-    ws = new WebSocket(WS_URL);
+    console.info('pcap websocket: connecting', { url: WS_URL, attempt: reconnectAttempts });
+    const socket = new WebSocket(WS_URL);
+    ws = socket;
 
-    ws.addEventListener('open', function () {
+    socket.addEventListener('open', function () {
+        if (ws !== socket) return;
         clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+        reconnectAttempts = 0;
+        console.info('pcap websocket: open', { url: WS_URL });
         setStatus('connected');
     });
 
-    ws.addEventListener('message', function (event) {
+    socket.addEventListener('message', function (event) {
+        if (ws !== socket) return;
         try {
             const msg = JSON.parse(event.data);
             handleMessage(msg);
@@ -110,21 +122,35 @@ function connect() {
         }
     });
 
-    ws.addEventListener('close', function () {
+    socket.addEventListener('close', function (event) {
+        if (ws !== socket) return;
+        console.warn('pcap websocket: closed', {
+            code: event.code,
+            reason: event.reason || '',
+            wasClean: Boolean(event.wasClean),
+        });
+        ws = null;
         setStatus('disconnected');
         scheduleReconnect();
     });
 
-    ws.addEventListener('error', function (event) {
-        console.error('WebSocket error:', event);
-        console.error('WS_URL was:', WS_URL);
-        ws.close();
+    socket.addEventListener('error', function (event) {
+        if (ws !== socket) return;
+        console.warn('pcap websocket: error', { url: WS_URL, event: event });
+        // Browsers follow an error with close. Keep reconnection centralized in
+        // the close handler so a single timer/socket remains authoritative.
     });
 }
 
 function scheduleReconnect() {
-    clearTimeout(reconnectTimer);
-    reconnectTimer = setTimeout(connect, 3000);
+    if (reconnectTimer !== null) return;
+    reconnectAttempts++;
+    const delay = 3000;
+    console.info('pcap websocket: reconnect scheduled', { attempt: reconnectAttempts, delay: delay });
+    reconnectTimer = setTimeout(function () {
+        reconnectTimer = null;
+        connect();
+    }, delay);
 }
 
 function handleMessage(msg) {
