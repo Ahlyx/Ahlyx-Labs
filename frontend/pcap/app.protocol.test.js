@@ -7,11 +7,15 @@ const vm = require('node:vm');
 
 const page = fs.readFileSync(__dirname + '/index.html', 'utf8');
 assert.ok(!page.includes('v0.1.0'), 'the stale release version is absent');
-assert.ok(page.includes('v0.4.0-rc.1'), 'the release-candidate version is shown');
+assert.ok(page.includes('v0.4.0'), 'the stable release version is shown');
+assert.ok(!page.includes('v0.4.0-rc.1'), 'the release-candidate version is absent');
 const windowsSetup = page.slice(page.indexOf('Windows PowerShell'), page.indexOf('setup-platform-title">Linux'));
-assert.ok(windowsSetup.includes('.\\pcap-agent-windows-amd64.exe list-interfaces'));
-assert.ok(windowsSetup.includes('.\\pcap-agent-windows-amd64.exe start --interface'));
+assert.ok(windowsSetup.includes('.\\pcap-agent start'));
+assert.ok(windowsSetup.includes('.\\pcap-agent list-interfaces'));
+assert.ok(windowsSetup.includes('.\\pcap-agent start --interface'));
 assert.ok(!windowsSetup.includes('sudo'), 'Windows instructions do not present sudo');
+assert.ok(!page.includes('pcap-agent-windows-amd64.exe'), 'the old Windows artifact name is absent');
+assert.ok(page.includes('/releases/download/v0.4.0/pcap-agent.exe'), 'Windows download targets the stable artifact');
 assert.equal((page.match(/id="statusDot"/g) || []).length, 1, 'the header has one status-dot element');
 assert.ok(!page.includes('status-dot-live'), 'the unused second status-dot styling is removed');
 const flowTableMarkup = page.slice(page.indexOf('id="flow-panel"'), page.indexOf('id="alerts-panel"'));
