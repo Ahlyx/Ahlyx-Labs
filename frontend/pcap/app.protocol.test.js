@@ -74,11 +74,32 @@ flowBody.insertBefore = function (child, before) {
     return result;
 };
 
-function FakeWebSocket() { this.readyState = 0; }
+const sockets = [];
+const timers = new Map();
+let nextTimerID = 1;
+
+function FakeWebSocket(url) {
+    this.url = url;
+    this.readyState = 0;
+    this.listeners = new Map();
+    sockets.push(this);
+}
 FakeWebSocket.OPEN = 1;
 FakeWebSocket.CONNECTING = 0;
-FakeWebSocket.prototype.addEventListener = function () {};
-FakeWebSocket.prototype.close = function () {};
+FakeWebSocket.CLOSING = 2;
+FakeWebSocket.CLOSED = 3;
+FakeWebSocket.prototype.addEventListener = function (type, listener) {
+    if (!this.listeners.has(type)) this.listeners.set(type, []);
+    this.listeners.get(type).push(listener);
+};
+FakeWebSocket.prototype.emit = function (type, event) {
+    if (type === 'open') this.readyState = FakeWebSocket.OPEN;
+    if (type === 'close') this.readyState = FakeWebSocket.CLOSED;
+    (this.listeners.get(type) || []).forEach(listener => listener(event || {}));
+};
+FakeWebSocket.prototype.close = function () {
+    this.emit('close', { code: 1000, reason: '', wasClean: true });
+};
 
 const context = {
     console, URLSearchParams, Date, Number, String, Array, Object, Map, Set,
@@ -86,10 +107,33 @@ const context = {
     dataLayer: [],
     window: { location: { search: '' }, dataLayer: [] },
     document: { getElementById: element, createElement: () => new Element(), addEventListener: () => {} },
-    WebSocket: FakeWebSocket, setTimeout: callback => callback(), clearTimeout: () => {},
+    WebSocket: FakeWebSocket,
+    setTimeout: callback => { const id = nextTimerID++; timers.set(id, callback); return id; },
+    clearTimeout: id => timers.delete(id),
 };
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(__dirname + '/app.js', 'utf8'), context);
+
+assert.equal(sockets.length, 1, 'initial load creates one WebSocket');
+const firstSocket = sockets[0];
+firstSocket.emit('open');
+assert.equal(element('statusDot').className, 'status-dot online');
+assert.equal(vm.runInContext('reconnectAttempts', context), 0, 'opening resets reconnect attempts');
+
+firstSocket.emit('close', { code: 1006, reason: '', wasClean: false });
+assert.equal(element('statusDot').className, 'status-dot offline', 'actual close sets disconnected status');
+const reconnectID = vm.runInContext('reconnectTimer', context);
+assert.ok(reconnectID, 'a close schedules a reconnect');
+firstSocket.emit('close', { code: 1006, reason: '', wasClean: false });
+assert.equal(vm.runInContext('reconnectTimer', context), reconnectID, 'duplicate close events do not schedule competing reconnects');
+assert.equal(sockets.length, 1, 'no second socket exists before the scheduled reconnect');
+timers.get(reconnectID)();
+assert.equal(sockets.length, 2, 'the scheduled reconnect creates exactly one replacement socket');
+const replacementSocket = sockets[1];
+replacementSocket.emit('open');
+assert.equal(vm.runInContext('reconnectTimer', context), null, 'successful reconnect clears reconnect state');
+assert.equal(vm.runInContext('reconnectAttempts', context), 0, 'successful reconnect resets attempt count');
+assert.equal(element('statusDot').className, 'status-dot online', 'an open socket remains connected without packet activity');
 
 const timestamp = '2026-09-14T12:34:56Z';
 context.setStatus('connected');
