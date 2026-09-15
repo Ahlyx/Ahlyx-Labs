@@ -1,21 +1,25 @@
-// Run with: node frontend/pcap/app.protocol.test.js
+// Run with: node tests/pcap/app.protocol.test.js
 // Exercises the production script with a tiny DOM/WebSocket shim; no browser
 // framework or production dependency is required.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const page = fs.readFileSync(__dirname + '/index.html', 'utf8');
+const pcapDir = __dirname + '/../../frontend/pcap';
+const page = fs.readFileSync(pcapDir + '/index.html', 'utf8');
+const styles = fs.readFileSync(pcapDir + '/style.css', 'utf8');
+assert.ok(styles.includes('.live-flow-table'), 'the production PCAP stylesheet is present');
 assert.ok(!page.includes('v0.1.0'), 'the stale release version is absent');
-assert.ok(page.includes('v0.4.0'), 'the stable release version is shown');
+assert.ok(page.includes('v0.4.1'), 'the stable release version is shown');
+assert.ok(!page.includes('v0.4.0'), 'the previous stable release version is absent');
 assert.ok(!page.includes('v0.4.0-rc.1'), 'the release-candidate version is absent');
 assert.ok(!page.includes('pcap-agent-linux-amd64'), 'the old Linux architecture-named asset is absent');
 assert.ok(!page.includes('pcap-agent-darwin-amd64'), 'the old macOS Intel architecture-named asset is absent');
 assert.ok(!page.includes('pcap-agent-darwin-arm64'), 'the old macOS Apple Silicon architecture-named asset is absent');
-assert.ok(page.includes('/releases/download/v0.4.0/pcap-agent-windows.zip'), 'Windows download targets the packaged stable asset');
-assert.ok(page.includes('/releases/download/v0.4.0/pcap-agent-linux.tar.gz'), 'Linux download targets the packaged stable asset');
-assert.ok(page.includes('/releases/download/v0.4.0/pcap-agent-macos-intel.tar.gz'), 'macOS Intel download targets the packaged stable asset');
-assert.ok(page.includes('/releases/download/v0.4.0/pcap-agent-macos-apple-silicon.tar.gz'), 'macOS Apple Silicon download targets the packaged stable asset');
+assert.ok(page.includes('/releases/download/v0.4.1/pcap-agent-windows.zip'), 'Windows download targets the packaged stable asset');
+assert.ok(page.includes('/releases/download/v0.4.1/pcap-agent-linux.tar.gz'), 'Linux download targets the packaged stable asset');
+assert.ok(page.includes('/releases/download/v0.4.1/pcap-agent-macos-intel.tar.gz'), 'macOS Intel download targets the packaged stable asset');
+assert.ok(page.includes('/releases/download/v0.4.1/pcap-agent-macos-apple-silicon.tar.gz'), 'macOS Apple Silicon download targets the packaged stable asset');
 assert.ok(page.includes('macOS (Apple Silicon)'), 'Apple Silicon is named clearly in the platform choices');
 const windowsSetup = page.slice(page.indexOf('Windows PowerShell'), page.indexOf('setup-platform-title">Linux'));
 assert.ok(windowsSetup.includes('.\\pcap-agent start'));
@@ -112,7 +116,7 @@ const context = {
     clearTimeout: id => timers.delete(id),
 };
 vm.createContext(context);
-vm.runInContext(fs.readFileSync(__dirname + '/app.js', 'utf8'), context);
+vm.runInContext(fs.readFileSync(pcapDir + '/app.js', 'utf8'), context);
 
 assert.equal(sockets.length, 1, 'initial load creates one WebSocket');
 const firstSocket = sockets[0];
