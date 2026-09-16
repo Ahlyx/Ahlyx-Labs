@@ -56,12 +56,11 @@ test('Vercel routes do not turn missing nested paths into successful pages', () 
     assert.ok(config.rewrites.every((rewrite) => !rewrite.source.includes('(.*)')));
 });
 
-test('every mailto contact option has a Gmail compose fallback', () => {
+test('Gmail compose fallback is available in site footers without bloating primary contact actions', () => {
     for (const file of ['landing/index.html', 'services/index.html']) {
         const html = read(file);
-        const mailtoLinks = html.match(/href="mailto:alex@ahlyxlabs\.com/g) || [];
-        const gmailLinks = html.match(/https:\/\/mail\.google\.com\/mail\/\?view=cm/g) || [];
-        assert.ok(mailtoLinks.length > 0, `${file} has mailto links to check`);
-        assert.equal(gmailLinks.length, mailtoLinks.length, `${file} provides a Gmail fallback for every mailto link`);
+        assert.match(html, /<footer class="site-footer">[\s\S]*https:\/\/mail\.google\.com\/mail\/\?view=cm[\s\S]*<\/footer>/, `${file} footer has Gmail fallback`);
+        const bodyBeforeFooter = html.split('<footer class="site-footer">')[0];
+        assert.doesNotMatch(bodyBeforeFooter, /Email via Gmail/, `${file} keeps Gmail fallback out of primary CTAs`);
     }
 });
