@@ -55,3 +55,13 @@ test('Vercel routes do not turn missing nested paths into successful pages', () 
     const config = JSON.parse(read('vercel.json'));
     assert.ok(config.rewrites.every((rewrite) => !rewrite.source.includes('(.*)')));
 });
+
+test('every mailto contact option has a Gmail compose fallback', () => {
+    for (const file of ['landing/index.html', 'services/index.html']) {
+        const html = read(file);
+        const mailtoLinks = html.match(/href="mailto:alex@ahlyxlabs\.com/g) || [];
+        const gmailLinks = html.match(/https:\/\/mail\.google\.com\/mail\/\?view=cm/g) || [];
+        assert.ok(mailtoLinks.length > 0, `${file} has mailto links to check`);
+        assert.equal(gmailLinks.length, mailtoLinks.length, `${file} provides a Gmail fallback for every mailto link`);
+    }
+});
