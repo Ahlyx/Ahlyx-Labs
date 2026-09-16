@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/ahlyxlabs-favicon.svg">
+    <title>Gmail Is Killing “Send as” in January 2027 — My Free Replacement That Actually Passes DMARC</title>
+    <meta name="description" content="A free Gmail Send as alternative for custom-domain email using Cloudflare Email Routing, Thunderbird, and SMTP2GO with SPF, DKIM, and DMARC passing.">
+    <meta name="author" content="Alex">
+    <link rel="canonical" href="https://ahlyxlabs.com/notes/custom-domain-email">
+    <meta property="og:site_name" content="Ahlyx Labs">
+    <meta property="og:title" content="Gmail Is Killing “Send as” in January 2027 — My Free Replacement">
+    <meta property="og:description" content="My $0/month replacement for Gmail third-party Send as that authenticates a custom domain with SPF, DKIM, and DMARC.">
+    <meta property="og:url" content="https://ahlyxlabs.com/notes/custom-domain-email">
+    <meta property="og:type" content="article">
+    <meta property="article:published_time" content="2026-09-16T00:00:00Z">
+    <meta property="article:modified_time" content="2026-09-16T00:00:00Z">
+    <meta property="og:image" content="https://ahlyxlabs.com/assets/brand/ahlyxlabs-social.png">
+    <meta property="og:image:alt" content="Ahlyx Labs security engineering and independent research">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@AhIyxx">
+    <script src="/assets/analytics.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Custom Domain Email Is Way More Complicated Than It Should Be",
+      "description": "A free Gmail Send as alternative for custom-domain email using Cloudflare Email Routing, Thunderbird, and SMTP2GO with SPF, DKIM, and DMARC passing.",
+      "datePublished": "2026-09-16",
+      "dateModified": "2026-09-16",
+      "author": {"@type": "Person", "name": "Alex"},
+      "publisher": {"@type": "Organization", "name": "Ahlyx Labs", "url": "https://ahlyxlabs.com/"},
+      "mainEntityOfPage": "https://ahlyxlabs.com/notes/custom-domain-email",
+      "image": "https://ahlyxlabs.com/assets/brand/ahlyxlabs-social.png"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "Replace Gmail third-party Send as with a custom-domain SMTP setup",
+      "description": "Receive custom-domain mail in Gmail through Cloudflare Email Routing and send authenticated mail through SMTP2GO from Thunderbird.",
+      "step": [
+        {"@type": "HowToStep", "name": "Keep inbound routing in place", "text": "Leave Cloudflare Email Routing and its MX records handling incoming mail to Gmail."},
+        {"@type": "HowToStep", "name": "Verify the outbound sender domain", "text": "Add the provider-issued return-path, DKIM, and tracking CNAME records as DNS-only records."},
+        {"@type": "HowToStep", "name": "Configure a desktop mail client", "text": "Read Gmail through IMAP and send the custom-domain identity through SMTP2GO."},
+        {"@type": "HowToStep", "name": "Validate mail authentication", "text": "Send a normal message and inspect SPF, DKIM, DMARC, and the Return-Path in the received headers."}
+      ]
+    }
+    </script>
+    <link rel="stylesheet" href="/assets/site.css">
+    <link rel="stylesheet" href="/landing/style.css">
+    <link rel="stylesheet" href="/notes/style.css">
+    <link rel="alternate" type="application/rss+xml" title="Ahlyx Labs Notes" href="https://ahlyxlabs.com/notes/feed.xml">
+</head>
+<body class="notes-page">
+    <header class="site-header"><div class="header-inner"><div class="header-identity"><button class="back-button" type="button" onclick="history.length > 1 ? history.back() : location.assign('/notes')"><span aria-hidden="true">&larr;</span> Notes</button><a class="brand-lockup" href="/" aria-label="Ahlyx Labs home"><img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs"></a></div><nav class="site-nav" aria-label="Primary navigation"><a href="/#work">Work</a><a href="/services">Services</a><a href="/research">Research</a><a href="/notes" aria-current="page">Notes</a><a href="/#about">About</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav></div></header>
+    <main class="notes-main"><article class="note-article">
+        <header class="note-article-header"><p class="notes-kicker">/ Email · infrastructure</p><h1>Custom Domain Email Is Way More Complicated Than It Should Be</h1><p class="note-deck">Gmail is retiring third-party “Send as” in January 2027. This is the $0/month replacement I built — and the long route to mail that actually authenticates as my domain.</p><div class="note-dates"><span>Published <time datetime="2026-09-16">September 16, 2026</time></span><span>Last updated <time datetime="2026-09-16">September 16, 2026</time></span></div></header>
+
+        <div class="note-content">
+            <section class="tldr" aria-labelledby="tldr"><h2 id="tldr">TL;DR</h2><p>I receive <code>alex@ahlyxlabs.com</code> through Cloudflare Email Routing into Gmail, read it in Thunderbird over IMAP, and send it through SMTP2GO. It costs $0/month on the free tiers and now returns <strong>SPF: PASS, DKIM: PASS, DMARC: PASS</strong>.</p></section>
+
+            <p><a href="https://support.google.com/mail/answer/17101213?hl=en">Gmail is removing third-party “Send as” in January 2027</a>. That includes the convenient setup where a normal Gmail account sends mail that looks like it came from a custom domain. Gmail-to-Gmail and Google Workspace aliases are unaffected, but that is not what I have.</p>
+            <p>I learned DNS records for CompTIA A+, but seeing <code>DMARC: FAIL</code> in real mail headers still gave me a genuine “what the hell is this?” moment. I went down a goose chase because I thought the address was working. It was displaying correctly. That is not the same thing as authenticating correctly.</p>
+
+            <h2 id="prerequisites">What I needed</h2>
+            <ul><li>A domain with DNS managed in Cloudflare.</li><li>A Gmail account for the mailbox I already use.</li><li>A free SMTP2GO account for authenticated outbound mail (currently capped at 1,000 emails/month).</li><li>A desktop client. I use Thunderbird.</li></ul>
+
+            <h2 id="the-old-setup">What I had before</h2>
+            <p>Cloudflare Email Routing was already forwarding inbound mail for my custom address to Gmail:</p>
+            <pre>someone@example.com
+        |
+        v
+alex@ahlyxlabs.com
+        |
+        v
+Cloudflare Email Routing
+        |
+        v
+ahlyxlabs@gmail.com</pre>
+            <p>For a while I used Gmail’s “Send mail as” setting. Messages had the right visible From address, but their real path was still Gmail. When I sent a test and opened Gmail’s <em>Show original</em> view, the headers told a different story:</p>
+            <pre>From:        Alex &lt;alex@ahlyxlabs.com&gt;
+Return-Path: ahlyxlabs@gmail.com
+SPF:         PASS (gmail.com)
+DKIM:        PASS (gmail.com)
+DMARC:       FAIL (ahlyxlabs.com)</pre>
+            <p>SPF was passing, which is why I initially assumed everything was fine. The important detail is <strong>which domain passed</strong>. Gmail authenticated Gmail, not Ahlyx Labs. DMARC checks whether the authenticated identity aligns with the visible From domain, so it correctly failed.</p>
+
+            <h2 id="why-not-workspace">Why I did not just use hosted business email</h2>
+            <p>Google Workspace would make <code>alex@ahlyxlabs.com</code> a real Google-hosted mailbox. Google would receive, store, send, and authenticate the address. That is probably the cleanest architecture for a company with employees, shared calendars, provisioning, compliance requirements, or higher mail volume.</p>
+            <p>Ahlyx Labs is one person and most of the infrastructure is intentionally on free tiers. I did not want another recurring bill just for one mailbox. I also tried Zoho’s free tier, but its onboarding kept steering my domain toward <code>www.ahlyxlabs.com</code>, which is not the mail domain I wanted. After enough fighting with signup screens, I realized I was solving the wrong problem: incoming mail was already fine. I only needed a real outbound path.</p>
+
+            <h2 id="architecture">The setup I ended up with</h2>
+            <pre>INCOMING
+
+sender → alex@ahlyxlabs.com → Cloudflare Email Routing → ahlyxlabs@gmail.com → Thunderbird
+
+OUTGOING
+
+Thunderbird → SMTP2GO → recipient</pre>
+            <p>Each service has one job. Cloudflare receives mail for the domain. Gmail stores the mailbox. Thunderbird is the client I use. SMTP2GO sends and authenticates the outbound message. DNS ties the pieces together. It is more plumbing than clicking Send in Gmail, but it costs nothing per month.</p>
+
+            <h2 id="domain-verification">Verifying the sending domain</h2>
+            <p>After creating the SMTP2GO account, I added <code>ahlyxlabs.com</code> as a verified sender domain. SMTP2GO generated three account-specific CNAME records. Do not copy these values from another account; use the exact values your provider gives you.</p>
+            <pre>CNAME  em931508              → return.smtp2go.net
+CNAME  s931508._domainkey      → dkim.smtp2go.net
+CNAME  link                    → track.smtp2go.net</pre>
+            <p>I added each one in Cloudflare as <strong>DNS only</strong>, not proxied. Mail-authentication records are DNS records, not web services that should sit behind Cloudflare’s reverse proxy. I did not change my MX records, so inbound mail continued flowing through Cloudflare Email Routing while I worked on outbound sending.</p>
+            <!-- Author note: cf2024-1._domainkey is an existing DKIM public key of unknown origin. Identify the service that published it before explaining or removing it in this post. -->
+            <p>I already had another DKIM selector in the zone, <code>cf2024-1._domainkey</code>. I have not identified what service published it yet, so I am deliberately not assigning it a purpose here. SMTP2GO uses the separate <code>s931508._domainkey</code> selector. Multiple DKIM selectors can coexist normally.</p>
+
+            <h3 id="spf-explained">The SPF part that confused me</h3>
+            <p>I did not replace the root SPF record, which is still <code>v=spf1 include:_spf.mx.cloudflare.net ~all</code>. That record is for Cloudflare Email Routing, and it does not need an SMTP2GO include for this setup.</p>
+            <p>SPF is evaluated against the envelope-from domain, also called the Return-Path. SMTP2GO uses <code>em931508.ahlyxlabs.com</code>, which CNAMEs to <code>return.smtp2go.net</code>; SMTP2GO handles SPF at that delegated return-path. With DMARC’s default relaxed alignment, that subdomain shares the organizational domain <code>ahlyxlabs.com</code>. SPF therefore both passes and aligns with no root-record change. That was the non-obvious piece I kept looking for in the wrong place.</p>
+
+            <h2 id="thunderbird">Thunderbird became the glue</h2>
+            <p>I connected the existing Gmail account through IMAP/OAuth so Thunderbird reads the same mailbox I already had. Then I added SMTP2GO as a separate outgoing SMTP server:</p>
+            <pre>Server:              mail.smtp2go.com
+Port:                2525
+Connection security: STARTTLS
+Authentication:      Normal password
+Username:            &lt;your SMTP2GO SMTP user&gt;</pre>
+            <p>I created a second Thunderbird identity with the name Alex, the address <code>alex@ahlyxlabs.com</code>, and SMTP2GO selected as its outgoing server. Receiving and sending do not have to be handled by the same company.</p>
+            <p>Gmail’s “Send mail as” screen can route through an external SMTP server, and someone will rightly point that out. I chose Thunderbird because I wanted a dedicated client with Gmail IMAP and custom SMTP in one place, and because it sidesteps the deprecated Gmail path instead of leaning on another corner of it.</p>
+
+            <h2 id="authentication-test">The first successful authentication test</h2>
+            <p>After switching outbound mail to SMTP2GO, I sent another normal human-looking message and checked Gmail’s <em>Show original</em> view. The result finally looked like this:</p>
+            <pre>SPF:   PASS
+DKIM:  PASS with domain ahlyxlabs.com
+DMARC: PASS</pre>
+            <p>The headers included an aligned DKIM signature with <code>d=ahlyxlabs.com</code>, and the Return-Path was now under a subdomain of my own domain rather than <code>gmail.com</code>. That is the difference between displaying an Ahlyx Labs From address and actually authenticating as Ahlyx Labs.</p>
+
+            <h2 id="dmarc">Adding DMARC</h2>
+            <p>Once SPF and DKIM were working, I added this DMARC record in Cloudflare:</p>
+            <pre>Type: TXT
+Name: _dmarc
+
+v=DMARC1; p=none; rua=mailto:alex@ahlyxlabs.com</pre>
+            <p>The <code>p=none</code> is intentional. It puts DMARC in monitoring mode and asks participating providers to send aggregate reports. I do not want receiving servers rejecting mail while I am still learning every legitimate sender for the domain.</p>
+            <pre>p=none
+   |
+   v
+p=quarantine
+   |
+   v
+p=reject</pre>
+            <p>Authentication already passes. Enforcement can wait until I have observed the domain in normal use.</p>
+
+            <section class="fragility" aria-labelledby="break"><h2 id="break">Where this could break</h2><ul><li>SMTP2GO’s free tier is limited to 1,000 emails each month.</li><li>DMARC is at <code>p=none</code>: monitoring, not enforcement. That is deliberate, but it does not tell receivers to quarantine spoofed mail yet.</li><li>The incoming side depends on Cloudflare Email Routing continuing to fit this use case on its free tier.</li><li>Thunderbird is the only configured sending point. If I need to send from another device, I need to configure it safely rather than falling back to the old Gmail workflow.</li></ul></section>
+
+            <h2 id="things-learned">Things I learned the hard way</h2>
+            <h3>Passing SPF does not mean your visible From domain is authenticated</h3><p>Always check which domain passed. My original mail passed SPF for Gmail and still failed DMARC for Ahlyx Labs.</p>
+            <h3>Incoming and outgoing mail are separate problems</h3><p>I kept looking for one free provider to replace everything. I did not need one. Cloudflare was already doing inbound mail perfectly well; I only needed a better outbound path.</p>
+            <h3>Do not touch MX records unless you are moving inbound mail</h3><p>MX records decide where mail for the domain arrives. Changing them while experimenting with outbound SMTP would have introduced an unrelated failure mode.</p>
+            <h3>Do not test deliverability with “test / test”</h3><p>My first test used that exact subject and body and Gmail put it in spam. That is not proof the infrastructure is broken. Send a normal message with a normal subject and body, then read the headers.</p>
+
+            <h2 id="faq">Questions I kept asking myself</h2>
+            <div class="faq-list"><details><summary>What happens to Gmail “Send as” in January 2027?</summary><p>Gmail will remove “Send as” for third-party, non-Google accounts on the web and mobile apps. Google Workspace aliases and other Gmail addresses are not affected. Google’s documented alternatives include using a desktop client with IMAP/SMTP.</p></details><details><summary>Why does DMARC fail when SPF passes?</summary><p>DMARC needs alignment between the visible From domain and SPF or DKIM. My original SPF pass authenticated <code>gmail.com</code>, while my visible address was <code>ahlyxlabs.com</code>.</p></details><details><summary>Why did I not need to change the root SPF record?</summary><p>SMTP2GO authenticates the delegated envelope-from subdomain, <code>em931508.ahlyxlabs.com</code>. Under relaxed alignment it shares the organizational domain with the visible From address.</p></details><details><summary>Can I still receive mail in Gmail?</summary><p>Yes. Cloudflare Email Routing still forwards custom-domain mail to Gmail. Nothing about the inbound path changed.</p></details><details><summary>Why Thunderbird instead of Gmail’s external SMTP option?</summary><p>I wanted a dedicated client that manages Gmail IMAP and SMTP2GO together, without depending on Gmail’s third-party Send as settings as they are being retired.</p></details><details><summary>What does this cost?</summary><p>Nothing at the time of writing: Cloudflare Email Routing, a normal Gmail account, Thunderbird, and SMTP2GO’s free tier. The trade-off is understanding and maintaining the seams.</p></details></div>
+
+            <h2 id="next">What I am not doing yet</h2>
+            <p>I am leaving DMARC at <code>p=none</code> for a while and watching the reports. When I am confident SMTP2GO is the only legitimate sender I need, I will update this post with the move toward <code>p=quarantine</code> and eventually <code>p=reject</code>. I also want to document what the aggregate reports actually look like once enough arrive.</p>
+            <section class="related-work" aria-labelledby="related"><h2 id="related">Related work</h2><p>This is the same practical, inspect-the-real-behavior approach behind <a class="related-link" href="/pcap">PCAP Agent</a>: the local network-analysis page explains setup and trade-offs instead of hiding them behind a dashboard.</p></section>
+        </div>
+    </article></main>
+    <footer class="site-footer"><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a><span class="sep" aria-hidden="true">|</span><a href="https://twitter.com/AhIyxx" target="_blank" rel="noopener noreferrer">@AhIyxx</a><span class="sep" aria-hidden="true">|</span><a href="/privacy">Privacy Policy</a></footer>
+</body>
+</html>

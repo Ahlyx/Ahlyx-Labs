@@ -47,6 +47,8 @@ h1 { max-width: 13ch; margin: 1.25rem 0; font: 400 clamp(2.8rem, 5.2vw, 5.5rem)/
 .work-actions .text-link { margin-top: 0; white-space: nowrap; }
 .subtle-link { color: var(--text-muted); }
 .research-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.content-section#notes .research-list { grid-template-columns: minmax(0, 1fr); }
+.content-section#notes .research-entry { border-right: 0; }
 .research-entry { padding: 1.8rem 2rem 1.8rem 0; border-right: 1px solid var(--border); }
 .research-entry + .research-entry { padding-left: 2rem; padding-right: 0; border-right: 0; }
 .research-meta { margin-bottom: 1.2rem; color: var(--technical); font-size: .68rem; }

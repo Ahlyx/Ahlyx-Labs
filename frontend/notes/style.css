@@ -1,0 +1,39 @@
+.notes-page { min-width: 320px; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--text); }
+.notes-page .back-button { padding: .45rem 0; border: 0; border-bottom: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; font: .72rem/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.notes-page .back-button:hover { border-bottom-color: var(--amber); color: var(--amber); }
+.notes-main { width: min(calc(100% - 3rem), 850px); margin: 0 auto; padding: clamp(3.5rem, 8vw, 7rem) 0; }
+.notes-kicker, .note-meta, .note-label { color: var(--amber); font: .72rem/1.5 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.notes-hero { max-width: 54rem; margin-bottom: clamp(3rem, 7vw, 5rem); }
+.notes-hero h1 { max-width: 15ch; margin: .9rem 0 1rem; font: 400 clamp(2.75rem, 6vw, 5rem)/1 var(--font-brand); letter-spacing: -.045em; }
+.notes-hero p { max-width: 60ch; margin: 0; color: var(--text-muted); font-size: 1.12rem; line-height: 1.7; }
+.notes-list { border-top: 1px solid var(--border); }
+.note-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem; padding: clamp(1.6rem, 3vw, 2.5rem) 0; border-bottom: 1px solid var(--border); }
+.note-card h2 { margin: .7rem 0; font-size: clamp(1.5rem, 3vw, 2.35rem); line-height: 1.12; }
+.note-card p { max-width: 62ch; margin: 0; color: var(--text-muted); line-height: 1.65; }
+.note-card a, .related-link { align-self: end; color: var(--amber); font: .74rem/1.3 var(--font-mono); letter-spacing: .06em; text-decoration: none; text-transform: uppercase; white-space: nowrap; }
+.note-card a:hover, .related-link:hover { color: var(--text); }
+.note-article { max-width: 760px; }
+.note-article-header { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+.note-article-header h1 { max-width: 13ch; margin: .9rem 0 1.25rem; font: 400 clamp(2.5rem, 6vw, 5rem)/1 var(--font-brand); letter-spacing: -.05em; }
+.note-deck { max-width: 58ch; margin: 0; color: var(--text-muted); font-size: clamp(1.05rem, 1.6vw, 1.22rem); line-height: 1.7; }
+.note-dates { display: flex; flex-wrap: wrap; gap: .65rem 1.2rem; margin-top: 1.5rem; color: var(--technical); font: .72rem/1.5 var(--font-mono); }
+.note-content { color: var(--text-muted); font-size: 1.06rem; line-height: 1.75; }
+.note-content h2 { margin: 3.5rem 0 1rem; color: var(--text); font-size: clamp(1.6rem, 3vw, 2.35rem); line-height: 1.15; }
+.note-content h3 { margin: 2.2rem 0 .7rem; color: var(--text); font-size: 1.2rem; }
+.note-content p { margin: 0 0 1.25rem; }
+.note-content a { color: var(--amber); text-underline-offset: .16em; }
+.note-content strong { color: var(--text); }
+.note-content ul, .note-content ol { margin: 0 0 1.3rem; padding-left: 1.35rem; }
+.note-content li + li { margin-top: .45rem; }
+.note-content pre { overflow-x: auto; margin: 1.25rem 0; padding: 1.1rem; border: 1px solid var(--border); background: #070809; color: var(--text); font: .82rem/1.65 var(--font-mono); white-space: pre; }
+.tldr, .fragility, .related-work { margin: 2rem 0; padding: 1.35rem; border: 1px solid var(--border); background: var(--surface); }
+.tldr { border-left: 3px solid var(--amber); }
+.fragility { border-left: 3px solid var(--danger); }
+.tldr h2, .fragility h2, .related-work h2 { margin: 0 0 .7rem; color: var(--amber); font: .74rem/1.4 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.fragility h2 { color: var(--danger); }
+.tldr p, .fragility p, .related-work p { margin-bottom: 0; }
+.faq-list { border-top: 1px solid var(--border); }
+.faq-list details { padding: 1rem 0; border-bottom: 1px solid var(--border); }
+.faq-list summary { color: var(--text); cursor: pointer; font-weight: 600; }
+.faq-list p { margin: .8rem 0 0; }
+@media (max-width: 680px) { .notes-main { width: calc(100% - 2rem); padding-top: 3.5rem; padding-bottom: 4rem; } .note-card { grid-template-columns: 1fr; gap: 1rem; } .note-card a { align-self: start; } .note-article-header h1 { font-size: clamp(2.2rem, 10vw, 3.4rem); } }

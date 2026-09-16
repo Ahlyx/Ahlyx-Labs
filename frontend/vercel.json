@@ -1,19 +1,18 @@
 {
   "rewrites": [
+    { "source": "/.well-known/security.txt", "destination": "/.well-known/security.txt" },
     { "source": "/robots.txt",              "destination": "/robots.txt" },
     { "source": "/sitemap.xml",             "destination": "/sitemap.xml" },
+    { "source": "/notes/feed.xml",          "destination": "/notes/feed.xml" },
+    { "source": "/notes/custom-domain-email", "destination": "/notes/custom-domain-email.html" },
+    { "source": "/notes",                    "destination": "/notes/index.html" },
     { "source": "/services",                "destination": "/services/index.html" },
     { "source": "/research/rustchain",      "destination": "/research/rustchain.html" },
     { "source": "/research/onedragon",     "destination": "/research/onedragon.html" },
-    { "source": "/research/(.*)",           "destination": "/research/index.html" },
     { "source": "/research",                "destination": "/research/index.html" },
-    { "source": "/pcap/(.*)",               "destination": "/pcap/index.html" },
     { "source": "/pcap",                    "destination": "/pcap/index.html" },
-    { "source": "/enrichment/(.*)",         "destination": "/enrichment/index.html" },
     { "source": "/enrichment",              "destination": "/enrichment/index.html" },
-    { "source": "/scanner/(.*)",            "destination": "/scanner/index.html" },
     { "source": "/scanner",                 "destination": "/scanner/index.html" },
-    { "source": "/hardware/(.*)",           "destination": "/hardware/index.html" },
     { "source": "/hardware",                "destination": "/hardware/index.html" },
     { "source": "/privacy",                 "destination": "/landing/privacy.html" },
     { "source": "/",                        "destination": "/landing/index.html" }

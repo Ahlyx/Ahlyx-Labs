@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
     <link rel="icon" href="/assets/brand/ahlyxlabs-favicon.svg" type="image/svg+xml">
     <title>RustChain — Malicious Installer Analysis | Ahlyx Labs</title>
 
@@ -13,12 +14,17 @@
     <meta property="og:description" content="Fake proof-of-antiquity blockchain project distributing an installer that writes the operator's SSH private key to user machines and performs extensive undisclosed hardware fingerprinting.">
     <meta property="og:url" content="https://ahlyxlabs.com/research/rustchain">
     <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Ahlyx Labs">
+    <meta property="og:image" content="https://ahlyxlabs.com/assets/brand/ahlyxlabs-social.png">
+    <meta property="og:image:alt" content="Ahlyx Labs security engineering and independent research">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:creator" content="@AhIyxx">
 
+    <script src="/assets/analytics.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"RustChain — Malicious Installer Analysis","description":"Security research into a fake crypto project distributing a malicious installer.","datePublished":"2026-03-18","dateModified":"2026-03-18","author":{"@type":"Person","name":"Alex"},"publisher":{"@type":"Organization","name":"Ahlyx Labs","url":"https://ahlyxlabs.com/"},"mainEntityOfPage":"https://ahlyxlabs.com/research/rustchain"}</script>
 
     <link rel="stylesheet" href="/assets/site.css">
     <link rel="stylesheet" href="/research/shared.css">
@@ -29,7 +35,7 @@
     <header class="site-header">
         <div class="header-inner">
             <div class="header-identity"><button class="back-button" type="button" onclick="history.length > 1 ? history.back() : location.assign('/')"><span aria-hidden="true">&larr;</span> Back</button><a class="brand-lockup" href="/" aria-label="Ahlyx Labs home"><img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs"></a></div>
-            <nav class="research-nav" aria-label="Primary navigation"><a href="/#work">Work</a><a href="/services">Services</a><a href="/research" aria-current="page">Research</a><a href="/#lab">Lab</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav>
+            <nav class="research-nav" aria-label="Primary navigation"><a href="/#work">Work</a><a href="/services">Services</a><a href="/research" aria-current="page">Research</a><a href="/notes">Notes</a><a href="/#lab">Lab</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav>
             <a href="/research" class="back-link">[ ← RESEARCH ]</a>
             <div class="header-titles">
                 <span class="site-title">SECURITY RESEARCH</span>
@@ -81,7 +87,7 @@
 
         <!-- Summary table -->
         <div class="section">
-            <div class="section-title">// REPORT SUMMARY</div>
+            <h2 id="report-summary" class="section-title">// REPORT SUMMARY</h2>
             <table class="summary-table">
                 <thead><tr><th>FIELD</th><th>VALUE</th></tr></thead>
                 <tbody>
@@ -98,7 +104,7 @@
 
         <!-- Overview -->
         <div class="section">
-            <div class="section-title">// OVERVIEW</div>
+            <h2 id="overview" class="section-title">// OVERVIEW</h2>
             <p class="prose">
                 RustChain presents itself as a proof-of-antiquity blockchain project that rewards users for mining on vintage hardware. It is distributed primarily through a <code>curl -sSL ... | bash</code> install command and offers token rewards (RTC) to users who run its miner software. The project operates a website at rustchain.org and claims a token listed on Solana as wRTC.
             </p>
@@ -112,7 +118,7 @@
 
         <!-- How it was found -->
         <div class="section">
-            <div class="section-title">// HOW IT WAS FOUND</div>
+            <h2 id="discovery" class="section-title">// HOW IT WAS FOUND</h2>
 
             <div class="finding" style="border-left-color: var(--accent);">
                 <div class="finding-header">
@@ -159,7 +165,7 @@
 
         <!-- Technical findings -->
         <div class="section">
-            <div class="section-title">// TECHNICAL FINDINGS</div>
+            <h2 id="technical-findings" class="section-title">// TECHNICAL FINDINGS</h2>
 
             <div class="finding">
                 <div class="finding-header">
@@ -271,7 +277,7 @@ lscpu                          <span class="code-comment"># full CPU model strin
 
         <!-- Assessment -->
         <div class="section">
-            <div class="section-title">// ASSESSMENT</div>
+            <h2 id="assessment" class="section-title">// ASSESSMENT</h2>
 
             <div class="assessment-grid">
                 <div class="assessment-box">
@@ -301,7 +307,7 @@ lscpu                          <span class="code-comment"># full CPU model strin
 
         <!-- Actions taken -->
         <div class="section">
-            <div class="section-title">// ACTIONS TAKEN</div>
+            <h2 id="actions-taken" class="section-title">// ACTIONS TAKEN</h2>
             <div class="actions-block">
                 <ul class="actions-list">
                     <li>Reviewed install-miner.sh, rustchain_linux_miner.py, rustchain_mac_miner_v2.4.py, fingerprint_checks.py, and node/rustchain_v2_integrated_v2.2.1_rip200.py</li>
@@ -316,7 +322,7 @@ lscpu                          <span class="code-comment"># full CPU model strin
 
         <!-- Timeline -->
         <div class="section">
-            <div class="section-title">// DISCLOSURE TIMELINE</div>
+            <h2 id="disclosure-timeline" class="section-title">// DISCLOSURE TIMELINE</h2>
             <div class="timeline">
                 <div class="timeline-row">
                     <span class="timeline-date">2026-03-18</span>
