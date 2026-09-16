@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
     <link rel="icon" href="/assets/brand/ahlyxlabs-favicon.svg" type="image/svg+xml">
     <title>OneDragon — Privacy Policy Violation &amp; Data Exfiltration | Ahlyx Labs</title>
 
@@ -13,12 +14,17 @@
     <meta property="og:description" content="Game automation tool forces-disables its own anonymization setting at runtime, sends raw game login usernames to Alibaba Cloud SLS with sanitization explicitly bypassed, and transmits raw hostnames on every launch.">
     <meta property="og:url" content="https://ahlyxlabs.com/research/onedragon">
     <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Ahlyx Labs">
+    <meta property="og:image" content="https://ahlyxlabs.com/assets/brand/ahlyxlabs-social.png">
+    <meta property="og:image:alt" content="Ahlyx Labs security engineering and independent research">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:creator" content="@AhIyxx">
 
+    <script src="/assets/analytics.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"OneDragon — Privacy Policy Violation and Data Exfiltration","description":"Security research into telemetry and privacy-policy contradictions in ZenlessZoneZero-OneDragon.","datePublished":"2026-03-18","dateModified":"2026-04-17","author":{"@type":"Person","name":"Alex"},"publisher":{"@type":"Organization","name":"Ahlyx Labs","url":"https://ahlyxlabs.com/"},"mainEntityOfPage":"https://ahlyxlabs.com/research/onedragon"}</script>
 
     <link rel="stylesheet" href="/assets/site.css">
     <link rel="stylesheet" href="/research/shared.css">
@@ -29,7 +35,7 @@
     <header class="site-header">
         <div class="header-inner">
             <div class="header-identity"><button class="back-button" type="button" onclick="history.length > 1 ? history.back() : location.assign('/')"><span aria-hidden="true">&larr;</span> Back</button><a class="brand-lockup" href="/" aria-label="Ahlyx Labs home"><img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs"></a></div>
-            <nav class="research-nav" aria-label="Primary navigation"><a href="/#work">Work</a><a href="/services">Services</a><a href="/research" aria-current="page">Research</a><a href="/#lab">Lab</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav>
+            <nav class="research-nav" aria-label="Primary navigation"><a href="/services">Services</a><a href="/#work">Work</a><a href="/research" aria-current="page">Research</a><a href="/notes">Notes</a><a href="/#lab">Lab</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav>
             <a href="/research" class="back-link">[ ← RESEARCH ]</a>
             <div class="header-titles">
                 <span class="site-title">SECURITY RESEARCH</span>
@@ -81,7 +87,7 @@
 
         <!-- Summary table -->
         <div class="section">
-            <div class="section-title">// REPORT SUMMARY</div>
+            <h2 id="report-summary" class="section-title">// REPORT SUMMARY</h2>
             <table class="summary-table">
                 <thead><tr><th>FIELD</th><th>VALUE</th></tr></thead>
                 <tbody>
@@ -100,7 +106,7 @@
 
         <!-- Overview -->
         <div class="section">
-            <div class="section-title">// OVERVIEW</div>
+            <h2 id="overview" class="section-title">// OVERVIEW</h2>
             <p class="prose">
                 ZenlessZoneZero-OneDragon is an open-source game automation tool for the miHoYo title Zenless Zone Zero. It automates daily tasks, manages multiple game accounts, and handles auto-login using stored credentials. The software is distributed on GitHub and has an active user base primarily in China.
             </p>
@@ -111,7 +117,7 @@
 
         <!-- How it was found -->
         <div class="section">
-            <div class="section-title">// HOW IT WAS FOUND</div>
+            <h2 id="discovery" class="section-title">// HOW IT WAS FOUND</h2>
 
             <div class="finding" style="border-left-color: var(--accent);">
                 <div class="finding-header">
@@ -146,7 +152,7 @@
 
         <!-- Technical findings -->
         <div class="section">
-            <div class="section-title">// TECHNICAL FINDINGS</div>
+            <h2 id="technical-findings" class="section-title">// TECHNICAL FINDINGS</h2>
 
             <div class="finding">
                 <div class="finding-header">
@@ -270,7 +276,7 @@ def _generate_user_id() -> str:
 
         <!-- Data flow -->
         <div class="section">
-            <div class="section-title">// DATA FLOW SUMMARY (AT TIME OF DISCLOSURE)</div>
+            <h2 id="data-flow-summary" class="section-title">// DATA FLOW SUMMARY (AT TIME OF DISCLOSURE)</h2>
             <p class="prose">For a user with more than three game accounts configured, on every application launch:</p>
             <div class="timeline" style="margin-top: 0.5rem;">
                 <div class="timeline-row">
@@ -314,7 +320,7 @@ def _generate_user_id() -> str:
 
         <!-- Privacy policy contradictions -->
         <div class="section">
-            <div class="section-title">// PRIVACY POLICY CONTRADICTIONS</div>
+            <h2 id="privacy-policy-contradictions" class="section-title">// PRIVACY POLICY CONTRADICTIONS</h2>
             <table class="summary-table">
                 <thead><tr><th>POLICY CLAIMS</th><th>CODE BEHAVIOUR (AT DISCLOSURE)</th><th>CURRENT STATUS</th></tr></thead>
                 <tbody>
@@ -339,7 +345,7 @@ def _generate_user_id() -> str:
 
         <!-- What was not found -->
         <div class="section">
-            <div class="section-title">// WHAT WAS NOT FOUND</div>
+            <h2 id="what-was-not-found" class="section-title">// WHAT WAS NOT FOUND</h2>
             <div class="assessment-grid">
                 <div class="assessment-box">
                     <div class="assessment-box-title">// NOT IN SCOPE</div>
@@ -361,7 +367,7 @@ def _generate_user_id() -> str:
 
         <!-- Maintainer response -->
         <div class="section">
-            <div class="section-title">// MAINTAINER RESPONSE</div>
+            <h2 id="maintainer-response" class="section-title">// MAINTAINER RESPONSE</h2>
             <div class="actions-block">
                 <p class="prose">A maintainer (m1boy) responded to the GitHub issue with the following (reproduced for accuracy):</p>
                 <div class="code-block" style="margin-top: 0.75rem; white-space: pre-wrap; color: var(--dim);">"The key retained for this project has been deprecated. The related services have been discontinued and will be removed in future updates. [...] This data is stored separately on secure servers and has not been utilized to date. We also hope that it never will be used in the future. [...] If you cannot accept our approach and decide to stop running this project, no further reports will be sent."</div>
@@ -371,7 +377,7 @@ def _generate_user_id() -> str:
 
         <!-- Timeline -->
         <div class="section">
-            <div class="section-title">// REMEDIATION TIMELINE</div>
+            <h2 id="remediation-timeline" class="section-title">// REMEDIATION TIMELINE</h2>
             <div class="timeline">
                 <div class="timeline-row">
                     <span class="timeline-date">2026-03-18</span>
@@ -410,7 +416,7 @@ def _generate_user_id() -> str:
 
         <!-- Current status -->
         <div class="section">
-            <div class="section-title">// CURRENT STATUS (2026-04-17)</div>
+            <h2 id="current-status" class="section-title">// CURRENT STATUS (2026-04-17)</h2>
             <div class="actions-block">
                 <p class="prose">Findings 1, 2, and 4 have been patched. Finding 3 (hostname collection) persists in the refactored <code>telemetry_manager.py</code>. Users are still tracked by a deterministic UUID derived from their computer name on every launch, transmitted to Alibaba Cloud SLS with no opt-out mechanism and no disclosure in the current privacy policy.</p>
                 <p class="prose" style="margin-top: 0.75rem;">Users who ran this software with more than three game accounts configured between the initial telemetry implementation and the April 16 patch should assume their game login usernames were transmitted to Alibaba Cloud SLS.</p>

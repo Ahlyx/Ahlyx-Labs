@@ -193,7 +193,7 @@ docker run --env-file .env -p 8080:8080 ahlyx-labs
 ```
 A      @    →  216.198.79.1                        (proxy ON)
 CNAME  www  →  990da1196320c862.vercel-dns-017.com  (proxy ON)
-CNAME  api  →  ahlyx-labs.onrender.com              (proxy ON)
+CNAME  api  →  ahlyx-labs.onrender.com              (DNS only)
 ```
 
 ### Verification
