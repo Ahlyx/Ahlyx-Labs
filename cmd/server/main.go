@@ -105,7 +105,7 @@ func newRouter(cfg *shared.Config, cache *shared.Cache) http.Handler {
 	// PCAP relay routes
 	// -----------------------------------------------------------------------
 	r.With(pcapRL.Middleware).Get("/api/v1/pcap/session", pcaphandlers.NewSession)
-	r.Get("/ws/relay/{session_id}", pcaphandlers.HandleRelay)
+	r.With(pcapRL.Middleware).Get("/ws/relay/{session_id}", pcaphandlers.HandleRelay)
 
 	return r
 }
