@@ -95,6 +95,7 @@ document.querySelectorAll('.tab').forEach(tab => {
         document.getElementById('searchInput').placeholder = placeholders[currentType];
         document.getElementById('searchPrefix').textContent = prefixes[currentType];
         document.getElementById('urlscanDisclosure').hidden = currentType !== 'url';
+        document.getElementById('urlPrivacyWarning').hidden = currentType !== 'url';
         document.getElementById('searchInput').focus();
     });
 });
@@ -547,6 +548,8 @@ function renderHistory() {
             currentType = item.type;
             document.getElementById('searchPrefix').textContent = prefixes[item.type];
             document.getElementById('searchInput').placeholder = placeholders[item.type];
+            document.getElementById('urlPrivacyWarning').hidden = item.type !== 'url';
+            document.getElementById('urlscanDisclosure').hidden = item.type !== 'url';
             document.getElementById('searchInput').value = item.value;
             performSearch(item.value, item.type);
         });

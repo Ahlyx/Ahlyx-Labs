@@ -11,5 +11,7 @@ assert.match(app, /JSON\.stringify\(\{ url: value, submit_urlscan: activeSubmiss
     'URL request body contains the URL and explicit URLScan consent');
 assert.match(app, /if \(type !== 'url'\) addToHistory/, 'URL searches are not persisted in localStorage history');
 assert.match(page, /private paths, identifiers, or tokens/, 'UI warns before active third-party URL submission');
+assert.match(page, /do not submit passwords, API keys, private invitation\/reset links, or other secrets/i,
+    'UI gives a visible warning before any URL lookup');
 
 console.log('enrichment privacy tests passed');
