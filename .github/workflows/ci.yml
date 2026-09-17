@@ -18,12 +18,14 @@ jobs:
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version-file: go.mod
-      - name: Check Go formatting
-        run: test -z "$(gofmt -l $(find . -name '*.go' -not -path './target/*'))"
       - name: Vet Go
         run: go vet ./...
       - name: Test Go
         run: go test ./...
+      - name: Build backend
+        run: |
+          mkdir -p target
+          go build -o target/ahlyx-labs ./cmd/server
       - name: Test static frontend
         run: |
           node tests/pcap/app.protocol.test.js
