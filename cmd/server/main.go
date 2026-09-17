@@ -10,9 +10,9 @@ import (
 	"golang.org/x/time/rate"
 
 	enrichhandlers "github.com/Ahlyx/Ahlyx-Labs/internal/enrichment/handlers"
-	hwhandlers     "github.com/Ahlyx/Ahlyx-Labs/internal/hardware/handlers"
-	pcaphandlers   "github.com/Ahlyx/Ahlyx-Labs/internal/pcap/handlers"
-	scanhandlers   "github.com/Ahlyx/Ahlyx-Labs/internal/scanner/handlers"
+	hwhandlers "github.com/Ahlyx/Ahlyx-Labs/internal/hardware/handlers"
+	pcaphandlers "github.com/Ahlyx/Ahlyx-Labs/internal/pcap/handlers"
+	scanhandlers "github.com/Ahlyx/Ahlyx-Labs/internal/scanner/handlers"
 	"github.com/Ahlyx/Ahlyx-Labs/internal/shared"
 )
 
@@ -32,11 +32,11 @@ func main() {
 	// Rate limiters per CLAUDE.md:
 	//   IP / domain / hash : 30 req/min, burst 30
 	//   URL               : 10 req/min, burst 10
-	stdRL  := shared.NewRateLimiter(rate.Every(2*time.Second), 30)  // 30/min
-	urlRL  := shared.NewRateLimiter(rate.Every(6*time.Second), 10)  // 10/min
-	scanRL := shared.NewRateLimiter(rate.Every(12*time.Second), 5)  // 5/min
-	hwRL   := shared.NewRateLimiter(rate.Every(2*time.Second), 30)  // 30/min
-	pcapRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10)  // 10/min
+	stdRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30)  // 30/min
+	urlRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10)  // 10/min
+	scanRL := shared.NewRateLimiter(rate.Every(12*time.Second), 5) // 5/min
+	hwRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30)   // 30/min
+	pcapRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10) // 10/min
 
 	// -----------------------------------------------------------------------
 	// Health check
@@ -68,10 +68,10 @@ func main() {
 	// -----------------------------------------------------------------------
 	r.Group(func(r chi.Router) {
 		r.Use(hwRL.Middleware)
-		r.Get("/api/v1/hardware/system",  hwhandlers.HandleSystem)
-		r.Get("/api/v1/hardware/cpu",     hwhandlers.HandleCPU)
-		r.Get("/api/v1/hardware/ram",     hwhandlers.HandleRAM)
-		r.Get("/api/v1/hardware/disk",    hwhandlers.HandleDisk)
+		r.Get("/api/v1/hardware/system", hwhandlers.HandleSystem)
+		r.Get("/api/v1/hardware/cpu", hwhandlers.HandleCPU)
+		r.Get("/api/v1/hardware/ram", hwhandlers.HandleRAM)
+		r.Get("/api/v1/hardware/disk", hwhandlers.HandleDisk)
 		r.Get("/api/v1/hardware/network", hwhandlers.HandleNetwork)
 	})
 
@@ -79,7 +79,7 @@ func main() {
 	// PCAP relay routes
 	// -----------------------------------------------------------------------
 	r.With(pcapRL.Middleware).Get("/api/v1/pcap/session", pcaphandlers.NewSession)
-	r.Get("/ws/relay/{session_id}", pcaphandlers.HandleRelay)
+	r.With(pcapRL.Middleware).Get("/ws/relay/{session_id}", pcaphandlers.HandleRelay)
 
 	addr := ":" + cfg.Port
 	log.Printf("ahlyx-labs listening on %s", addr)

@@ -2,6 +2,22 @@
 // GA4 bootstrap — must run before DOMContentLoaded so the dataLayer is
 // available when the async gtag.js library initialises.
 // ---------------------------------------------------------------------------
+// Consume relay launch material before analytics initialises. Fragments are
+// never sent in HTTP requests, and removing it here keeps the viewer token out
+// of copied URLs, analytics state, and future browser history entries.
+const relayBootstrap = (function () {
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const sessionID = params.get('relay_session');
+    const viewerToken = params.get('viewer_token');
+    const query = new URLSearchParams(window.location.search);
+    query.delete('session'); // Retire legacy bearer-style session URLs.
+    const cleanURL = window.location.pathname + (query.size ? `?${query}` : '');
+    if (window.location.hash || query.toString() !== window.location.search.slice(1)) {
+        history.replaceState(null, document.title, cleanURL);
+    }
+    return sessionID && viewerToken ? { sessionID, viewerToken } : null;
+})();
+
 window.dataLayer = window.dataLayer || [];
 function gtag() { dataLayer.push(arguments); }
 
@@ -51,11 +67,11 @@ document.addEventListener('DOMContentLoaded', function () {
 // ---------------------------------------------------------------------------
 // WebSocket
 // ---------------------------------------------------------------------------
-const urlParams = new URLSearchParams(window.location.search);
-const SESSION_ID = urlParams.get('session');
+const SESSION_ID = relayBootstrap ? relayBootstrap.sessionID : null;
+const VIEWER_TOKEN = relayBootstrap ? relayBootstrap.viewerToken : null;
 
 const WS_URL = SESSION_ID
-    ? `wss://api.ahlyxlabs.com/ws/relay/${SESSION_ID}?role=browser`
+    ? `wss://api.ahlyxlabs.com/ws/relay/${SESSION_ID}`
     : 'ws://localhost:7777/ws';
 const MAX_FLOWS      = 200;
 const MAX_ALERTS     = 50;
@@ -100,7 +116,9 @@ function connect() {
     setStatus('connecting');
 
     console.info('pcap websocket: connecting', { url: WS_URL, attempt: reconnectAttempts });
-    const socket = new WebSocket(WS_URL);
+    const socket = SESSION_ID
+        ? new WebSocket(WS_URL, ['ahlyx-relay-v1', VIEWER_TOKEN])
+        : new WebSocket(WS_URL);
     ws = socket;
 
     socket.addEventListener('open', function () {
