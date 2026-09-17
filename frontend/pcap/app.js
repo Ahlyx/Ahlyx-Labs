@@ -2,8 +2,9 @@
 // GA4 bootstrap — must run before DOMContentLoaded so the dataLayer is
 // available when the async gtag.js library initialises.
 // ---------------------------------------------------------------------------
-// The inline document-head bootstrap removes relay credentials from the URL
-// before analytics scripts load. This script only consumes its in-memory copy.
+// The synchronous document-head bootstrap removes relay credentials from the
+// URL before analytics scripts load. This script only consumes its in-memory
+// copy.
 const relayBootstrap = window.__AHLYX_RELAY_BOOTSTRAP || null;
 /* Analytics consent and loading are centralized in /assets/analytics.js.
 
