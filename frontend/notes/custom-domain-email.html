@@ -85,7 +85,7 @@ Cloudflare Email Routing
 destination-mailbox@example.net</pre>
             <p>For a while I used Gmail’s “Send mail as” setting. Messages had the right visible From address, but their real path was still Gmail. When I sent a test and opened Gmail’s <em>Show original</em> view, the headers told a different story:</p>
             <pre>From:        Alex &lt;alex@ahlyxlabs.com&gt;
-Return-Path: ahlyxlabs@gmail.com
+Return-Path: sender@gmail.com
 SPF:         PASS (gmail.com)
 DKIM:        PASS (gmail.com)
 DMARC:       FAIL (ahlyxlabs.com)</pre>
