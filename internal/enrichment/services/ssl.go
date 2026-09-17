@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -16,9 +17,20 @@ func FetchSSL(domain string) (*models.SSLData, models.SourceMetadata) {
 	acquireSem()
 	defer releaseSem()
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	addresses, err := resolvePublicTarget(ctx, domain, defaultHostResolver)
+	if err != nil {
+		meta.Error = ptr("SSL certificate lookup unavailable")
+		return nil, meta
+	}
+
+	// Dial the already-vetted address rather than the hostname. TLS still uses
+	// the original hostname for SNI and certificate verification, so a DNS
+	// answer cannot be swapped between validation and connection.
 	dialer := &net.Dialer{Timeout: 10 * time.Second}
 	conn, err := tls.DialWithDialer(dialer, "tcp",
-		net.JoinHostPort(domain, "443"),
+		net.JoinHostPort(addresses[0].String(), "443"),
 		&tls.Config{ServerName: domain})
 
 	if err != nil {
@@ -29,7 +41,7 @@ func FetchSSL(domain string) (*models.SSLData, models.SourceMetadata) {
 			meta.Success = true
 			return &models.SSLData{IsValid: ptr(false)}, meta
 		}
-		meta.Error = ptr(err.Error())
+		meta.Error = ptr("SSL certificate lookup unavailable")
 		return nil, meta
 	}
 	defer conn.Close()
