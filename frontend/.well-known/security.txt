@@ -3,3 +3,4 @@ Contact: https://x.com/AhIyxx
 Expires: 2027-09-01T00:00:00Z
 Preferred-Languages: en
 Canonical: https://ahlyxlabs.com/.well-known/security.txt
+Policy: https://ahlyxlabs.com/security

@@ -27,7 +27,25 @@
     <meta name="twitter:description" content="Real-time network packet capture and threat detection. Run pcap-agent locally and stream live analysis to your browser.">
     <meta name="twitter:creator" content="@AhIyxx">
 
-    <!-- Analytics -->
+    <!-- Consume relay credentials before any analytics script can inspect the URL. -->
+    <script>
+        (function () {
+            const fragment = new URLSearchParams(window.location.hash.slice(1));
+            const relaySession = fragment.get('relay_session');
+            const viewerToken = fragment.get('viewer_token');
+            const query = new URLSearchParams(window.location.search);
+            query.delete('session'); // Retire legacy bearer-style session URLs.
+            const cleanURL = window.location.pathname + (query.size ? `?${query}` : '');
+            if (window.location.hash || query.toString() !== window.location.search.slice(1)) {
+                history.replaceState(null, document.title, cleanURL);
+            }
+            if (relaySession && viewerToken) {
+                window.__AHLYX_RELAY_BOOTSTRAP = { sessionID: relaySession, viewerToken };
+            }
+        })();
+    </script>
+
+    <!-- Analytics loads only after the fragment has been removed. -->
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>

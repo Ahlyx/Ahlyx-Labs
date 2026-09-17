@@ -23,7 +23,7 @@ type Config struct {
 	URLScanVisibility           string
 	ServerScannerEnabled        bool
 	ServerScannerAllowedTargets []*net.IPNet
-	TrustedProxyCIDRs           []*net.IPNet
+	CloudflareOriginSecret      string
 	CacheTTLSeconds             int
 }
 
@@ -52,15 +52,10 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	trustedProxies, err := parseCIDRList(os.Getenv("TRUSTED_PROXY_CIDRS"), "TRUSTED_PROXY_CIDRS", false)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Config{
 		Port: port, AbuseIPDBKey: os.Getenv("ABUSEIPDB_API_KEY"), VirusTotalKey: os.Getenv("VIRUSTOTAL_API_KEY"), IPInfoKey: os.Getenv("IPINFO_API_KEY"), OTXKey: os.Getenv("OTX_API_KEY"),
 		GoogleSafeBrowsingKey: os.Getenv("GOOGLE_SAFE_BROWSING_API_KEY"), URLScanKey: os.Getenv("URLSCAN_API_KEY"), URLScanActiveSubmission: os.Getenv("URLSCAN_ACTIVE_SUBMISSION") == "true", URLScanVisibility: visibility,
-		ServerScannerEnabled: os.Getenv("SERVER_SCANNER_ENABLED") == "true", ServerScannerAllowedTargets: allowedTargets, TrustedProxyCIDRs: trustedProxies, CacheTTLSeconds: ttl,
+		ServerScannerEnabled: os.Getenv("SERVER_SCANNER_ENABLED") == "true", ServerScannerAllowedTargets: allowedTargets, CloudflareOriginSecret: os.Getenv("CLOUDFLARE_ORIGIN_SECRET"), CacheTTLSeconds: ttl,
 	}, nil
 }
 

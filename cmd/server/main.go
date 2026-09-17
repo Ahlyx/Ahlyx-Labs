@@ -54,10 +54,10 @@ func newRouter(cfg *shared.Config, cache *shared.Cache) http.Handler {
 	//   IP / domain / hash : 30 req/min, burst 30
 	//   URL               : 10 req/min, burst 10
 	globalRL := rate.NewLimiter(rate.Every(100*time.Millisecond), 120)
-	stdRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30, cfg.TrustedProxyCIDRs, globalRL)  // 30/min
-	urlRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10, cfg.TrustedProxyCIDRs, globalRL)  // 10/min
-	hwRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30, cfg.TrustedProxyCIDRs, globalRL)   // 30/min
-	pcapRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10, cfg.TrustedProxyCIDRs, globalRL) // 10/min
+	stdRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30, globalRL)  // 30/min
+	urlRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10, globalRL)  // 10/min
+	hwRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30, globalRL)   // 30/min
+	pcapRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10, globalRL) // 10/min
 
 	// -----------------------------------------------------------------------
 	// Health check
@@ -67,46 +67,38 @@ func newRouter(cfg *shared.Config, cache *shared.Cache) http.Handler {
 		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
 
-	// -----------------------------------------------------------------------
-	// Enrichment routes
-	// -----------------------------------------------------------------------
-	r.Group(func(r chi.Router) {
-		r.Use(stdRL.Middleware)
-		r.Get("/api/v1/ip/{address}", enrichhandlers.NewIPHandler(cfg, cache))
-		r.Get("/api/v1/domain/{name}", enrichhandlers.NewDomainHandler(cfg, cache))
-		r.Get("/api/v1/hash/{hash}", enrichhandlers.NewHashHandler(cfg, cache))
+	r.Group(func(protected chi.Router) {
+		protected.Use(shared.OriginVerification(cfg.CloudflareOriginSecret))
+
+		// Enrichment routes
+		protected.Group(func(r chi.Router) {
+			r.Use(stdRL.Middleware)
+			r.Get("/api/v1/ip/{address}", enrichhandlers.NewIPHandler(cfg, cache))
+			r.Get("/api/v1/domain/{name}", enrichhandlers.NewDomainHandler(cfg, cache))
+			r.Get("/api/v1/hash/{hash}", enrichhandlers.NewHashHandler(cfg, cache))
+		})
+
+		protected.With(urlRL.Middleware).Post("/api/v1/url", enrichhandlers.NewURLHandler(cfg, cache))
+		protected.With(urlRL.Middleware).Get("/api/v1/url", enrichhandlers.DeprecatedURLHandler)
+
+		// The hosted service never scans visitor-supplied targets by default.
+		if cfg.ServerScannerEnabled && len(cfg.ServerScannerAllowedTargets) > 0 {
+			scanRL := shared.NewRateLimiter(rate.Every(12*time.Second), 5, globalRL) // 5/min
+			protected.Method(http.MethodGet, "/api/v1/scanner/scan", scanhandlers.NewControlledScanHandler(scanRL, cfg.ServerScannerAllowedTargets))
+		}
+
+		protected.Group(func(r chi.Router) {
+			r.Use(hwRL.Middleware)
+			r.Get("/api/v1/hardware/system", hwhandlers.HandleSystem)
+			r.Get("/api/v1/hardware/cpu", hwhandlers.HandleCPU)
+			r.Get("/api/v1/hardware/ram", hwhandlers.HandleRAM)
+			r.Get("/api/v1/hardware/disk", hwhandlers.HandleDisk)
+			r.Get("/api/v1/hardware/network", hwhandlers.HandleNetwork)
+		})
+
+		protected.With(pcapRL.Middleware).Get("/api/v1/pcap/session", pcaphandlers.NewSession)
+		protected.With(pcapRL.Middleware).Get("/ws/relay/{session_id}", pcaphandlers.HandleRelay)
 	})
-
-	r.With(urlRL.Middleware).Get("/api/v1/url", enrichhandlers.NewURLHandler(cfg, cache))
-
-	// -----------------------------------------------------------------------
-	// Scanner route
-	// -----------------------------------------------------------------------
-	// The hosted service never scans visitor-supplied targets by default. The
-	// scanner package remains available for isolated owner-controlled labs and
-	// local tools, where a separate allowlist must be enforced.
-	if cfg.ServerScannerEnabled && len(cfg.ServerScannerAllowedTargets) > 0 {
-		scanRL := shared.NewRateLimiter(rate.Every(12*time.Second), 5, cfg.TrustedProxyCIDRs, globalRL) // 5/min
-		r.Method(http.MethodGet, "/api/v1/scanner/scan", scanhandlers.NewControlledScanHandler(scanRL, cfg.ServerScannerAllowedTargets))
-	}
-
-	// -----------------------------------------------------------------------
-	// Hardware routes
-	// -----------------------------------------------------------------------
-	r.Group(func(r chi.Router) {
-		r.Use(hwRL.Middleware)
-		r.Get("/api/v1/hardware/system", hwhandlers.HandleSystem)
-		r.Get("/api/v1/hardware/cpu", hwhandlers.HandleCPU)
-		r.Get("/api/v1/hardware/ram", hwhandlers.HandleRAM)
-		r.Get("/api/v1/hardware/disk", hwhandlers.HandleDisk)
-		r.Get("/api/v1/hardware/network", hwhandlers.HandleNetwork)
-	})
-
-	// -----------------------------------------------------------------------
-	// PCAP relay routes
-	// -----------------------------------------------------------------------
-	r.With(pcapRL.Middleware).Get("/api/v1/pcap/session", pcaphandlers.NewSession)
-	r.With(pcapRL.Middleware).Get("/ws/relay/{session_id}", pcaphandlers.HandleRelay)
 
 	return r
 }

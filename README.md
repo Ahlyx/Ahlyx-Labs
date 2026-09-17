@@ -1,217 +1,123 @@
 # Ahlyx Labs
 
-> Unified security tools platform — one binary, one deployment, one brand.
+Open-source security tools, systems work, and independent research.
 
-**Live:** [ahlyxlabs.com](https://ahlyxlabs.com) · **API:** [api.ahlyxlabs.com](https://api.ahlyxlabs.com)
+- Website: https://ahlyxlabs.com
+- API: https://api.ahlyxlabs.com
+- Source and releases: https://github.com/Ahlyx
+- Security and trust information: https://ahlyxlabs.com/security
 
----
+## Architecture
 
-## Overview
+```text
+Internet
+   |
+Cloudflare proxy / DNS
+   |
+   +--> ahlyxlabs.com      -> Vercel frontend
+   |
+   +--> api.ahlyxlabs.com  -> Render Go backend
+```
 
-Ahlyx Labs brings together four live security utilities in one monorepo: a multi-source **Security Enrichment API**, a TCP **Network Scanner** with OT/ICS port awareness, a real-time **Hardware Dashboard**, and **PCAP Agent** for browser-visible local packet analysis. A single Go binary on [Render](https://render.com) serves all backend routes; a Vercel deployment serves all frontends as static files under the `ahlyxlabs.com` domain.
+The backend is a single Go binary using chi, an in-memory TTL cache, bounded
+rate limiters, and optional aggregate PostgreSQL telemetry. The public frontend
+is static HTML, CSS, and vanilla JavaScript. Cloudflare provides the public
+edge, Vercel serves the frontend, and Render hosts the Go API.
 
----
+When configured, the backend requires a Cloudflare-added origin-verification
+header for API and relay traffic. This protects the origin even if its provider
+address is known. The secret itself is never stored in source; see
+[`MANUAL_SECURITY_ACTIONS.md`](MANUAL_SECURITY_ACTIONS.md).
 
 ## Tools
 
-### Security Enrichment API
-Aggregates threat intelligence from multiple sources against IPs, domains, URLs, and file hashes. Each query fans out to all relevant sources concurrently, merges results, and caches responses with a TTL that degrades gracefully on partial failures.
+### Security Enrichment
+
+Enriches IP addresses, domains, URLs, and file hashes using relevant public and
+commercial security sources. URL enrichment accepts sensitive input only as a
+JSON request body; do not submit passwords, API keys, private invitation/reset
+links, or other secrets to any public threat-intelligence lookup.
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/v1/ip/{address}` | IP geolocation, abuse score, VirusTotal, bogon/Tor detection |
-| `GET /api/v1/domain/{name}` | WHOIS, DNS records, SSL, VirusTotal, OTX |
-| `GET /api/v1/url?url=` | Google Safe Browsing, URLScan, VirusTotal |
-| `GET /api/v1/hash/{hash}` | VirusTotal, MalwareBazaar, CIRCL HashLookup |
+| `GET /api/v1/ip/{address}` | IP reputation and contextual enrichment |
+| `GET /api/v1/domain/{name}` | DNS, WHOIS, TLS, OTX, and reputation enrichment |
+| `POST /api/v1/url` | URL enrichment with `{"url":"https://example.com","submit_urlscan":false}` |
+| `GET /api/v1/hash/{hash}` | Hash reputation and malware metadata |
 
-**Intel sources:** AbuseIPDB · VirusTotal · IPinfo · AlienVault OTX · Google Safe Browsing · URLScan · MalwareBazaar · CIRCL HashLookup · WHOIS · DNS · SSL
+The legacy `GET /api/v1/url?...` route intentionally returns `410 Gone` rather
+than process a full URL in a request query string.
+
+Sources are selected by indicator type and include AbuseIPDB, VirusTotal,
+IPinfo, AlienVault OTX, Google Safe Browsing, MalwareBazaar, CIRCL HashLookup,
+DNS, WHOIS, TLS, and URLScan. URLScan active submission is optional and
+requires both an operator setting and visitor opt-in.
 
 ### Network Scanner
-TCP port scanner with a curated OT/ICS port map alongside common service ports. Accepts a subnet or single host as input. Maximum subnet size is /24.
 
-| Endpoint | Description |
-|---|---|
-| `GET /api/v1/scanner/scan?subnet=` | Scan a subnet or host for open TCP ports |
+The scanner preserves its OT/ICS port reference and is available for local or
+explicitly isolated owner-controlled lab use. Hosted scanning is disabled in
+normal production: `/api/v1/scanner/scan` is **not** a normal public production
+endpoint. Controlled mode requires an explicit enablement flag and fixed
+private CIDR allowlist.
 
 ### Hardware Dashboard
-Real-time system telemetry for the host running the backend (Render VM).
 
-| Endpoint | Description |
-|---|---|
-| `GET /api/v1/hardware/system` | OS, hostname, architecture, processor |
-| `GET /api/v1/hardware/cpu` | Model, core count, clock speed, usage |
-| `GET /api/v1/hardware/ram` | Total, used, available, swap |
-| `GET /api/v1/hardware/disk` | Per-partition usage + I/O totals |
-| `GET /api/v1/hardware/network` | Per-interface addresses + traffic totals |
+Shows aggregate telemetry from the Ahlyx Labs cloud backend: runtime platform,
+uptime, CPU utilization/core count, memory utilization, disk capacity/I-O, and
+aggregate network traffic. It does not display a visitor's machine or expose
+hostnames, interface inventories, addresses, mount paths, or filesystem layout.
 
 ### PCAP Agent
-`pcap-agent` performs packet capture and analysis locally. The production browser UI is maintained in `frontend/pcap/`; the agent repository does not bundle that frontend.
 
-**Local mode (default)** keeps packet analysis on the monitored machine:
+[`pcap-agent`](https://github.com/Ahlyx/pcap-agent) analyzes traffic locally.
+In local mode, the browser connects directly to `ws://localhost:7777/ws`; packet
+analysis metadata does not transit Ahlyx Labs. Optional relay mode uses a
+short-lived session with separate agent and viewer credentials: the agent uses
+an authorization header and the viewer uses a WebSocket subprotocol. Raw packet
+payloads are not relayed.
+
+## Safe defaults
 
 ```text
-browser at ahlyxlabs.com/pcap -> ws://localhost:7777/ws -> local pcap-agent
+SERVER_SCANNER_ENABLED=false
+URLSCAN_ACTIVE_SUBMISSION=false
+URLSCAN_VISIBILITY=unlisted
 ```
 
-The production page connects directly to the local agent. The agent emits flow and alert telemetry; it does not send raw packet payloads.
+Missing enablement flags are false. Never enable the scanner on the normal
+public backend. URLScan has no active submission unless the operator enables it
+and the visitor explicitly asks for it.
 
-**Optional relay mode** remains available when a remote browser session is intentionally needed. In that mode, the agent and browser connect to the same short-lived Ahlyx Labs relay session; the browser WebSocket does not initiate packet capture.
+## Local development
 
-| Endpoint | Description |
-|---|---|
-| `GET /api/v1/pcap/session` | Create a short-lived relay session and return its browser/agent WebSocket URL |
-| `GET /ws/relay/{session_id}?role=agent|browser` | Relay packet-analysis frames between the local agent and browser |
-
-### Health Check
-```
-GET /health → 200 OK  {"status":"ok"}
-```
-
----
-
-## Architecture
-```
-Ahlyx-Labs/
-├── cmd/server/main.go          ← single entrypoint, registers all route groups
-├── internal/
-│   ├── shared/                 ← cache, config, middleware, rate limiter, response helpers
-│   ├── enrichment/             ← handlers, services (one file per source), models, validators
-│   ├── scanner/                ← TCP scanner logic, OT/ICS port map, handler
-│   ├── hardware/               ← system telemetry handler and models
-│   └── pcap/                   ← optional relay session and WebSocket handlers
-├── frontend/
-│   ├── landing/
-│   ├── enrichment/
-│   ├── scanner/
-│   ├── hardware/
-│   ├── pcap/                   ← production local-agent browser UI
-│   ├── robots.txt
-│   ├── sitemap.xml
-│   └── vercel.json
-└── tests/
-    └── pcap/                   ← frontend PCAP regression tests
-```
-
-**Backend:** Go 1.25 · [chi](https://github.com/go-chi/chi) router · per-IP token-bucket rate limiting (`golang.org/x/time/rate`) · in-memory TTL cache (`sync.RWMutex`) · Dockerized for Render
-
-**Frontend:** Vanilla JS / HTML / CSS · dark terminal design language · Vercel Analytics + Speed Insights · GA4 (G-99NT7YXMY8) · consent banner on all pages
-
-**Infrastructure:** Render (backend) · Vercel (frontend) · Cloudflare (DNS, proxy)
-
----
-
-## Rate Limits
-
-| Route group | Limit |
-|---|---|
-| `/api/v1/ip`, `/api/v1/domain`, `/api/v1/hash` | 30 req / min per IP |
-| `/api/v1/url` | 10 req / min per IP |
-| `/api/v1/scanner/scan` | 5 req / min per IP |
-| `/api/v1/hardware/*` | 30 req / min per IP |
-
----
-
-## Caching
-
-Responses are cached in memory with TTL tiers based on source reliability:
-
-| Condition | TTL |
-|---|---|
-| All sources succeeded | 1 hour |
-| Any source failed | 15 minutes |
-| All sources failed | Not cached |
-
----
-
-## Environment Variables
-
-API keys are set in the Render dashboard and are **not committed to the repo**. See `.env.example` for the full list.
-
-| Variable | Used by |
-|---|---|
-| `ABUSEIPDB_API_KEY` | Enrichment — IP |
-| `VIRUSTOTAL_API_KEY` | Enrichment — IP, domain, URL, hash |
-| `IPINFO_API_KEY` | Enrichment — IP |
-| `OTX_API_KEY` | Enrichment — domain |
-| `GOOGLE_SAFE_BROWSING_API_KEY` | Enrichment — URL |
-| `URLSCAN_API_KEY` | Enrichment — URL |
-| `MALWAREBAZAAR_API_KEY` | Enrichment — hash |
-| `PORT` | Server listen port (default: `8080`) |
-| `CACHE_TTL_SECONDS` | Override full-success TTL (default: `3600`) |
-
----
-
-## Local Development
-
-### Prerequisites
-- Go 1.25+
-- Docker (optional, for container builds)
-
-### Run locally
 ```bash
 git clone https://github.com/Ahlyx/Ahlyx-Labs.git
 cd Ahlyx-Labs
 cp .env.example .env
-# fill in API keys in .env
+go test ./...
 go run ./cmd/server
 ```
 
-Server starts on `http://localhost:8080`. Serve the frontend directory so deployment-style absolute asset paths resolve correctly:
+For a static frontend preview:
 
 ```bash
 python -m http.server 4173 --directory frontend
 ```
 
-Then open `http://localhost:4173/landing/`, `http://localhost:4173/services/`, or any other tool directory. The Go backend is separate from this static preview; tool pages use the deployed API by default.
+Open `http://localhost:4173/`. Local development does not require the
+Cloudflare origin secret. Production configuration and verification steps are
+documented in [`MANUAL_SECURITY_ACTIONS.md`](MANUAL_SECURITY_ACTIONS.md).
 
-### Docker
+## Verification
+
 ```bash
-docker build -t ahlyx-labs .
-docker run --env-file .env -p 8080:8080 ahlyx-labs
+go test ./...
+go vet ./...
+node tests/pcap/app.protocol.test.js
+node tests/enrichment/privacy.test.js
+node --test tests/site/static-site.test.js
 ```
-
----
-
-## Deployment
-
-### Backend → Render
-
-1. **New → Web Service** → connect `Ahlyx/Ahlyx-Labs`
-2. Environment: **Docker** · Branch: `master` · Root directory: *(leave empty)*
-3. Add all 7 API keys as environment variables in the Render dashboard
-4. Deploy → service URL: `ahlyx-labs.onrender.com`
-5. Add custom domain `api.ahlyxlabs.com` in Render → Settings → Custom Domains
-6. Verify: `curl https://api.ahlyxlabs.com/health`
-
-### Frontend → Vercel
-
-1. **New Project** → import `Ahlyx/Ahlyx-Labs`
-2. Root directory: `frontend` · Framework preset: **Other** · Build command: *(empty)* · Output directory: `./`
-3. Deploy → add custom domains `ahlyxlabs.com` and `www.ahlyxlabs.com`
-
-### DNS → Cloudflare
-```
-A      @    →  216.198.79.1                        (proxy ON)
-CNAME  www  →  990da1196320c862.vercel-dns-017.com  (proxy ON)
-CNAME  api  →  ahlyx-labs.onrender.com              (DNS only)
-```
-
-### Verification
-```bash
-curl https://api.ahlyxlabs.com/health
-curl "https://api.ahlyxlabs.com/api/v1/ip/8.8.8.8"
-# Open https://ahlyxlabs.com in a browser
-# Check GA4 Realtime report for your visit
-```
-
----
-
-## Module
-```
-github.com/Ahlyx/Ahlyx-Labs
-```
-
----
 
 ## License
 

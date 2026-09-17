@@ -19,17 +19,16 @@ type ipLimiter struct {
 // RateLimiter holds bounded-lifetime per-client token buckets. Forwarding
 // headers are considered only when the socket peer is an explicit trusted proxy.
 type RateLimiter struct {
-	mu             sync.Mutex
-	ips            map[string]*ipLimiter
-	limit          rate.Limit
-	burst          int
-	trustedProxies []*net.IPNet
-	global         *rate.Limiter
-	lastCleanup    time.Time
+	mu          sync.Mutex
+	ips         map[string]*ipLimiter
+	limit       rate.Limit
+	burst       int
+	global      *rate.Limiter
+	lastCleanup time.Time
 }
 
-func NewRateLimiter(r rate.Limit, burst int, trustedProxies []*net.IPNet, global *rate.Limiter) *RateLimiter {
-	return &RateLimiter{ips: make(map[string]*ipLimiter), limit: r, burst: burst, trustedProxies: trustedProxies, global: global}
+func NewRateLimiter(r rate.Limit, burst int, global *rate.Limiter) *RateLimiter {
+	return &RateLimiter{ips: make(map[string]*ipLimiter), limit: r, burst: burst, global: global}
 }
 
 func (rl *RateLimiter) get(ip string, now time.Time) *rate.Limiter {
@@ -58,7 +57,7 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 			writeError(w, http.StatusTooManyRequests, "service is busy")
 			return
 		}
-		ip := ClientIP(r, rl.trustedProxies)
+		ip := ClientIP(r)
 		if !rl.get(ip, time.Now()).Allow() {
 			writeError(w, http.StatusTooManyRequests, "rate limit exceeded")
 			return
@@ -67,11 +66,12 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	})
 }
 
-// ClientIP returns the socket peer unless it belongs to a configured trusted
-// proxy CIDR. Only then is CF-Connecting-IP accepted as the client identity.
-func ClientIP(r *http.Request, trustedProxies []*net.IPNet) string {
+// ClientIP accepts CF-Connecting-IP only after origin verification. A direct
+// request, including one with a spoofed forwarding header, is keyed by its
+// socket peer instead.
+func ClientIP(r *http.Request) string {
 	peer := remoteIP(r.RemoteAddr)
-	if peer == nil || !isTrustedProxy(peer, trustedProxies) {
+	if !OriginVerified(r) {
 		if peer != nil {
 			return peer.String()
 		}
@@ -79,6 +79,9 @@ func ClientIP(r *http.Request, trustedProxies []*net.IPNet) string {
 	}
 	if client := net.ParseIP(r.Header.Get("CF-Connecting-IP")); client != nil {
 		return client.String()
+	}
+	if peer == nil {
+		return r.RemoteAddr
 	}
 	return peer.String()
 }
@@ -89,13 +92,4 @@ func remoteIP(address string) net.IP {
 		host = address
 	}
 	return net.ParseIP(host)
-}
-
-func isTrustedProxy(ip net.IP, proxies []*net.IPNet) bool {
-	for _, proxy := range proxies {
-		if proxy.Contains(ip) {
-			return true
-		}
-	}
-	return false
 }

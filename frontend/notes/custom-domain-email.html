@@ -82,7 +82,7 @@ alex@ahlyxlabs.com
 Cloudflare Email Routing
         |
         v
-ahlyxlabs@gmail.com</pre>
+destination-mailbox@example.net</pre>
             <p>For a while I used Gmail’s “Send mail as” setting. Messages had the right visible From address, but their real path was still Gmail. When I sent a test and opened Gmail’s <em>Show original</em> view, the headers told a different story:</p>
             <pre>From:        Alex &lt;alex@ahlyxlabs.com&gt;
 Return-Path: ahlyxlabs@gmail.com
@@ -98,7 +98,7 @@ DMARC:       FAIL (ahlyxlabs.com)</pre>
             <h2 id="architecture">The setup I ended up with</h2>
             <pre>INCOMING
 
-sender → alex@ahlyxlabs.com → Cloudflare Email Routing → ahlyxlabs@gmail.com → Thunderbird
+sender → alex@ahlyxlabs.com → Cloudflare Email Routing → destination-mailbox@example.net → Thunderbird
 
 OUTGOING
 
@@ -107,15 +107,15 @@ Thunderbird → SMTP2GO → recipient</pre>
 
             <h2 id="domain-verification">Verifying the sending domain</h2>
             <p>After creating the SMTP2GO account, I added <code>ahlyxlabs.com</code> as a verified sender domain. SMTP2GO generated three account-specific CNAME records. Do not copy these values from another account; use the exact values your provider gives you.</p>
-            <pre>CNAME  em931508              → return.smtp2go.net
-CNAME  s931508._domainkey      → dkim.smtp2go.net
-CNAME  link                    → track.smtp2go.net</pre>
+            <pre>CNAME  emXXXXX              → provider return-path host
+CNAME  sXXXXX._domainkey      → provider DKIM host
+CNAME  link                    → provider tracking host</pre>
             <p>I added each one in Cloudflare as <strong>DNS only</strong>, not proxied. Mail-authentication records are DNS records, not web services that should sit behind Cloudflare’s reverse proxy. I did not change my MX records, so inbound mail continued flowing through Cloudflare Email Routing while I worked on outbound sending.</p>
-            <p>I already had another DKIM selector in the zone, <code>cf2024-1._domainkey</code>. I have not identified what service published it yet, so I am deliberately not assigning it a purpose here. SMTP2GO uses the separate <code>s931508._domainkey</code> selector. Multiple DKIM selectors can coexist normally.</p>
+            <p>Multiple DKIM selectors can coexist normally because different mail services publish their own selector names. Keep an inventory of active senders, and remove a stale selector only after confirming that no active service uses it.</p>
 
             <h3 id="spf-explained">The SPF part that confused me</h3>
             <p>I did not replace the root SPF record, which is still <code>v=spf1 include:_spf.mx.cloudflare.net ~all</code>. That record is for Cloudflare Email Routing, and it does not need an SMTP2GO include for this setup.</p>
-            <p>SPF is evaluated against the envelope-from domain, also called the Return-Path. SMTP2GO uses <code>em931508.ahlyxlabs.com</code>, which CNAMEs to <code>return.smtp2go.net</code>; SMTP2GO handles SPF at that delegated return-path. With DMARC’s default relaxed alignment, that subdomain shares the organizational domain <code>ahlyxlabs.com</code>. SPF therefore both passes and aligns with no root-record change. That was the non-obvious piece I kept looking for in the wrong place.</p>
+            <p>SPF is evaluated against the envelope-from domain, also called the Return-Path. A sending provider can use a delegated subdomain such as <code>emXXXXX.ahlyxlabs.com</code>, which CNAMEs to the provider return-path host; the provider then handles SPF at that delegated return-path. With DMARC’s default relaxed alignment, that subdomain shares the organizational domain <code>ahlyxlabs.com</code>. SPF can therefore both pass and align with no root-record change. That was the non-obvious piece I kept looking for in the wrong place.</p>
 
             <h2 id="thunderbird">Thunderbird became the glue</h2>
             <p>I connected the existing Gmail account through IMAP/OAuth so Thunderbird reads the same mailbox I already had. Then I added SMTP2GO as a separate outgoing SMTP server:</p>
@@ -159,7 +159,7 @@ p=reject</pre>
             <h3>Do not test deliverability with “test / test”</h3><p>My first test used that exact subject and body and Gmail put it in spam. That is not proof the infrastructure is broken. Send a normal message with a normal subject and body, then read the headers.</p>
 
             <h2 id="faq">Questions I kept asking myself</h2>
-            <div class="faq-list"><details><summary>What happens to Gmail “Send as” in January 2027?</summary><p>Gmail will remove “Send as” for third-party, non-Google accounts on the web and mobile apps. Google Workspace aliases and other Gmail addresses are not affected. Google’s documented alternatives include using a desktop client with IMAP/SMTP.</p></details><details><summary>Why does DMARC fail when SPF passes?</summary><p>DMARC needs alignment between the visible From domain and SPF or DKIM. My original SPF pass authenticated <code>gmail.com</code>, while my visible address was <code>ahlyxlabs.com</code>.</p></details><details><summary>Why did I not need to change the root SPF record?</summary><p>SMTP2GO authenticates the delegated envelope-from subdomain, <code>em931508.ahlyxlabs.com</code>. Under relaxed alignment it shares the organizational domain with the visible From address.</p></details><details><summary>Can I still receive mail in Gmail?</summary><p>Yes. Cloudflare Email Routing still forwards custom-domain mail to Gmail. Nothing about the inbound path changed.</p></details><details><summary>Why Thunderbird instead of Gmail’s external SMTP option?</summary><p>I wanted a dedicated client that manages Gmail IMAP and SMTP2GO together, without depending on Gmail’s third-party Send as settings as they are being retired.</p></details><details><summary>What does this cost?</summary><p>Nothing at the time of writing: Cloudflare Email Routing, a normal Gmail account, Thunderbird, and SMTP2GO’s free tier. The trade-off is understanding and maintaining the seams.</p></details></div>
+            <div class="faq-list"><details><summary>What happens to Gmail “Send as” in January 2027?</summary><p>Gmail will remove “Send as” for third-party, non-Google accounts on the web and mobile apps. Google Workspace aliases and other Gmail addresses are not affected. Google’s documented alternatives include using a desktop client with IMAP/SMTP.</p></details><details><summary>Why does DMARC fail when SPF passes?</summary><p>DMARC needs alignment between the visible From domain and SPF or DKIM. My original SPF pass authenticated <code>gmail.com</code>, while my visible address was <code>ahlyxlabs.com</code>.</p></details><details><summary>Why did I not need to change the root SPF record?</summary><p>A provider can authenticate a delegated envelope-from subdomain such as <code>emXXXXX.ahlyxlabs.com</code>. Under relaxed alignment it shares the organizational domain with the visible From address.</p></details><details><summary>Can I still receive mail in Gmail?</summary><p>Yes. Cloudflare Email Routing still forwards custom-domain mail to Gmail. Nothing about the inbound path changed.</p></details><details><summary>Why Thunderbird instead of Gmail’s external SMTP option?</summary><p>I wanted a dedicated client that manages Gmail IMAP and SMTP2GO together, without depending on Gmail’s third-party Send as settings as they are being retired.</p></details><details><summary>What does this cost?</summary><p>Nothing at the time of writing: Cloudflare Email Routing, a normal Gmail account, Thunderbird, and SMTP2GO’s free tier. The trade-off is understanding and maintaining the seams.</p></details></div>
 
             <h2 id="next">What I am not doing yet</h2>
             <p>I am leaving DMARC at <code>p=none</code> for a while and watching the reports. When I am confident SMTP2GO is the only legitimate sender I need, I will update this post with the move toward <code>p=quarantine</code> and eventually <code>p=reject</code>. I also want to document what the aggregate reports actually look like once enough arrive.</p>

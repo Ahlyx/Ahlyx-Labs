@@ -120,11 +120,9 @@ async function fetchSystem() {
         const container = document.getElementById('system-data');
         container.innerHTML = '';
 
-        appendRow(container, 'os',           d.os);
-        appendRow(container, 'os_version',   d.os_version);
+        appendRow(container, 'platform',     d.platform);
         appendRow(container, 'architecture', d.architecture);
-        appendRow(container, 'hostname',     d.hostname);
-        appendRow(container, 'processor',    d.processor);
+        appendRow(container, 'uptime_seconds', d.uptime_seconds);
     } catch {
         showError('system-data');
         if (typeof gtag !== 'undefined') {
@@ -193,33 +191,13 @@ async function fetchDisk() {
         const container = document.getElementById('disk-data');
         container.innerHTML = '';
 
-        // Partition blocks
-        const partitions = d.partitions ?? [];
-        partitions.forEach(function (p) {
-            const block = document.createElement('div');
-            block.className = 'partition-block';
-
-            const mount = document.createElement('div');
-            mount.className = 'partition-mount highlight';
-            mount.textContent = p.mountpoint;
-            block.appendChild(mount);
-
-            const rows = document.createElement('div');
-            rows.className = 'data-rows';
-            appendRow(rows, 'filesystem', p.filesystem);
-            appendRow(rows, 'total',      p.total);
-            appendRow(rows, 'used',       p.used);
-            appendRow(rows, 'free',       p.free);
-            appendRow(rows, 'usage',      p.usage, true);
-            block.appendChild(rows);
-
-            container.appendChild(block);
-        });
-
-        // I/O totals
         const totals = document.createElement('div');
         totals.className = 'totals-row';
 
+        appendRow(totals, 'total',         d.total);
+        appendRow(totals, 'used',          d.used);
+        appendRow(totals, 'free',          d.free);
+        appendRow(totals, 'usage',         d.usage, true);
         appendRow(totals, 'total_read',    d.total_read);
         appendRow(totals, 'total_written', d.total_written);
         appendRow(totals, 'read_ops',      d.read_ops);
@@ -245,27 +223,6 @@ async function fetchNetwork() {
         const container = document.getElementById('network-data');
         container.innerHTML = '';
 
-        // Interface blocks
-        const interfaces = d.interfaces ?? [];
-        interfaces.forEach(function (iface) {
-            const block = document.createElement('div');
-            block.className = 'interface-block';
-
-            const name = document.createElement('div');
-            name.className = 'interface-name highlight';
-            name.textContent = iface.interface;
-            block.appendChild(name);
-
-            const rows = document.createElement('div');
-            rows.className = 'data-rows';
-            appendRow(rows, 'ip_address',  iface.ip_address);
-            appendRow(rows, 'subnet_mask', iface.subnet_mask);
-            block.appendChild(rows);
-
-            container.appendChild(block);
-        });
-
-        // Traffic totals
         const totals = document.createElement('div');
         totals.className = 'totals-row';
 

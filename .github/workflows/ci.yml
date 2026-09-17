@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: go.mod
+      - name: Check Go formatting
+        run: test -z "$(gofmt -l $(find . -name '*.go' -not -path './target/*'))"
+      - name: Vet Go
+        run: go vet ./...
+      - name: Test Go
+        run: go test ./...
+      - name: Test static frontend
+        run: |
+          node tests/pcap/app.protocol.test.js
+          node tests/enrichment/privacy.test.js
+          node --test tests/site/static-site.test.js

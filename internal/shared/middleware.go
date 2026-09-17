@@ -7,13 +7,12 @@ import (
 	"github.com/go-chi/cors"
 )
 
-// CORSMiddleware returns a chi-compatible CORS handler that allows all origins.
-// Tighten AllowedOrigins to the Vercel domain before going to production.
+// CORSMiddleware permits only the public Ahlyx Labs frontend origins.
 func CORSMiddleware() func(http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
 		AllowedOrigins: []string{"https://ahlyxlabs.com", "https://www.ahlyxlabs.com"},
 		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
-		AllowedHeaders: []string{"*"},
+		AllowedHeaders: []string{"Content-Type"},
 		MaxAge:         300,
 	})
 }
@@ -24,8 +23,8 @@ type Router interface {
 }
 
 // ApplyGlobalMiddleware attaches logging, recovery, and CORS to r. Client IP
-// handling stays inside RateLimiter so forwarding headers are trusted only
-// after the socket peer is verified as an explicit proxy.
+// handling stays inside RateLimiter and requires origin verification before
+// it accepts the Cloudflare client identity header.
 func ApplyGlobalMiddleware(r Router) {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
