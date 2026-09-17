@@ -46,15 +46,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// ---------------------------------------------------------------------------
-// API config
-// ---------------------------------------------------------------------------
-// dev: http://localhost:8080
-const API_BASE = 'https://api.ahlyxlabs.com';
-
-// ---------------------------------------------------------------------------
-// Scanner
-// ---------------------------------------------------------------------------
+// Scanner execution is intentionally local/lab-only. Keep no browser path
+// that can ask the public backend to connect to a visitor-selected address.
+/*
 async function runScan() {
     const subnetInput = document.getElementById('subnetInput');
     const scanBtn     = document.getElementById('scanBtn');
@@ -190,3 +184,4 @@ document.querySelectorAll('.preset-btn').forEach(function (btn) {
         document.getElementById('subnetInput').value = btn.dataset.value;
     });
 });
+*/

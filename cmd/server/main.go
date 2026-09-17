@@ -26,6 +26,27 @@ func main() {
 
 	cache := shared.NewCache()
 
+	r := newRouter(cfg, cache)
+
+	addr := ":" + cfg.Port
+	log.Printf("ahlyx-labs listening on %s", addr)
+	server := &http.Server{
+		Addr:              addr,
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("server error: %v", err)
+	}
+}
+
+// newRouter registers only the features explicitly enabled for this
+// deployment. Keeping this separate from main makes the public route surface
+// straightforward to verify in tests.
+func newRouter(cfg *shared.Config, cache *shared.Cache) http.Handler {
 	r := chi.NewRouter()
 	shared.ApplyGlobalMiddleware(r)
 
@@ -35,7 +56,6 @@ func main() {
 	globalRL := rate.NewLimiter(rate.Every(100*time.Millisecond), 120)
 	stdRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30, cfg.TrustedProxyCIDRs, globalRL)  // 30/min
 	urlRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10, cfg.TrustedProxyCIDRs, globalRL)  // 10/min
-	scanRL := shared.NewRateLimiter(rate.Every(12*time.Second), 5, cfg.TrustedProxyCIDRs, globalRL) // 5/min
 	hwRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30, cfg.TrustedProxyCIDRs, globalRL)   // 30/min
 	pcapRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10, cfg.TrustedProxyCIDRs, globalRL) // 10/min
 
@@ -60,9 +80,15 @@ func main() {
 	r.With(urlRL.Middleware).Get("/api/v1/url", enrichhandlers.NewURLHandler(cfg, cache))
 
 	// -----------------------------------------------------------------------
-	// Scanner routes
+	// Scanner route
 	// -----------------------------------------------------------------------
-	r.Method(http.MethodGet, "/api/v1/scanner/scan", scanhandlers.NewScanHandlerWithRL(scanRL))
+	// The hosted service never scans visitor-supplied targets by default. The
+	// scanner package remains available for isolated owner-controlled labs and
+	// local tools, where a separate allowlist must be enforced.
+	if cfg.ServerScannerEnabled && len(cfg.ServerScannerAllowedTargets) > 0 {
+		scanRL := shared.NewRateLimiter(rate.Every(12*time.Second), 5, cfg.TrustedProxyCIDRs, globalRL) // 5/min
+		r.Method(http.MethodGet, "/api/v1/scanner/scan", scanhandlers.NewControlledScanHandler(scanRL, cfg.ServerScannerAllowedTargets))
+	}
 
 	// -----------------------------------------------------------------------
 	// Hardware routes
@@ -80,11 +106,7 @@ func main() {
 	// PCAP relay routes
 	// -----------------------------------------------------------------------
 	r.With(pcapRL.Middleware).Get("/api/v1/pcap/session", pcaphandlers.NewSession)
-	r.Get("/ws/relay/{session_id}", pcaphandlers.HandleRelay)
+	r.With(pcapRL.Middleware).Get("/ws/relay/{session_id}", pcaphandlers.HandleRelay)
 
-	addr := ":" + cfg.Port
-	log.Printf("ahlyx-labs listening on %s", addr)
-	if err := http.ListenAndServe(addr, r); err != nil {
-		log.Fatalf("server error: %v", err)
-	}
+	return r
 }
