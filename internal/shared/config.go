@@ -1,8 +1,11 @@
 package shared
 
 import (
+	"fmt"
+	"net"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -16,6 +19,7 @@ type Config struct {
 	OTXKey                string
 	GoogleSafeBrowsingKey string
 	URLScanKey            string
+	TrustedProxyCIDRs     []*net.IPNet
 	CacheTTLSeconds       int
 }
 
@@ -36,6 +40,10 @@ func Load() (*Config, error) {
 	if port == "" {
 		port = "8080"
 	}
+	trustedProxies, err := parseCIDRs(os.Getenv("TRUSTED_PROXY_CIDRS"))
+	if err != nil {
+		return nil, err
+	}
 
 	return &Config{
 		Port:                  port,
@@ -45,6 +53,23 @@ func Load() (*Config, error) {
 		OTXKey:                os.Getenv("OTX_API_KEY"),
 		GoogleSafeBrowsingKey: os.Getenv("GOOGLE_SAFE_BROWSING_API_KEY"),
 		URLScanKey:            os.Getenv("URLSCAN_API_KEY"),
+		TrustedProxyCIDRs:     trustedProxies,
 		CacheTTLSeconds:       ttl,
 	}, nil
+}
+
+func parseCIDRs(raw string) ([]*net.IPNet, error) {
+	if raw == "" {
+		return nil, nil
+	}
+	parts := strings.Split(raw, ",")
+	blocks := make([]*net.IPNet, 0, len(parts))
+	for _, part := range parts {
+		_, block, err := net.ParseCIDR(strings.TrimSpace(part))
+		if err != nil {
+			return nil, fmt.Errorf("invalid TRUSTED_PROXY_CIDRS entry: %w", err)
+		}
+		blocks = append(blocks, block)
+	}
+	return blocks, nil
 }

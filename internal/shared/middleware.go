@@ -23,9 +23,10 @@ type Router interface {
 	Use(...func(http.Handler) http.Handler)
 }
 
-// ApplyGlobalMiddleware attaches RealIP, Logger, Recoverer, and CORS to r.
+// ApplyGlobalMiddleware attaches logging, recovery, and CORS to r. Client IP
+// handling stays inside RateLimiter so forwarding headers are trusted only
+// after the socket peer is verified as an explicit proxy.
 func ApplyGlobalMiddleware(r Router) {
-	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(CORSMiddleware())
