@@ -67,8 +67,30 @@ test('Vercel headers protect documents without breaking PCAP local mode', () => 
     assert.match(csp, /ws:\/\/localhost:7777/);
     assert.match(csp, /wss:\/\/api\.ahlyxlabs\.com/);
     assert.doesNotMatch(csp, /upgrade-insecure-requests/);
+    assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/);
     assert.equal(headers['Referrer-Policy'], 'no-referrer');
     assert.equal(headers['X-Content-Type-Options'], 'nosniff');
+});
+
+test('Google Analytics is only loaded by the consent-aware external loader', () => {
+    const htmlFiles = [];
+    const walk = (directory) => {
+        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+            const target = path.join(directory, entry.name);
+            if (entry.isDirectory()) walk(target);
+            else if (entry.name.endsWith('.html')) htmlFiles.push(target);
+        }
+    };
+    walk(frontend);
+    for (const file of htmlFiles) {
+        const html = fs.readFileSync(file, 'utf8');
+        assert.doesNotMatch(html, /googletagmanager\.com\/gtag\/js/, `${file} has no unconditional Google tag`);
+        assert.doesNotMatch(html, /\son[a-z]+\s*=/i, `${file} has no executable inline event handler`);
+    }
+    const analytics = read('assets/analytics.js');
+    assert.match(analytics, /localStorage\.getItem\(consentKey\)/);
+    assert.match(analytics, /if \(consent === 'accepted'\)/);
+    assert.match(analytics, /script\.src = 'https:\/\/www\.googletagmanager\.com\/gtag\/js\?id='/);
 });
 
 test('subpages expose the same primary navigation destinations', () => {

@@ -5,6 +5,7 @@
 // The inline document-head bootstrap removes relay credentials from the URL
 // before analytics scripts load. This script only consumes its in-memory copy.
 const relayBootstrap = window.__AHLYX_RELAY_BOOTSTRAP || null;
+/* Analytics consent and loading are centralized in /assets/analytics.js.
 
 window.dataLayer = window.dataLayer || [];
 function gtag() { dataLayer.push(arguments); }
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // ---------------------------------------------------------------------------
+*/
 // WebSocket
 // ---------------------------------------------------------------------------
 const SESSION_ID = relayBootstrap ? relayBootstrap.sessionID : null;

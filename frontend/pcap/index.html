@@ -27,34 +27,18 @@
     <meta name="twitter:description" content="Real-time network packet capture and threat detection. Run pcap-agent locally and stream live analysis to your browser.">
     <meta name="twitter:creator" content="@AhIyxx">
 
-    <!-- Consume relay credentials before any analytics script can inspect the URL. -->
-    <script>
-        (function () {
-            const fragment = new URLSearchParams(window.location.hash.slice(1));
-            const relaySession = fragment.get('relay_session');
-            const viewerToken = fragment.get('viewer_token');
-            const query = new URLSearchParams(window.location.search);
-            query.delete('session'); // Retire legacy bearer-style session URLs.
-            const cleanURL = window.location.pathname + (query.size ? `?${query}` : '');
-            if (window.location.hash || query.toString() !== window.location.search.slice(1)) {
-                history.replaceState(null, document.title, cleanURL);
-            }
-            if (relaySession && viewerToken) {
-                window.__AHLYX_RELAY_BOOTSTRAP = { sessionID: relaySession, viewerToken };
-            }
-        })();
-    </script>
-
-    <!-- Analytics loads only after the fragment has been removed. -->
+    <!-- Synchronously removes relay credentials before any analytics can run. -->
+    <script src="/pcap/bootstrap.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
+    <script defer src="/assets/analytics.js"></script>
+    <script defer src="/assets/site.js"></script>
 </head>
 <body class="tool-page">
 
 <header class="site-header">
     <div class="header-inner">
-        <div class="header-identity"><button class="back-button" type="button" onclick="history.length > 1 ? history.back() : location.assign('/')"><span aria-hidden="true">&larr;</span> Back</button><a class="brand-lockup" href="/" aria-label="Ahlyx Labs home"><img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs"></a></div>
+        <div class="header-identity"><button class="back-button" type="button" data-back-fallback="/"><span aria-hidden="true">&larr;</span> Back</button><a class="brand-lockup" href="/" aria-label="Ahlyx Labs home"><img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs"></a></div>
         <nav class="site-nav" aria-label="Primary navigation"><a href="/services">Services</a><a href="/#work">Work</a><a href="/research">Research</a><a href="/notes">Notes</a><a href="/#lab">Lab</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav>
         <div class="logo">
             <a href="https://ahlyxlabs.com" class="back-link">[ ← BACK ]</a>
@@ -65,7 +49,7 @@
             <span class="made-by">live network analysis</span>
         </div>
         <div class="header-meta">
-            <span class="version-tag">v0.4.2</span>
+            <span class="version-tag">latest release</span>
             <span class="status-dot" id="statusDot"></span>
             <span class="status-text" id="statusText">CONNECTING...</span>
         </div>
@@ -115,19 +99,19 @@
                         <tbody>
                             <tr>
                                 <td class="setup-td-dim">Linux</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.2/pcap-agent-linux.tar.gz" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-linux.tar.gz</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest/download/pcap-agent-linux.tar.gz" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-linux.tar.gz</a></td>
                             </tr>
                             <tr>
                                 <td class="setup-td-dim">Windows</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.2/pcap-agent-windows.zip" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-windows.zip</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest/download/pcap-agent-windows.zip" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-windows.zip</a></td>
                             </tr>
                             <tr>
                                 <td class="setup-td-dim">macOS (Intel)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.2/pcap-agent-macos-intel.tar.gz" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-macos-intel.tar.gz</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest/download/pcap-agent-macos-intel.tar.gz" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-macos-intel.tar.gz</a></td>
                             </tr>
                             <tr>
                                 <td class="setup-td-dim">macOS (Apple Silicon)</td>
-                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/download/v0.4.2/pcap-agent-macos-apple-silicon.tar.gz" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-macos-apple-silicon.tar.gz</a></td>
+                                <td><a href="https://github.com/Ahlyx/pcap-agent/releases/latest/download/pcap-agent-macos-apple-silicon.tar.gz" class="setup-link" target="_blank" rel="noopener noreferrer">pcap-agent-macos-apple-silicon.tar.gz</a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -176,7 +160,7 @@
                     <div class="setup-block-title">// modes</div>
                     <div class="setup-mode">
                         <span class="setup-mode-name">local (default)</span>
-                        <span class="setup-mode-desc">Opens a WebSocket on localhost:7777. The browser connects directly — zero data leaves your machine. Agent and browser must run on the same machine.</span>
+                        <span class="setup-mode-desc">Opens a WebSocket on localhost:7777. Packet-analysis metadata stays between the local PCAP Agent and your browser; it is not transmitted through the Ahlyx Labs relay. Agent and browser must run on the same machine.</span>
                     </div>
                     <div class="setup-mode">
                         <span class="setup-mode-name">relay</span>
@@ -228,7 +212,7 @@
     <div class="pcap-col">
         <div class="download-banner" id="downloadBanner">
             <span class="download-label">// agent not running — download and start pcap-agent to begin</span>
-            <a href="https://github.com/Ahlyx/pcap-agent/releases/tag/v0.4.2" class="download-btn" target="_blank" rel="noopener noreferrer">[ DOWNLOAD v0.4.2 ]</a>
+            <a href="https://github.com/Ahlyx/pcap-agent/releases/latest" class="download-btn" target="_blank" rel="noopener noreferrer">[ DOWNLOAD LATEST RELEASE ]</a>
             <span class="download-cmd">then use the platform-specific command in Setup</span>
         </div>
 
@@ -305,19 +289,6 @@
     <span class="sep">|</span>
     <a href="/privacy">Privacy Policy</a>
 </footer>
-
-<div id="consent-banner" class="consent-banner hidden" role="dialog" aria-label="Cookie consent">
-    <p class="consent-text">
-        This site uses analytics to improve your experience.
-        We use Google Analytics and Vercel Analytics.
-        Vercel Analytics collects no personal data.
-        Google Analytics is only enabled with your consent.
-    </p>
-    <div class="consent-actions">
-        <button id="consent-accept" class="consent-btn consent-btn-accept">[ ACCEPT ]</button>
-        <button id="consent-decline" class="consent-btn consent-btn-decline">[ DECLINE ]</button>
-    </div>
-</div>
 
 <script src="/pcap/app.js"></script>
 </body>

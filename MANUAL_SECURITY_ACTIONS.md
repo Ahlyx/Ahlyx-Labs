@@ -5,24 +5,26 @@ and account changes require the owner and must not be committed to source.
 
 ## Cloudflare-to-Render origin verification
 
-`api.ahlyxlabs.com` is intentionally Cloudflare-proxied. Configure an
-edge-to-origin verification secret before relying on this boundary in
-production:
+`api.ahlyxlabs.com` is intentionally Cloudflare-proxied. Prepare the
+edge-to-origin verification boundary in this order:
 
-1. Generate a strong random secret in a password manager or trusted secret
-   generator. Do not store it in this repository, issues, screenshots, or chat
-   logs.
-2. In **Cloudflare Dashboard → Rules → Transform Rules → Request Header
-   Transform Rule**, create a rule matching hostname `api.ahlyxlabs.com`.
-3. Set the static request header `X-Ahlyx-Origin-Verify` to that secret.
-4. In the Render `ahlyx-labs` service, add the same value as
-   `CLOUDFLARE_ORIGIN_SECRET` and deploy after the Cloudflare rule is active.
-5. Verify a request through `https://api.ahlyxlabs.com` works, a request sent
-   directly to the known Render origin without the header receives a generic
-   `403`, and `/health` continues to work for the intended health-check path.
-6. Confirm rate-limit behavior through the proxied custom API hostname. The
-   application accepts `CF-Connecting-IP` only after this origin verification
-   succeeds.
+1. While the old production code is still deployed, open **Cloudflare Dashboard
+   → Rules → Transform Rules → Request Header Transform Rule** and match hostname
+   `api.ahlyxlabs.com`.
+2. Use **Set static** for `X-Ahlyx-Origin-Verify`, so Cloudflare supplies and
+   overwrites the verification header.
+3. Generate a strong random secret locally. Never commit or paste it into
+   project documentation, issues, screenshots, or chat logs.
+4. Add the exact same value to the Render `ahlyx-labs` service as
+   `CLOUDFLARE_ORIGIN_SECRET`. The old production code does not read this
+   variable/header, so preparation does not change old production behavior.
+5. Merge and deploy Ahlyx Labs PR #21.
+6. Verify `https://api.ahlyxlabs.com/health` behaves as intended, and normal
+   API requests through the Cloudflare hostname work.
+7. Confirm protected API and relay requests sent directly to the known Render
+   origin without the header receive a generic `403`.
+8. Confirm `CF-Connecting-IP` is used for per-client rate limiting only after
+   origin verification, and that no logs or errors disclose the secret.
 
 Local development intentionally works when `CLOUDFLARE_ORIGIN_SECRET` is not
 set. Never add a sample secret to `.env.example`.

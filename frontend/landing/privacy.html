@@ -8,8 +8,7 @@
     <title>Privacy Policy — Ahlyx Labs</title>
     <meta name="robots" content="noindex">
     <link rel="canonical" href="https://ahlyxlabs.com/privacy">
-    <script src="/assets/analytics.js"></script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
+    <script defer src="/assets/analytics.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
     <link rel="stylesheet" href="/assets/site.css">
@@ -33,7 +32,7 @@
 
         <section><h2>Website infrastructure</h2><p>Ahlyx Labs uses Cloudflare for DNS and the public web edge, Vercel for the static frontend and web analytics products, and Render for the Go API. Normal HTTP requests necessarily provide relevant infrastructure providers with ordinary technical request information, such as IP address, user agent, time, and requested resource, so they can deliver, secure, and troubleshoot the service. Ahlyx Labs does not claim that these providers maintain no access or security logs.</p></section>
 
-        <section><h2>Analytics and consent</h2><p>Vercel Analytics and Speed Insights are loaded to understand aggregate site performance and use. Google Analytics 4 is configured in denied-consent mode and is enabled only after the visitor accepts the site banner. The browser remembers that choice in <code>localStorage</code> under <code>analytics_consent</code>. Provider processing is governed by the applicable provider terms and privacy materials.</p></section>
+        <section><h2>Analytics and consent</h2><p>Vercel Analytics and Speed Insights are loaded to understand aggregate site performance and use. Google Analytics 4 is not loaded until the visitor accepts the site banner. The browser remembers that choice in <code>localStorage</code> under <code>analytics_consent</code>. Provider processing is governed by the applicable provider terms and privacy materials.</p></section>
 
         <section><h2>Browser storage</h2><p>The enrichment page may store recent IP, domain, and file-hash searches in the visitor's own browser under <code>searchHistory</code>. Full URL searches are not persisted there. Relay credentials are held only in page memory long enough to construct a WebSocket and are not stored in localStorage or placed in query strings.</p></section>
 
@@ -41,7 +40,7 @@
 
         <section><h2>URLScan</h2><p>URLScan active submission is optional. It occurs only when the site operator has enabled it and the visitor explicitly selects the URLScan option. The application is configured to use <code>unlisted</code> or <code>private</code> visibility; public visibility is rejected. When the operator flag is false, no active URLScan submission occurs.</p></section>
 
-        <section><h2>Server-side operational telemetry</h2><p>Ahlyx Labs' own query telemetry intentionally records aggregate fields such as tool, indicator type, verdict, source count, and response time. It does not store the submitted IP address, domain, URL, or hash in that query-telemetry database. This does not prevent infrastructure providers or third-party intelligence sources from handling ordinary request data needed to operate their services. No fixed retention period is promised here because it is not technically enforced by this application.</p></section>
+        <section><h2>Temporary enrichment cache and operational telemetry</h2><p>To reduce repeated third-party lookups, submitted indicators and enrichment results may be held temporarily in the application's in-memory TTL cache. Fully successful results may be cached for up to one hour; partial results may be cached for up to 15 minutes; total source failures are not cached. This process-memory cache is separate from the aggregate query-telemetry database and is cleared when the application process restarts.</p><p>Ahlyx Labs' own query telemetry intentionally records aggregate fields such as tool, indicator type, verdict, source count, and response time. It does not store the submitted IP address, domain, URL, or hash in that query-telemetry database. This does not prevent Cloudflare, Vercel, Render, or third-party intelligence sources from maintaining ordinary access or security logs under their own systems and policies. No fixed retention period is promised here because it is not technically enforced by this application.</p></section>
 
         <section><h2>PCAP Agent</h2><p>In local mode, the browser connects directly to the local PCAP Agent and packet-analysis metadata does not transit the Ahlyx Labs relay. Relay mode is explicit and optional. In relay mode, source/destination address metadata, ports/protocol, DNS metadata, MAC observations, security alerts, and aggregate statistics may traverse the Ahlyx Labs relay. Raw packet payloads are not sent through the relay.</p></section>
 
