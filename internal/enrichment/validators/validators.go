@@ -2,6 +2,7 @@ package validators
 
 import (
 	"net"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -45,13 +46,13 @@ func IsBogonIP(s string) bool {
 		"240.0.0.0/4",        // Reserved (future use)
 		"255.255.255.255/32", // Broadcast
 		// IPv6
-		"::1/128",        // Loopback
-		"fc00::/7",       // Unique local (ULA)
-		"fe80::/10",      // Link-local
-		"ff00::/8",       // Multicast
-		"100::/64",       // Discard prefix
-		"2001:db8::/32",  // Documentation
-		"::/128",         // Unspecified
+		"::1/128",       // Loopback
+		"fc00::/7",      // Unique local (ULA)
+		"fe80::/10",     // Link-local
+		"ff00::/8",      // Multicast
+		"100::/64",      // Discard prefix
+		"2001:db8::/32", // Documentation
+		"::/128",        // Unspecified
 	}
 
 	for _, cidr := range bogonCIDRs {
@@ -77,10 +78,11 @@ func IsValidDomain(s string) bool {
 	return domainRegex.MatchString(s)
 }
 
-// IsValidURL returns true if s starts with "http://" or "https://".
+// IsValidURL accepts absolute HTTP(S) URLs without embedded credentials.
 func IsValidURL(s string) bool {
 	s = strings.TrimSpace(s)
-	return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
+	u, err := url.Parse(s)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" && u.User == nil
 }
 
 // IsValidHash returns true if s is a hex-encoded MD5 (32), SHA-1 (40), or

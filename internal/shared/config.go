@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -9,14 +10,16 @@ import (
 
 // Config holds all environment-sourced configuration for the whole server.
 type Config struct {
-	Port                  string
-	AbuseIPDBKey          string
-	VirusTotalKey         string
-	IPInfoKey             string
-	OTXKey                string
-	GoogleSafeBrowsingKey string
-	URLScanKey            string
-	CacheTTLSeconds       int
+	Port                    string
+	AbuseIPDBKey            string
+	VirusTotalKey           string
+	IPInfoKey               string
+	OTXKey                  string
+	GoogleSafeBrowsingKey   string
+	URLScanKey              string
+	URLScanActiveSubmission bool
+	URLScanVisibility       string
+	CacheTTLSeconds         int
 }
 
 // Load reads a .env file (if present) and then populates Config from env vars.
@@ -36,15 +39,24 @@ func Load() (*Config, error) {
 	if port == "" {
 		port = "8080"
 	}
+	visibility := os.Getenv("URLSCAN_VISIBILITY")
+	if visibility == "" {
+		visibility = "unlisted"
+	}
+	if visibility != "unlisted" && visibility != "private" {
+		return nil, fmt.Errorf("URLSCAN_VISIBILITY must be unlisted or private")
+	}
 
 	return &Config{
-		Port:                  port,
-		AbuseIPDBKey:          os.Getenv("ABUSEIPDB_API_KEY"),
-		VirusTotalKey:         os.Getenv("VIRUSTOTAL_API_KEY"),
-		IPInfoKey:             os.Getenv("IPINFO_API_KEY"),
-		OTXKey:                os.Getenv("OTX_API_KEY"),
-		GoogleSafeBrowsingKey: os.Getenv("GOOGLE_SAFE_BROWSING_API_KEY"),
-		URLScanKey:            os.Getenv("URLSCAN_API_KEY"),
-		CacheTTLSeconds:       ttl,
+		Port:                    port,
+		AbuseIPDBKey:            os.Getenv("ABUSEIPDB_API_KEY"),
+		VirusTotalKey:           os.Getenv("VIRUSTOTAL_API_KEY"),
+		IPInfoKey:               os.Getenv("IPINFO_API_KEY"),
+		OTXKey:                  os.Getenv("OTX_API_KEY"),
+		GoogleSafeBrowsingKey:   os.Getenv("GOOGLE_SAFE_BROWSING_API_KEY"),
+		URLScanKey:              os.Getenv("URLSCAN_API_KEY"),
+		URLScanActiveSubmission: os.Getenv("URLSCAN_ACTIVE_SUBMISSION") == "true",
+		URLScanVisibility:       visibility,
+		CacheTTLSeconds:         ttl,
 	}, nil
 }
