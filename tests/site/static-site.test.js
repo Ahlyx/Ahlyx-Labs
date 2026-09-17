@@ -56,6 +56,30 @@ test('Vercel routes do not turn missing nested paths into successful pages', () 
     assert.ok(config.rewrites.every((rewrite) => !rewrite.source.includes('(.*)')));
 });
 
+test('subpages expose the same primary navigation destinations', () => {
+    const subpages = [
+        'services/index.html',
+        'enrichment/index.html',
+        'scanner/index.html',
+        'hardware/index.html',
+        'pcap/index.html',
+        'research/index.html',
+        'research/rustchain.html',
+        'research/onedragon.html',
+        'notes/index.html',
+        'notes/custom-domain-email.html',
+        'landing/privacy.html'
+    ];
+    const destinations = ['/services', '/#work', '/research', '/notes', '/#lab', '/#about', '/#contact', 'https://github.com/Ahlyx'];
+
+    for (const file of subpages) {
+        const html = read(file);
+        for (const destination of destinations) {
+            assert.match(html, new RegExp(`<a href="${destination.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`), `${file} links to ${destination}`);
+        }
+    }
+});
+
 test('Gmail compose fallback is available in site footers without bloating primary contact actions', () => {
     for (const file of ['landing/index.html', 'services/index.html']) {
         const html = read(file);

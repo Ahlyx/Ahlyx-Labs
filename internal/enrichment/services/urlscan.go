@@ -16,17 +16,18 @@ const (
 	urlscanResultURL = "https://urlscan.io/api/v1/result/"
 )
 
-func FetchURLScan(apiKey, targetURL string) (*models.URLScanData, models.SourceMetadata) {
+func FetchURLScan(apiKey, targetURL, visibility string) (*models.URLScanData, models.SourceMetadata) {
 	meta := models.SourceMetadata{Source: "urlscan", RetrievedAt: time.Now().UTC()}
 
 	acquireSem()
 	defer releaseSem()
 
 	// Submit scan
-	payload, _ := json.Marshal(map[string]string{
-		"url":        targetURL,
-		"visibility": "public",
-	})
+	payload, err := urlscanPayload(targetURL, visibility)
+	if err != nil {
+		meta.Error = ptr("URLScan active submission is not configured safely")
+		return nil, meta
+	}
 
 	submitReq, err := http.NewRequest(http.MethodPost, urlscanSubmitURL, bytes.NewReader(payload))
 	if err != nil {
@@ -142,4 +143,11 @@ func FetchURLScan(apiKey, targetURL string) (*models.URLScanData, models.SourceM
 		Categories:    cats,
 		ScreenshotURL: raw.Task.ScreenshotURL,
 	}, meta
+}
+
+func urlscanPayload(targetURL, visibility string) ([]byte, error) {
+	if visibility != "unlisted" && visibility != "private" {
+		return nil, fmt.Errorf("unsafe URLScan visibility")
+	}
+	return json.Marshal(map[string]string{"url": targetURL, "visibility": visibility})
 }

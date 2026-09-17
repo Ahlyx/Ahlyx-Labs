@@ -42,7 +42,7 @@ func NewURLHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			sources []models.SourceMetadata
 		)
 
-		wg.Add(3)
+		wg.Add(2)
 
 		go func() {
 			defer wg.Done()
@@ -53,14 +53,17 @@ func NewURLHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			mu.Unlock()
 		}()
 
-		go func() {
-			defer wg.Done()
-			result, meta := services.FetchURLScan(cfg.URLScanKey, targetURL)
-			mu.Lock()
-			urlscan = result
-			sources = append(sources, meta)
-			mu.Unlock()
-		}()
+		if cfg.URLScanActiveSubmission && r.URL.Query().Get("submit_urlscan") == "true" {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				result, meta := services.FetchURLScan(cfg.URLScanKey, targetURL, cfg.URLScanVisibility)
+				mu.Lock()
+				urlscan = result
+				sources = append(sources, meta)
+				mu.Unlock()
+			}()
+		}
 
 		go func() {
 			defer wg.Done()
