@@ -10,8 +10,9 @@ const page = fs.readFileSync(pcapDir + '/index.html', 'utf8');
 const styles = fs.readFileSync(pcapDir + '/style.css', 'utf8');
 assert.ok(styles.includes('.live-flow-table'), 'the production PCAP stylesheet is present');
 assert.ok(!page.includes('v0.1.0'), 'the stale release version is absent');
-assert.ok(!page.includes('v0.4.2'), 'the old literal release version is absent');
-assert.ok(page.includes('latest release'), 'the page uses version-neutral release wording');
+assert.ok(page.includes('>v0.4.3</a>'), 'the deployed release is visibly identified');
+assert.ok(page.includes('https://github.com/Ahlyx/pcap-agent/releases/latest'), 'the version label links to the official latest release');
+assert.ok(page.includes('Release details / checksums / provenance'), 'release details and verification information are easy to find');
 assert.ok(!page.includes('v0.4.0'), 'the previous stable release version is absent');
 assert.ok(!page.includes('v0.4.0-rc.1'), 'the release-candidate version is absent');
 assert.ok(!page.includes('pcap-agent-linux-amd64'), 'the old Linux architecture-named asset is absent');
@@ -138,6 +139,7 @@ assert.equal(vm.runInContext('reconnectAttempts', context), 0, 'opening resets r
 
 firstSocket.emit('close', { code: 1006, reason: '', wasClean: false });
 assert.equal(element('statusDot').className, 'status-dot offline', 'actual close sets disconnected status');
+assert.equal(element('statusText').textContent, 'LOCAL AGENT NOT RUNNING', 'a missing local agent has a stable explanatory state');
 const reconnectID = vm.runInContext('reconnectTimer', context);
 assert.ok(reconnectID, 'a close schedules a reconnect');
 firstSocket.emit('close', { code: 1006, reason: '', wasClean: false });
@@ -145,8 +147,16 @@ assert.equal(vm.runInContext('reconnectTimer', context), reconnectID, 'duplicate
 assert.equal(sockets.length, 1, 'no second socket exists before the scheduled reconnect');
 timers.get(reconnectID)();
 assert.equal(sockets.length, 2, 'the scheduled reconnect creates exactly one replacement socket');
+assert.equal(element('statusText').textContent, 'LOCAL AGENT NOT RUNNING', 'quiet local retries do not visibly flap back to CONNECTING');
 const replacementSocket = sockets[1];
-replacementSocket.emit('open');
+replacementSocket.emit('close', { code: 1006, reason: '', wasClean: false });
+assert.equal(element('statusText').textContent, 'LOCAL AGENT NOT RUNNING', 'repeated local failures retain the stable absent-agent state');
+const secondReconnectID = vm.runInContext('reconnectTimer', context);
+assert.ok(secondReconnectID && secondReconnectID !== reconnectID, 'a later local retry uses one new timer');
+timers.get(secondReconnectID)();
+assert.equal(sockets.length, 3, 'a repeated local failure still retries quietly in the background');
+const recoveredSocket = sockets[2];
+recoveredSocket.emit('open');
 assert.equal(vm.runInContext('reconnectTimer', context), null, 'successful reconnect clears reconnect state');
 assert.equal(vm.runInContext('reconnectAttempts', context), 0, 'successful reconnect resets attempt count');
 assert.equal(element('statusDot').className, 'status-dot online', 'an open socket remains connected without packet activity');

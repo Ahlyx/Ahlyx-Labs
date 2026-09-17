@@ -225,6 +225,10 @@ main {
     line-height: 1.45;
 }
 
+.urlscan-disclosure[hidden] {
+    display: none;
+}
+
 .urlscan-disclosure input {
     margin-top: 0.2rem;
     accent-color: var(--accent);
@@ -498,9 +502,9 @@ main {
 }
 
 .source-badge.failed {
-    background: var(--threat-dim);
-    border-color: var(--threat);
-    color: var(--threat);
+    background: var(--bg-elevated);
+    border-color: var(--border);
+    color: var(--text-dim);
 }
 
 .history-section {
@@ -602,6 +606,10 @@ main {
     color: #ffab00;
 }
 
+.history-verdict.tier-review {
+    color: #ffab00;
+}
+
 .history-verdict.tier-high,
 .history-verdict.tier-critical {
     color: var(--threat);
@@ -629,34 +637,6 @@ main {
 }
 
 /* ── Page footer ───────────────────────────────────────────── */
-
-.site-footer {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    text-align: center;
-    padding: 1.5rem 2rem;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.site-footer a {
-    color: var(--text-dim);
-    text-decoration: none;
-    transition: color 0.15s;
-}
-
-.site-footer a:hover {
-    color: var(--accent);
-}
-
-.site-footer .sep {
-    color: var(--border);
-}
 
 /* ── Consent banner ────────────────────────────────────────── */
 

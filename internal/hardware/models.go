@@ -2,6 +2,7 @@ package hardware
 
 // SystemInfo holds generic runtime telemetry without host identity or patch data.
 type SystemInfo struct {
+	HostOS       string `json:"host_os"`
 	Platform     string `json:"platform"`
 	Architecture string `json:"architecture"`
 	Uptime       uint64 `json:"uptime_seconds"`

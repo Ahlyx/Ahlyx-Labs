@@ -69,6 +69,7 @@ func newRouter(cfg *shared.Config, cache *shared.Cache) http.Handler {
 
 	r.Group(func(protected chi.Router) {
 		protected.Use(shared.OriginVerification(cfg.CloudflareOriginSecret))
+		protected.Get("/api/v1/capabilities", enrichhandlers.CapabilitiesHandler(cfg.URLScanActiveSubmission))
 
 		// Enrichment routes
 		protected.Group(func(r chi.Router) {

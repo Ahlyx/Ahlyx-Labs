@@ -31,6 +31,14 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 }
 
 func fmtGB(bytes uint64) string { return fmt.Sprintf("%.2f GB", float64(bytes)/1073741824) }
+func fmtDataSize(bytes uint64) string {
+	const gib = uint64(1024 * 1024 * 1024)
+	const tib = gib * 1024
+	if bytes >= tib {
+		return fmt.Sprintf("%.1f TiB", float64(bytes)/float64(tib))
+	}
+	return fmt.Sprintf("%.1f GiB", float64(bytes)/float64(gib))
+}
 func fmtMB(bytes uint64) string { return fmt.Sprintf("%.2f MB", float64(bytes)/1048576) }
 func fmtPct(pct float64) string { return fmt.Sprintf("%.1f%%", pct) }
 func fmtOps(n uint64) string    { return fmt.Sprintf("%d", n) }
@@ -41,22 +49,22 @@ func fmtMHz(mhz float64) string { return fmt.Sprintf("%.2f MHz", mhz) }
 // ---------------------------------------------------------------------------
 
 func HandleSystem(w http.ResponseWriter, r *http.Request) {
-	info, err := host.Info()
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "hardware telemetry unavailable")
-		return
-	}
-
 	arch := runtime.GOARCH
 	if arch == "amd64" {
 		arch = "64bit"
 	}
 
-	writeJSON(w, http.StatusOK, hardware.SystemInfo{
-		Platform:     info.Platform,
+	response := hardware.SystemInfo{
+		HostOS:       runtime.GOOS,
 		Architecture: arch,
-		Uptime:       info.Uptime,
-	})
+	}
+	// Runtime identity is useful portfolio telemetry even when gopsutil cannot
+	// read optional host metadata in a constrained container.
+	if info, err := host.Info(); err == nil {
+		response.Platform = info.Platform
+		response.Uptime = info.Uptime
+	}
+	writeJSON(w, http.StatusOK, response)
 }
 
 // ---------------------------------------------------------------------------
@@ -151,8 +159,8 @@ func HandleDisk(w http.ResponseWriter, r *http.Request) {
 		Used:         fmtGB(usage.Used),
 		Free:         fmtGB(usage.Free),
 		Usage:        fmtPct(usage.UsedPercent),
-		TotalRead:    fmtGB(totalRead),
-		TotalWritten: fmtGB(totalWritten),
+		TotalRead:    fmtDataSize(totalRead),
+		TotalWritten: fmtDataSize(totalWritten),
 		ReadOps:      fmtOps(readOps),
 		WriteOps:     fmtOps(writeOps),
 	})

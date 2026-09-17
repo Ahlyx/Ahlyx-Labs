@@ -1,52 +1,4 @@
 // ---------------------------------------------------------------------------
-// GA4 bootstrap — must run before DOMContentLoaded so the dataLayer is
-// available when the async gtag.js library initialises.
-// ---------------------------------------------------------------------------
-window.dataLayer = window.dataLayer || [];
-function gtag() { dataLayer.push(arguments); }
-
-const CONSENT_KEY = 'analytics_consent';
-const GA_ID = 'G-99NT7YXMY8';
-
-const consent = localStorage.getItem(CONSENT_KEY);
-
-if (consent === 'accepted') {
-    gtag('js', new Date());
-    gtag('config', GA_ID);
-} else {
-    gtag('consent', 'default', {
-        analytics_storage: 'denied',
-        ad_storage: 'denied',
-    });
-}
-
-// ---------------------------------------------------------------------------
-// Consent banner wiring
-// ---------------------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', function () {
-    const banner     = document.getElementById('consent-banner');
-    const btnAccept  = document.getElementById('consent-accept');
-    const btnDecline = document.getElementById('consent-decline');
-
-    if (!localStorage.getItem(CONSENT_KEY)) {
-        banner.classList.remove('hidden');
-    }
-
-    btnAccept.addEventListener('click', function () {
-        localStorage.setItem(CONSENT_KEY, 'accepted');
-        banner.classList.add('hidden');
-        gtag('consent', 'update', { analytics_storage: 'granted' });
-        gtag('js', new Date());
-        gtag('config', GA_ID);
-    });
-
-    btnDecline.addEventListener('click', function () {
-        localStorage.setItem(CONSENT_KEY, 'declined');
-        banner.classList.add('hidden');
-    });
-});
-
-// ---------------------------------------------------------------------------
 // API config
 // ---------------------------------------------------------------------------
 // dev: http://localhost:8080/api/v1/hardware
@@ -120,7 +72,8 @@ async function fetchSystem() {
         const container = document.getElementById('system-data');
         container.innerHTML = '';
 
-        appendRow(container, 'platform',     d.platform);
+        appendRow(container, 'host_os',      d.host_os);
+        if (d.platform) appendRow(container, 'platform', d.platform);
         appendRow(container, 'architecture', d.architecture);
         appendRow(container, 'uptime_seconds', d.uptime_seconds);
     } catch {
