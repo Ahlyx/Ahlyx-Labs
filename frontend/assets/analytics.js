@@ -4,18 +4,28 @@
     var consentKey = 'analytics_consent';
     var measurementId = 'G-99NT7YXMY8';
     var consent = localStorage.getItem(consentKey);
+    var googleLoaded = false;
 
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    // Keep event calls harmless before consent. No Google endpoint or dataLayer
+    // is created until the visitor has explicitly accepted analytics.
+    window.gtag = window.gtag || function () {};
 
-    gtag('consent', 'default', {
-        analytics_storage: consent === 'accepted' ? 'granted' : 'denied',
-        ad_storage: 'denied'
-    });
-    gtag('js', new Date());
+    function loadGoogleAnalytics() {
+        if (googleLoaded) return;
+        googleLoaded = true;
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', measurementId);
+
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+        document.head.appendChild(script);
+    }
 
     if (consent === 'accepted') {
-        gtag('config', measurementId);
+        loadGoogleAnalytics();
     }
 
     function createBanner() {
@@ -40,8 +50,7 @@
         accept.textContent = 'Accept';
         accept.addEventListener('click', function () {
             localStorage.setItem(consentKey, 'accepted');
-            gtag('consent', 'update', { analytics_storage: 'granted' });
-            gtag('config', measurementId);
+            loadGoogleAnalytics();
             banner.remove();
         });
 

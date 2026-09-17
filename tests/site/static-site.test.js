@@ -14,6 +14,7 @@ const indexablePages = [
     ['scanner/index.html', 'https://ahlyxlabs.com/scanner'],
     ['hardware/index.html', 'https://ahlyxlabs.com/hardware'],
     ['pcap/index.html', 'https://ahlyxlabs.com/pcap'],
+    ['security/index.html', 'https://ahlyxlabs.com/security'],
     ['research/index.html', 'https://ahlyxlabs.com/research'],
     ['research/rustchain.html', 'https://ahlyxlabs.com/research/rustchain'],
     ['research/onedragon.html', 'https://ahlyxlabs.com/research/onedragon'],
@@ -54,6 +55,42 @@ test('security.txt is complete and the public assets exist', () => {
 test('Vercel routes do not turn missing nested paths into successful pages', () => {
     const config = JSON.parse(read('vercel.json'));
     assert.ok(config.rewrites.every((rewrite) => !rewrite.source.includes('(.*)')));
+});
+
+test('Vercel headers protect documents without breaking PCAP local mode', () => {
+    const config = JSON.parse(read('vercel.json'));
+    const headers = Object.fromEntries(config.headers[0].headers.map((header) => [header.key, header.value]));
+    const csp = headers['Content-Security-Policy'];
+    assert.match(csp, /object-src 'none'/);
+    assert.match(csp, /base-uri 'self'/);
+    assert.match(csp, /frame-ancestors 'none'/);
+    assert.match(csp, /ws:\/\/localhost:7777/);
+    assert.match(csp, /wss:\/\/api\.ahlyxlabs\.com/);
+    assert.doesNotMatch(csp, /upgrade-insecure-requests/);
+    assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/);
+    assert.equal(headers['Referrer-Policy'], 'no-referrer');
+    assert.equal(headers['X-Content-Type-Options'], 'nosniff');
+});
+
+test('Google Analytics is only loaded by the consent-aware external loader', () => {
+    const htmlFiles = [];
+    const walk = (directory) => {
+        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+            const target = path.join(directory, entry.name);
+            if (entry.isDirectory()) walk(target);
+            else if (entry.name.endsWith('.html')) htmlFiles.push(target);
+        }
+    };
+    walk(frontend);
+    for (const file of htmlFiles) {
+        const html = fs.readFileSync(file, 'utf8');
+        assert.doesNotMatch(html, /googletagmanager\.com\/gtag\/js/, `${file} has no unconditional Google tag`);
+        assert.doesNotMatch(html, /\son[a-z]+\s*=/i, `${file} has no executable inline event handler`);
+    }
+    const analytics = read('assets/analytics.js');
+    assert.match(analytics, /localStorage\.getItem\(consentKey\)/);
+    assert.match(analytics, /if \(consent === 'accepted'\)/);
+    assert.match(analytics, /script\.src = 'https:\/\/www\.googletagmanager\.com\/gtag\/js\?id='/);
 });
 
 test('subpages expose the same primary navigation destinations', () => {

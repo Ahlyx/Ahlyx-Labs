@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -26,6 +27,41 @@ func TestScannerRouteIsAbsentByDefault(t *testing.T) {
 		if rec.Code != http.StatusNotFound {
 			t.Fatalf("scanner target %q returned %d; want route unavailable", target, rec.Code)
 		}
+	}
+}
+
+func TestOriginSecretProtectsSensitiveRoutesButNotHealth(t *testing.T) {
+	router := newRouter(&shared.Config{CloudflareOriginSecret: "expected"}, shared.NewCache())
+	protected := httptest.NewRequest(http.MethodGet, "/api/v1/ip/8.8.8.8", nil)
+	protectedRec := httptest.NewRecorder()
+	router.ServeHTTP(protectedRec, protected)
+	if protectedRec.Code != http.StatusForbidden {
+		t.Fatalf("unverified API request returned %d; want 403", protectedRec.Code)
+	}
+
+	health := httptest.NewRequest(http.MethodGet, "/health", nil)
+	healthRec := httptest.NewRecorder()
+	router.ServeHTTP(healthRec, health)
+	if healthRec.Code != http.StatusOK {
+		t.Fatalf("health returned %d; want 200", healthRec.Code)
+	}
+}
+
+func TestURLRouteIsPostOnlyAndDoesNotReadQueryValue(t *testing.T) {
+	router := newRouter(&shared.Config{}, shared.NewCache())
+	get := httptest.NewRequest(http.MethodGet, "/api/v1/url?url=https://example.test/reset?token=secret", nil)
+	getRec := httptest.NewRecorder()
+	router.ServeHTTP(getRec, get)
+	if getRec.Code != http.StatusGone || getRec.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("GET URL route = %d, Cache-Control=%q", getRec.Code, getRec.Header().Get("Cache-Control"))
+	}
+
+	post := httptest.NewRequest(http.MethodPost, "/api/v1/url?url=https://example.test/reset?token=secret", bytes.NewBufferString(`{}`))
+	post.Header.Set("Content-Type", "application/json")
+	postRec := httptest.NewRecorder()
+	router.ServeHTTP(postRec, post)
+	if postRec.Code != http.StatusBadRequest || postRec.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("POST URL route = %d, Cache-Control=%q", postRec.Code, postRec.Header().Get("Cache-Control"))
 	}
 }
 

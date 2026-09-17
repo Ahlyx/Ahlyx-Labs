@@ -95,6 +95,7 @@ document.querySelectorAll('.tab').forEach(tab => {
         document.getElementById('searchInput').placeholder = placeholders[currentType];
         document.getElementById('searchPrefix').textContent = prefixes[currentType];
         document.getElementById('urlscanDisclosure').hidden = currentType !== 'url';
+        document.getElementById('urlPrivacyWarning').hidden = currentType !== 'url';
         document.getElementById('searchInput').focus();
     });
 });
@@ -170,17 +171,22 @@ async function performSearch(value, type) {
 
     try {
         let endpoint;
+        let options;
         if (type === 'ip') endpoint = `${API_BASE}/ip/${encodeURIComponent(value)}`;
         else if (type === 'domain') endpoint = `${API_BASE}/domain/${encodeURIComponent(value)}`;
         else if (type === 'url') {
-            endpoint = `${API_BASE}/url?url=${encodeURIComponent(value)}`;
+            endpoint = `${API_BASE}/url`;
             const activeSubmission = document.getElementById('urlscanConsent').checked;
             if (activeSubmission) {
                 if ((value.includes('?') || value.includes('#')) && !window.confirm('This URL contains a query or fragment that may include private data. Submit it to URLScan anyway?')) {
                     throw new Error('third-party URLScan submission cancelled');
                 }
-                endpoint += '&submit_urlscan=true';
             }
+            options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: value, submit_urlscan: activeSubmission })
+            };
         }
         else if (type === 'hash') endpoint = `${API_BASE}/hash/${encodeURIComponent(value)}`;
 
@@ -188,7 +194,7 @@ async function performSearch(value, type) {
             gtag('event', 'enrichment_submitted', { query_type: type });
         }
 
-        const res = await fetch(endpoint);
+        const res = await fetch(endpoint, options);
         const data = await res.json();
 
         if (!res.ok) {
@@ -233,7 +239,9 @@ async function performSearch(value, type) {
         });
         document.getElementById('resultsContent').appendChild(feedbackRow);
 
-        addToHistory(value, type, data);
+        // Full URLs can contain reset links, signed parameters, and account
+        // identifiers. Never persist them in browser search history.
+        if (type !== 'url') addToHistory(value, type, data);
 
     } catch (err) {
         loading.style.display = 'none';
@@ -540,6 +548,8 @@ function renderHistory() {
             currentType = item.type;
             document.getElementById('searchPrefix').textContent = prefixes[item.type];
             document.getElementById('searchInput').placeholder = placeholders[item.type];
+            document.getElementById('urlPrivacyWarning').hidden = item.type !== 'url';
+            document.getElementById('urlscanDisclosure').hidden = item.type !== 'url';
             document.getElementById('searchInput').value = item.value;
             performSearch(item.value, item.type);
         });

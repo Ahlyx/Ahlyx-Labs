@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" href="/assets/brand/ahlyxlabs-favicon.svg" type="image/svg+xml">
+    <title>Security &amp; Trust — Ahlyx Labs</title>
+    <meta name="description" content="Official Ahlyx Labs identities, release sources, vulnerability reporting, and anti-phishing guidance.">
+    <link rel="canonical" href="https://ahlyxlabs.com/security">
+    <meta property="og:title" content="Security &amp; Trust — Ahlyx Labs">
+    <meta property="og:description" content="Official channels, release verification, and vulnerability reporting for Ahlyx Labs.">
+    <meta property="og:url" content="https://ahlyxlabs.com/security">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Ahlyx Labs">
+    <meta property="og:image" content="https://ahlyxlabs.com/assets/brand/ahlyxlabs-social.png">
+    <meta property="og:image:alt" content="Ahlyx Labs security engineering and independent research">
+    <script defer src="/assets/analytics.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <link rel="stylesheet" href="/assets/site.css">
+    <style>
+        main { max-width: 880px; margin: 0 auto; padding: 3rem 1.5rem; }
+        .trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+        .trust-card { border: 1px solid #343a40; background: #111317; padding: 1.25rem; }
+        .trust-card h2 { margin-bottom: .6rem; font-size: 1rem; }
+        .trust-card p, .trust-card li { color: #a6acb3; line-height: 1.65; }
+        .notice { border-left: 3px solid #ffb347; background: #171a1f; padding: 1.25rem; margin-top: 1.5rem; color: #e8e4dc; }
+        .notice ul { margin: .7rem 0 0 1.2rem; }
+        .eyebrow { color: #ffb347; font-family: monospace; text-transform: uppercase; letter-spacing: .08em; }
+        h1 { margin: .45rem 0 1rem; }
+    </style>
+</head>
+<body>
+    <header class="site-header"><div class="header-inner"><a class="brand-lockup" href="/" aria-label="Ahlyx Labs home"><img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs"></a><nav class="site-nav" aria-label="Primary navigation"><a href="/services">Services</a><a href="/#work">Work</a><a href="/research">Research</a><a href="/notes">Notes</a><a href="/security" aria-current="page">Security</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav></div></header>
+    <main>
+        <p class="eyebrow">/ Security and trust</p>
+        <h1>Verify the channel before you trust the message.</h1>
+        <p>Ahlyx Labs is public by design: the source, architecture, and security reasoning are available for review. This page identifies the real channels and the safe way to report a vulnerability or validate a message.</p>
+        <div class="trust-grid">
+            <section class="trust-card"><h2>Official website</h2><p><a href="https://ahlyxlabs.com">https://ahlyxlabs.com</a> is the official Ahlyx Labs website.</p></section>
+            <section class="trust-card"><h2>Official GitHub</h2><p><a href="https://github.com/Ahlyx">github.com/Ahlyx</a> is the official source and project identity.</p></section>
+            <section class="trust-card"><h2>Official social channel</h2><p><a href="https://x.com/AhIyxx">@AhIyxx</a> is the currently published Ahlyx social channel.</p></section>
+            <section class="trust-card"><h2>Software releases</h2><p>Download PCAP Agent only from the <a href="https://github.com/Ahlyx/pcap-agent/releases">official GitHub Releases page</a>. Verify the published checksums before running an archive.</p></section>
+            <section class="trust-card"><h2>Report a vulnerability</h2><p>Send a concise report to <a href="mailto:alex@ahlyxlabs.com">alex@ahlyxlabs.com</a>, or use the contact methods in <a href="/.well-known/security.txt">security.txt</a>. Do not include secrets in a public GitHub issue.</p></section>
+        </div>
+        <section class="notice"><strong>Ahlyx Labs will never ask through an unsolicited message for:</strong><ul><li>passwords or API keys;</li><li>MFA or recovery codes;</li><li>private keys.</li></ul><p>If a message is suspicious, do not reply using the message's links or contact details. Independently use the website and contact information published here.</p></section>
+    </main>
+    <footer class="site-footer"><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a><span class="sep">|</span><a href="/privacy">Privacy Policy</a><span class="sep">|</span><a href="/.well-known/security.txt">security.txt</a></footer>
+</body>
+</html>

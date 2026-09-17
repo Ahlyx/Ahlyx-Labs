@@ -12,11 +12,27 @@ import (
 	"github.com/Ahlyx/Ahlyx-Labs/internal/shared"
 )
 
+const maxURLRequestBodyBytes = 16 << 10
+
+type urlRequest struct {
+	URL           string `json:"url"`
+	SubmitURLScan bool   `json:"submit_urlscan"`
+}
+
 func NewURLHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		targetURL := r.URL.Query().Get("url")
+		w.Header().Set("Cache-Control", "no-store")
+		r.Body = http.MaxBytesReader(w, r.Body, maxURLRequestBodyBytes)
+		var request urlRequest
+		decoder := json.NewDecoder(r.Body)
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&request); err != nil {
+			writeError(w, http.StatusBadRequest, "request body must be valid JSON")
+			return
+		}
+		targetURL := request.URL
 		if targetURL == "" {
-			writeError(w, http.StatusBadRequest, "missing required query parameter: url")
+			writeError(w, http.StatusBadRequest, "missing required field: url")
 			return
 		}
 		if !validators.IsValidURL(targetURL) {
@@ -53,7 +69,7 @@ func NewURLHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			mu.Unlock()
 		}()
 
-		if cfg.URLScanActiveSubmission && r.URL.Query().Get("submit_urlscan") == "true" {
+		if cfg.URLScanActiveSubmission && request.SubmitURLScan {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -116,4 +132,12 @@ func NewURLHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(data)
 	}
+}
+
+// DeprecatedURLHandler deliberately never reads URL query parameters. Full
+// URLs can contain credentials or bearer material and must travel in a POST
+// JSON body instead of browser history and intermediary request URLs.
+func DeprecatedURLHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store")
+	writeError(w, http.StatusGone, "URL enrichment now requires POST /api/v1/url with a JSON body")
 }

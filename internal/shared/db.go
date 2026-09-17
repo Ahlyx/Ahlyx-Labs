@@ -1,9 +1,12 @@
 package shared
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"os"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -11,6 +14,24 @@ import (
 
 // DB is the global database connection pool.
 var DB *sql.DB
+
+const (
+	queryLogQueueSize = 128
+	queryLogWorkers   = 2
+	queryLogTimeout   = 2 * time.Second
+)
+
+type queryLogEntry struct {
+	tool, queryType, verdict                      string
+	threat                                        bool
+	sourceCount, responseMS, hostCount, portCount int
+}
+
+var (
+	queryLogQueue   chan queryLogEntry
+	queryLogStart   sync.Once
+	queryLogDropped atomic.Uint64
+)
 
 // InitDB opens a connection to the PostgreSQL database and creates
 // the query_logs table if it does not already exist.
@@ -56,34 +77,62 @@ func InitDB() {
 	}
 
 	DB = db
+	startQueryLogWorkers()
 	log.Println("db: connected and ready")
 }
 
-// LogQuery inserts a single query log entry. Runs in a goroutine so it
-// never blocks the HTTP response. Safe to call when DB is nil.
-func LogQuery(tool, queryType, verdict string, threat bool, sourceCount, responseMS, hostCount, portCount int) {
+func startQueryLogWorkers() {
+	queryLogStart.Do(func() {
+		queryLogQueue = make(chan queryLogEntry, queryLogQueueSize)
+		for range queryLogWorkers {
+			go func() {
+				for entry := range queryLogQueue {
+					writeQueryLog(entry)
+				}
+			}()
+		}
+	})
+}
+
+func writeQueryLog(entry queryLogEntry) {
 	if DB == nil {
 		return
 	}
-	go func() {
-		_, err := DB.Exec(`
-			INSERT INTO query_logs
-				(tool, query_type, verdict, threat, source_count, response_ms, host_count, port_count)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		`,
-			tool,
-			nullableString(queryType),
-			nullableString(verdict),
-			threat,
-			nullableInt(sourceCount),
-			nullableInt(responseMS),
-			nullableInt(hostCount),
-			nullableInt(portCount),
-		)
-		if err != nil {
-			log.Printf("db: failed to log query: %v", err)
+	ctx, cancel := context.WithTimeout(context.Background(), queryLogTimeout)
+	defer cancel()
+	_, err := DB.ExecContext(ctx, `
+		INSERT INTO query_logs
+			(tool, query_type, verdict, threat, source_count, response_ms, host_count, port_count)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	`,
+		nullableString(entry.tool),
+		nullableString(entry.queryType),
+		nullableString(entry.verdict),
+		entry.threat,
+		nullableInt(entry.sourceCount),
+		nullableInt(entry.responseMS),
+		nullableInt(entry.hostCount),
+		nullableInt(entry.portCount),
+	)
+	if err != nil {
+		log.Printf("db: failed to log aggregate query telemetry: %v", err)
+	}
+}
+
+// LogQuery queues aggregate telemetry without ever retaining the submitted
+// indicator. A full queue drops telemetry instead of creating unbounded work.
+func LogQuery(tool, queryType, verdict string, threat bool, sourceCount, responseMS, hostCount, portCount int) {
+	if DB == nil || queryLogQueue == nil {
+		return
+	}
+	entry := queryLogEntry{tool, queryType, verdict, threat, sourceCount, responseMS, hostCount, portCount}
+	select {
+	case queryLogQueue <- entry:
+	default:
+		if dropped := queryLogDropped.Add(1); dropped == 1 || dropped%100 == 0 {
+			log.Printf("db: dropped %d aggregate query telemetry events because the queue is full", dropped)
 		}
-	}()
+	}
 }
 
 func nullableString(s string) interface{} {

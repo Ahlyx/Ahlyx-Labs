@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,300 +8,46 @@
     <title>Privacy Policy — Ahlyx Labs</title>
     <meta name="robots" content="noindex">
     <link rel="canonical" href="https://ahlyxlabs.com/privacy">
-    <script src="/assets/analytics.js"></script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NT7YXMY8"></script>
+    <script defer src="/assets/analytics.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
     <link rel="stylesheet" href="/assets/site.css">
     <style>
-        :root {
-            --bg: #090a0b;
-            --bg-panel: #111317;
-            --bg-elevated: #171a1f;
-            --border: #343a40;
-            --border-accent: #d8952a;
-            --accent: #ffb347;
-            --accent-dim: rgba(255, 179, 71, 0.09);
-            --white: #e8e4dc;
-            --dim: #a6acb3;
-            --muted: #789aa5;
-            --font-mono: 'IBM Plex Mono', 'Cascadia Mono', Consolas, monospace;
-            --font-body: 'IBM Plex Sans', Inter, system-ui, sans-serif;
-            --glow: none;
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background: var(--bg);
-            color: var(--white);
-            font-family: var(--font-body);
-            font-weight: 300;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        a { color: var(--accent); text-decoration: none; }
-        a:hover { opacity: 0.8; }
-        :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-
-        .page-header {
-            padding: 2.5rem 1.5rem 2rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .back-link {
-            font-family: var(--font-mono);
-            font-size: 0.82rem;
-            color: var(--dim);
-            display: inline-block;
-            margin-bottom: 1.25rem;
-            padding: 0;
-            border: 0;
-            background: transparent;
-            cursor: pointer;
-            transition: color 0.15s ease;
-        }
-        .back-link:hover { color: var(--accent); opacity: 1; }
-
-        .page-title {
-            font-family: var(--font-mono);
-            font-size: clamp(1.25rem, 4vw, 1.75rem);
-            color: var(--accent);
-            text-shadow: var(--glow);
-            letter-spacing: 0.05em;
-        }
-
-        .page-subtitle {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: var(--dim);
-            margin-top: 0.4rem;
-        }
-
-        .policy-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem 1.1rem;
-            margin-top: 1.25rem;
-            font-family: var(--font-mono);
-            font-size: 0.72rem;
-            line-height: 1;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        .policy-nav a {
-            color: var(--dim);
-            padding: 0.55rem 0;
-            border-bottom: 1px solid transparent;
-        }
-
-        .policy-nav a:hover {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-            opacity: 1;
-        }
-
-        main {
-            flex: 1;
-            max-width: 780px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 2.5rem 1.5rem 3rem;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .policy-section {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .section-title {
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-            color: var(--accent);
-            letter-spacing: 0.04em;
-        }
-
-        .section-body {
-            font-size: 0.87rem;
-            color: var(--dim);
-            line-height: 1.65;
-        }
-
-        .section-body p + p {
-            margin-top: 0.6rem;
-        }
-
-        .section-body ul {
-            margin-top: 0.5rem;
-            padding-left: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-
-        .section-body li::marker {
-            color: var(--accent);
-        }
-
-        code {
-            font-family: var(--font-mono);
-            font-size: 0.82em;
-            color: var(--accent);
-            background: var(--accent-dim);
-            padding: 0.1em 0.35em;
-        }
-
-        .site-footer {
-            font-family: var(--font-mono);
-            font-size: 0.78rem;
-            color: var(--muted);
-            text-align: center;
-            padding: 1.5rem;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .site-footer a { color: var(--dim); }
-        .site-footer a:hover { color: var(--accent); opacity: 1; }
-        .sep { color: var(--border); }
-
-        @media (max-width: 480px) {
-            main { padding: 1.5rem 1rem 2rem; }
-            .page-header { padding: 1.75rem 1rem 1.5rem; }
-            .policy-nav { gap: 0.25rem 0.8rem; }
-            .policy-nav a:last-child { display: none; }
-        }
+        main { max-width: 840px; margin: 0 auto; padding: 3rem 1.5rem; }
+        section { background: #111317; border: 1px solid #343a40; margin: 1rem 0; padding: 1.3rem; }
+        h1 { margin: .4rem 0 .8rem; } h2 { font-size: 1.05rem; margin-bottom: .55rem; }
+        p, li { color: #a6acb3; line-height: 1.7; } ul { margin: .55rem 0 0 1.2rem; }
+        code { color: #ffb347; } .eyebrow { color: #ffb347; font-family: monospace; letter-spacing: .08em; text-transform: uppercase; }
+        .warning { border-left: 3px solid #ffb347; color: #e8e4dc; }
     </style>
 </head>
 <body>
-
-    <header class="page-header">
-        <button class="back-link" type="button" onclick="history.length > 1 ? history.back() : location.assign('/')">[ &larr; BACK ]</button>
-        <h1 class="page-title">PRIVACY POLICY</h1>
-        <p class="page-subtitle">Last updated: March 2026</p>
-        <nav class="policy-nav" aria-label="Primary navigation"><a href="/services">Services</a><a href="/#work">Work</a><a href="/research">Research</a><a href="/notes">Notes</a><a href="/#lab">Lab</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav>
-    </header>
-
+    <header class="site-header"><div class="header-inner"><a class="brand-lockup" href="/" aria-label="Ahlyx Labs home"><img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs"></a><nav class="site-nav" aria-label="Primary navigation"><a href="/services">Services</a><a href="/#work">Work</a><a href="/research">Research</a><a href="/notes">Notes</a><a href="/#lab">Lab</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="/security">Security</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav></div></header>
     <main>
+        <p class="eyebrow">/ Privacy policy</p>
+        <h1>Clear disclosure for a public security-tooling site.</h1>
+        <p>Last updated: September 17, 2026.</p>
 
-        <section class="policy-section">
-            <h2 class="section-title">Overview</h2>
-            <div class="section-body">
-                <p>
-                    Ahlyx Labs is a portfolio of open-source security tools.
-                    This page describes what data is collected when you visit
-                    this site and how it is used.
-                </p>
-            </div>
-        </section>
+        <section><h2>Overview</h2><p>Ahlyx Labs is an open-source security tools and research portfolio. This policy describes the technical data flows of the website and its tools. It is an operational disclosure, not a promise that every provider or visitor is subject to a particular privacy-law regime.</p></section>
 
-        <section class="policy-section">
-            <h2 class="section-title">What data is collected</h2>
-            <div class="section-body">
-                <p>This site uses two analytics systems:</p>
-                <ul>
-                    <li>
-                        <strong>Vercel Analytics</strong> — automatically enabled.
-                        Collects aggregate, anonymous metrics: page views, device
-                        type (desktop/mobile), and approximate country derived
-                        from your IP address. No personally identifiable information
-                        is stored. Vercel does not set cookies for this data.
-                    </li>
-                    <li>
-                        <strong>Google Analytics 4 (GA4)</strong> — only enabled
-                        with your explicit consent. When consented, GA4 may collect
-                        session data including pages visited, time on page, browser
-                        type, approximate location, and a pseudonymous client ID
-                        stored in a first-party cookie. This data is processed by
-                        Google under their privacy policy.
-                    </li>
-                </ul>
-            </div>
-        </section>
+        <section><h2>Website infrastructure</h2><p>Ahlyx Labs uses Cloudflare for DNS and the public web edge, Vercel for the static frontend and web analytics products, and Render for the Go API. Normal HTTP requests necessarily provide relevant infrastructure providers with ordinary technical request information, such as IP address, user agent, time, and requested resource, so they can deliver, secure, and troubleshoot the service. Ahlyx Labs does not claim that these providers maintain no access or security logs.</p></section>
 
-        <section class="policy-section">
-            <h2 class="section-title">Cookies</h2>
-            <div class="section-body">
-                <p>
-                    This site stores one item in your browser's
-                    <code>localStorage</code>: the key <code>analytics_consent</code>,
-                    which records your accept/decline decision so the banner does
-                    not reappear. This is not a tracking cookie.
-                </p>
-                <p>
-                    If you consent to GA4, Google sets its own first-party
-                    cookies (<code>_ga</code>, <code>_ga_*</code>) used to
-                    distinguish sessions. These expire after 2 years.
-                </p>
-            </div>
-        </section>
+        <section><h2>Analytics and consent</h2><p>Vercel Analytics and Speed Insights are loaded to understand aggregate site performance and use. Google Analytics 4 is not loaded until the visitor accepts the site banner. The browser remembers that choice in <code>localStorage</code> under <code>analytics_consent</code>. Provider processing is governed by the applicable provider terms and privacy materials.</p></section>
 
-        <section class="policy-section">
-            <h2 class="section-title">Data sharing</h2>
-            <div class="section-body">
-                <p>
-                    No personal data is sold to or shared with third parties
-                    for commercial purposes. Analytics data is shared only with
-                    the analytics providers listed above (Vercel, Google) and
-                    only to the extent required to operate those services.
-                </p>
-            </div>
-        </section>
+        <section><h2>Browser storage</h2><p>The enrichment page may store recent IP, domain, and file-hash searches in the visitor's own browser under <code>searchHistory</code>. Full URL searches are not persisted there. Relay credentials are held only in page memory long enough to construct a WebSocket and are not stored in localStorage or placed in query strings.</p></section>
 
-        <section class="policy-section">
-            <h2 class="section-title">How to opt out</h2>
-            <div class="section-body">
-                <p>To withdraw GA4 consent at any time:</p>
-                <ul>
-                    <li>
-                        Open your browser's developer console and run
-                        <code>localStorage.removeItem('analytics_consent')</code>,
-                        then reload the page.
-                    </li>
-                    <li>
-                        The consent banner will reappear — click
-                        <strong>[ DECLINE ]</strong> to keep GA4 in denied mode.
-                    </li>
-                </ul>
-                <p>
-                    Vercel Analytics cannot be opted out of on a per-visitor
-                    basis as it collects no personal data and sets no cookies.
-                </p>
-            </div>
-        </section>
+        <section class="warning"><h2>Threat-intelligence submissions</h2><p><strong>Do not submit passwords, API keys, private invitation/reset links, signed URLs, recovery codes, or other secrets.</strong> To perform an enrichment request, Ahlyx Labs sends the submitted indicator to relevant third-party sources. This can include AbuseIPDB, VirusTotal, IPinfo, AlienVault OTX, Google Safe Browsing, MalwareBazaar, CIRCL HashLookup, and public DNS, WHOIS, or TLS lookups, depending on the indicator type. An IP address, domain, URL, or hash is therefore not appropriate for secret material.</p></section>
 
-        <section class="policy-section">
-            <h2 class="section-title">Contact</h2>
-            <div class="section-body">
-                <p>
-                    Questions or concerns about this policy can be raised via
-                    <a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a>.
-                </p>
-            </div>
-        </section>
+        <section><h2>URLScan</h2><p>URLScan active submission is optional. It occurs only when the site operator has enabled it and the visitor explicitly selects the URLScan option. The application is configured to use <code>unlisted</code> or <code>private</code> visibility; public visibility is rejected. When the operator flag is false, no active URLScan submission occurs.</p></section>
 
+        <section><h2>Temporary enrichment cache and operational telemetry</h2><p>To reduce repeated third-party lookups, submitted indicators and enrichment results may be held temporarily in the application's in-memory TTL cache. Fully successful results may be cached for up to one hour; partial results may be cached for up to 15 minutes; total source failures are not cached. This process-memory cache is separate from the aggregate query-telemetry database and is cleared when the application process restarts.</p><p>Ahlyx Labs' own query telemetry intentionally records aggregate fields such as tool, indicator type, verdict, source count, and response time. It does not store the submitted IP address, domain, URL, or hash in that query-telemetry database. This does not prevent Cloudflare, Vercel, Render, or third-party intelligence sources from maintaining ordinary access or security logs under their own systems and policies. No fixed retention period is promised here because it is not technically enforced by this application.</p></section>
+
+        <section><h2>PCAP Agent</h2><p>In local mode, the browser connects directly to the local PCAP Agent and packet-analysis metadata does not transit the Ahlyx Labs relay. Relay mode is explicit and optional. In relay mode, source/destination address metadata, ports/protocol, DNS metadata, MAC observations, security alerts, and aggregate statistics may traverse the Ahlyx Labs relay. Raw packet payloads are not sent through the relay.</p></section>
+
+        <section><h2>Hardware Dashboard</h2><p>The Hardware Dashboard displays aggregate telemetry from the Ahlyx Labs cloud backend. It does not inspect or display telemetry from a visitor's personal machine.</p></section>
+
+        <section><h2>Contact and changes</h2><p>Questions about this policy can be sent to <a href="mailto:alex@ahlyxlabs.com">alex@ahlyxlabs.com</a>. Security reports and official-channel verification guidance are available at <a href="/security">ahlyxlabs.com/security</a> and <a href="/.well-known/security.txt">security.txt</a>. Material changes to this page will be reflected in its last-updated date.</p></section>
     </main>
-
-    <footer class="site-footer">
-        <a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a>
-        <span class="sep">|</span>
-        <a href="https://twitter.com/AhIyxx" target="_blank" rel="noopener noreferrer">@AhIyxx</a>
-        <span class="sep">|</span>
-        <a href="/">Ahlyx Labs</a>
-    </footer>
-
+    <footer class="site-footer"><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a><span class="sep">|</span><a href="/security">Security &amp; Trust</a><span class="sep">|</span><a href="/">Ahlyx Labs</a></footer>
 </body>
 </html>

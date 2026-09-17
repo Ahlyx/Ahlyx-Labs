@@ -2,21 +2,11 @@
 // GA4 bootstrap — must run before DOMContentLoaded so the dataLayer is
 // available when the async gtag.js library initialises.
 // ---------------------------------------------------------------------------
-// Consume relay launch material before analytics initialises. Fragments are
-// never sent in HTTP requests, and removing it here keeps the viewer token out
-// of copied URLs, analytics state, and future browser history entries.
-const relayBootstrap = (function () {
-    const params = new URLSearchParams(window.location.hash.slice(1));
-    const sessionID = params.get('relay_session');
-    const viewerToken = params.get('viewer_token');
-    const query = new URLSearchParams(window.location.search);
-    query.delete('session'); // Retire legacy bearer-style session URLs.
-    const cleanURL = window.location.pathname + (query.size ? `?${query}` : '');
-    if (window.location.hash || query.toString() !== window.location.search.slice(1)) {
-        history.replaceState(null, document.title, cleanURL);
-    }
-    return sessionID && viewerToken ? { sessionID, viewerToken } : null;
-})();
+// The synchronous document-head bootstrap removes relay credentials from the
+// URL before analytics scripts load. This script only consumes its in-memory
+// copy.
+const relayBootstrap = window.__AHLYX_RELAY_BOOTSTRAP || null;
+/* Analytics consent and loading are centralized in /assets/analytics.js.
 
 window.dataLayer = window.dataLayer || [];
 function gtag() { dataLayer.push(arguments); }
@@ -65,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // ---------------------------------------------------------------------------
+*/
 // WebSocket
 // ---------------------------------------------------------------------------
 const SESSION_ID = relayBootstrap ? relayBootstrap.sessionID : null;
@@ -119,6 +110,7 @@ function connect() {
     const socket = SESSION_ID
         ? new WebSocket(WS_URL, ['ahlyx-relay-v1', VIEWER_TOKEN])
         : new WebSocket(WS_URL);
+    if (SESSION_ID) delete window.__AHLYX_RELAY_BOOTSTRAP;
     ws = socket;
 
     socket.addEventListener('open', function () {

@@ -3,17 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"runtime"
-	"strings"
 	"time"
 
-	gopsnet "github.com/shirou/gopsutil/v3/net"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
+	gopsnet "github.com/shirou/gopsutil/v3/net"
 
 	"github.com/Ahlyx/Ahlyx-Labs/internal/hardware"
 )
@@ -32,11 +30,11 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]string{"error": msg})
 }
 
-func fmtGB(bytes uint64) string  { return fmt.Sprintf("%.2f GB", float64(bytes)/1073741824) }
-func fmtMB(bytes uint64) string  { return fmt.Sprintf("%.2f MB", float64(bytes)/1048576) }
-func fmtPct(pct float64) string  { return fmt.Sprintf("%.1f%%", pct) }
-func fmtOps(n uint64) string     { return fmt.Sprintf("%d", n) }
-func fmtMHz(mhz float64) string  { return fmt.Sprintf("%.2f MHz", mhz) }
+func fmtGB(bytes uint64) string { return fmt.Sprintf("%.2f GB", float64(bytes)/1073741824) }
+func fmtMB(bytes uint64) string { return fmt.Sprintf("%.2f MB", float64(bytes)/1048576) }
+func fmtPct(pct float64) string { return fmt.Sprintf("%.1f%%", pct) }
+func fmtOps(n uint64) string    { return fmt.Sprintf("%d", n) }
+func fmtMHz(mhz float64) string { return fmt.Sprintf("%.2f MHz", mhz) }
 
 // ---------------------------------------------------------------------------
 // HandleSystem — GET /api/v1/hardware/system
@@ -45,7 +43,7 @@ func fmtMHz(mhz float64) string  { return fmt.Sprintf("%.2f MHz", mhz) }
 func HandleSystem(w http.ResponseWriter, r *http.Request) {
 	info, err := host.Info()
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to read host info: "+err.Error())
+		writeError(w, http.StatusInternalServerError, "hardware telemetry unavailable")
 		return
 	}
 
@@ -54,18 +52,10 @@ func HandleSystem(w http.ResponseWriter, r *http.Request) {
 		arch = "64bit"
 	}
 
-	// Processor name: prefer the first CPU's model name; fall back to arch.
-	processor := arch
-	if cpus, err := cpu.Info(); err == nil && len(cpus) > 0 {
-		processor = cpus[0].ModelName
-	}
-
 	writeJSON(w, http.StatusOK, hardware.SystemInfo{
-		OS:           info.OS,
-		OSVersion:    info.PlatformVersion,
+		Platform:     info.Platform,
 		Architecture: arch,
-		Hostname:     info.Hostname,
-		Processor:    processor,
+		Uptime:       info.Uptime,
 	})
 }
 
@@ -76,12 +66,12 @@ func HandleSystem(w http.ResponseWriter, r *http.Request) {
 func HandleCPU(w http.ResponseWriter, r *http.Request) {
 	physical, err := cpu.Counts(false)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to read CPU count: "+err.Error())
+		writeError(w, http.StatusInternalServerError, "hardware telemetry unavailable")
 		return
 	}
 	logical, err := cpu.Counts(true)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to read CPU count: "+err.Error())
+		writeError(w, http.StatusInternalServerError, "hardware telemetry unavailable")
 		return
 	}
 
@@ -114,12 +104,12 @@ func HandleCPU(w http.ResponseWriter, r *http.Request) {
 func HandleRAM(w http.ResponseWriter, r *http.Request) {
 	vm, err := mem.VirtualMemory()
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to read memory: "+err.Error())
+		writeError(w, http.StatusInternalServerError, "hardware telemetry unavailable")
 		return
 	}
 	sw, err := mem.SwapMemory()
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to read swap: "+err.Error())
+		writeError(w, http.StatusInternalServerError, "hardware telemetry unavailable")
 		return
 	}
 
@@ -139,26 +129,10 @@ func HandleRAM(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------------------
 
 func HandleDisk(w http.ResponseWriter, r *http.Request) {
-	parts, err := disk.Partitions(false)
+	usage, err := disk.Usage("/")
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to read partitions: "+err.Error())
+		writeError(w, http.StatusInternalServerError, "hardware telemetry unavailable")
 		return
-	}
-
-	partitions := make([]hardware.Partition, 0, len(parts))
-	for _, p := range parts {
-		usage, err := disk.Usage(p.Mountpoint)
-		if err != nil {
-			continue
-		}
-		partitions = append(partitions, hardware.Partition{
-			Mountpoint: p.Mountpoint,
-			Filesystem: p.Fstype,
-			Total:      fmtGB(usage.Total),
-			Used:       fmtGB(usage.Used),
-			Free:       fmtGB(usage.Free),
-			Usage:      fmtPct(usage.UsedPercent),
-		})
 	}
 
 	// Aggregate disk I/O counters across all devices.
@@ -173,7 +147,10 @@ func HandleDisk(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, hardware.DiskInfo{
-		Partitions:   partitions,
+		Total:        fmtGB(usage.Total),
+		Used:         fmtGB(usage.Used),
+		Free:         fmtGB(usage.Free),
+		Usage:        fmtPct(usage.UsedPercent),
 		TotalRead:    fmtGB(totalRead),
 		TotalWritten: fmtGB(totalWritten),
 		ReadOps:      fmtOps(readOps),
@@ -186,32 +163,6 @@ func HandleDisk(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------------------
 
 func HandleNetwork(w http.ResponseWriter, r *http.Request) {
-	ifaces, err := gopsnet.Interfaces()
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to read interfaces: "+err.Error())
-		return
-	}
-
-	interfaces := make([]hardware.NetworkInterface, 0, len(ifaces))
-	for _, iface := range ifaces {
-		for _, addr := range iface.Addrs {
-			ip, ipNet, err := net.ParseCIDR(addr.Addr)
-			if err != nil {
-				continue
-			}
-			// Skip loopback and link-local.
-			if ip.IsLoopback() || ip.IsLinkLocalUnicast() {
-				continue
-			}
-			mask := subnetMaskString(ipNet.Mask)
-			interfaces = append(interfaces, hardware.NetworkInterface{
-				Interface:  iface.Name,
-				IPAddress:  ip.String(),
-				SubnetMask: mask,
-			})
-		}
-	}
-
 	// Aggregate I/O across all interfaces.
 	var bytesSent, bytesRecv, pktsSent, pktsRecv uint64
 	if counters, err := gopsnet.IOCounters(false); err == nil && len(counters) > 0 {
@@ -222,19 +173,9 @@ func HandleNetwork(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, hardware.NetworkInfo{
-		Interfaces:      interfaces,
 		BytesSent:       fmtMB(bytesSent),
 		BytesReceived:   fmtMB(bytesRecv),
 		PacketsSent:     pktsSent,
 		PacketsReceived: pktsRecv,
 	})
-}
-
-// subnetMaskString converts a net.IPMask to dotted-decimal notation.
-func subnetMaskString(mask net.IPMask) string {
-	parts := make([]string, len(mask))
-	for i, b := range mask {
-		parts[i] = fmt.Sprintf("%d", b)
-	}
-	return strings.Join(parts, ".")
 }
