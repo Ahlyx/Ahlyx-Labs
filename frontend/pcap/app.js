@@ -17,6 +17,7 @@ const MAX_ENRICHMENT = 50;
 const MAX_MACS       = 50;
 const FLOW_FOLLOW_THRESHOLD = 16;
 const MAX_PENDING_FLOWS = MAX_FLOWS;
+const MAX_INITIAL_RELAY_ATTEMPTS = 3;
 
 const OT_PORTS = new Set([502, 102, 44818, 4840, 20000, 47808, 9600, 1962,
                            18245, 4000, 2222, 1089, 1090, 1091]);
@@ -28,6 +29,8 @@ const OT_PROTOCOLS = new Set(['Modbus', 'S7comm', 'EtherNet/IP', 'OPC-UA',
 let ws             = null;
 let reconnectTimer = null;
 let reconnectAttempts = 0;
+let relayConnectionAttempts = 0;
+let relayOpened = false;
 let threatIPs      = new Set();
 let statsData      = { packets: 0, bytes: 0, flows: 0, alerts: 0 };
 const renderedAlerts = new Map();
@@ -45,6 +48,12 @@ function connect() {
         return;
     }
 
+    if (SESSION_ID && relayOpened) return;
+    if (SESSION_ID && relayConnectionAttempts >= MAX_INITIAL_RELAY_ATTEMPTS) {
+        setStatus('relay-unavailable');
+        return;
+    }
+
     if (reconnectTimer !== null) {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
@@ -55,6 +64,7 @@ function connect() {
     if (SESSION_ID || reconnectAttempts === 0) setStatus('connecting');
 
     console.info('pcap websocket: connecting', { url: WS_URL, attempt: reconnectAttempts });
+    if (SESSION_ID) relayConnectionAttempts++;
     const socket = SESSION_ID
         ? new WebSocket(WS_URL, ['ahlyx-relay-v1', VIEWER_TOKEN])
         : new WebSocket(WS_URL);
@@ -66,6 +76,7 @@ function connect() {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
         reconnectAttempts = 0;
+        relayOpened = Boolean(SESSION_ID);
         console.info('pcap websocket: open', { url: WS_URL });
         setStatus('connected');
     });
@@ -88,8 +99,18 @@ function connect() {
             wasClean: Boolean(event.wasClean),
         });
         ws = null;
-        setStatus(SESSION_ID ? 'disconnected' : 'local-unavailable');
-        scheduleReconnect();
+        if (SESSION_ID) {
+            if (relayOpened) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+                setStatus('relay-ended');
+                return;
+            }
+            scheduleRelayReconnect();
+            return;
+        }
+        setStatus('local-unavailable');
+        scheduleLocalReconnect();
     });
 
     socket.addEventListener('error', function (event) {
@@ -100,13 +121,28 @@ function connect() {
     });
 }
 
-function scheduleReconnect() {
+function scheduleLocalReconnect() {
     if (reconnectTimer !== null) return;
     reconnectAttempts++;
-    const delay = SESSION_ID
-        ? Math.min(3000 * reconnectAttempts, 15000)
-        : Math.min(3000 * (2 ** Math.min(reconnectAttempts - 1, 4)), 30000);
+    const delay = Math.min(3000 * (2 ** Math.min(reconnectAttempts - 1, 4)), 30000);
     console.info('pcap websocket: reconnect scheduled', { attempt: reconnectAttempts, delay: delay });
+    reconnectTimer = setTimeout(function () {
+        reconnectTimer = null;
+        connect();
+    }, delay);
+}
+
+function scheduleRelayReconnect() {
+    if (relayConnectionAttempts >= MAX_INITIAL_RELAY_ATTEMPTS) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+        setStatus('relay-unavailable');
+        return;
+    }
+    if (reconnectTimer !== null) return;
+    reconnectAttempts++;
+    const delay = Math.min(3000 * reconnectAttempts, 15000);
+    console.info('pcap relay: reconnect scheduled', { attempt: relayConnectionAttempts + 1, delay: delay });
     reconnectTimer = setTimeout(function () {
         reconnectTimer = null;
         connect();
@@ -150,6 +186,16 @@ function setStatus(state) {
         text.className  = 'status-text status-disconnected';
         text.textContent = 'LOCAL AGENT NOT RUNNING';
         banner.classList.remove('hidden');
+    } else if (state === 'relay-ended') {
+        dot.className   = 'status-dot offline';
+        text.className  = 'status-text status-disconnected';
+        text.textContent = 'RELAY SESSION ENDED';
+        banner.classList.add('hidden');
+    } else if (state === 'relay-unavailable') {
+        dot.className   = 'status-dot offline';
+        text.className  = 'status-text status-disconnected';
+        text.textContent = 'RELAY SESSION UNAVAILABLE';
+        banner.classList.add('hidden');
     } else {
         dot.className   = 'status-dot offline';
         text.className  = 'status-text status-disconnected';

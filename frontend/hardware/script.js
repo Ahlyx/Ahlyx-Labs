@@ -5,6 +5,8 @@
 const API_BASE = 'https://api.ahlyxlabs.com/api/v1/hardware';
 
 let hardwareDashboardLoaded = false;
+let pollingTimer = null;
+const POLLING_INTERVAL_MS = 10000;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -199,14 +201,19 @@ async function fetchNetwork() {
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
 async function fetchAll() {
+    if (document.visibilityState !== 'visible') return;
     await fetchSystem();
     await delay(200);
+    if (document.visibilityState !== 'visible') return;
     await fetchCPU();
     await delay(200);
+    if (document.visibilityState !== 'visible') return;
     await fetchRAM();
     await delay(200);
+    if (document.visibilityState !== 'visible') return;
     await fetchDisk();
     await delay(200);
+    if (document.visibilityState !== 'visible') return;
     await fetchNetwork();
 
     const ts = document.getElementById('last-updated-time');
@@ -223,5 +230,30 @@ async function fetchAll() {
 // ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
-fetchAll();
-setInterval(fetchAll, 10000);
+function startPolling() {
+    if (document.visibilityState !== 'visible' || pollingTimer !== null) return;
+    pollingTimer = setInterval(function () {
+        if (document.visibilityState === 'visible') fetchAll();
+    }, POLLING_INTERVAL_MS);
+}
+
+function stopPolling() {
+    if (pollingTimer === null) return;
+    clearInterval(pollingTimer);
+    pollingTimer = null;
+}
+
+function handleVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+        fetchAll();
+        startPolling();
+        return;
+    }
+    stopPolling();
+}
+
+if (document.visibilityState === 'visible') {
+    fetchAll();
+    startPolling();
+}
+document.addEventListener('visibilitychange', handleVisibilityChange);
