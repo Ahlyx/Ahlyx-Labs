@@ -94,6 +94,7 @@ document.querySelectorAll('.tab').forEach(tab => {
         currentType = tab.dataset.type;
         document.getElementById('searchInput').placeholder = placeholders[currentType];
         document.getElementById('searchPrefix').textContent = prefixes[currentType];
+        document.getElementById('urlscanDisclosure').hidden = currentType !== 'url';
         document.getElementById('searchInput').focus();
     });
 });
@@ -171,7 +172,16 @@ async function performSearch(value, type) {
         let endpoint;
         if (type === 'ip') endpoint = `${API_BASE}/ip/${encodeURIComponent(value)}`;
         else if (type === 'domain') endpoint = `${API_BASE}/domain/${encodeURIComponent(value)}`;
-        else if (type === 'url') endpoint = `${API_BASE}/url?url=${encodeURIComponent(value)}`;
+        else if (type === 'url') {
+            endpoint = `${API_BASE}/url?url=${encodeURIComponent(value)}`;
+            const activeSubmission = document.getElementById('urlscanConsent').checked;
+            if (activeSubmission) {
+                if ((value.includes('?') || value.includes('#')) && !window.confirm('This URL contains a query or fragment that may include private data. Submit it to URLScan anyway?')) {
+                    throw new Error('third-party URLScan submission cancelled');
+                }
+                endpoint += '&submit_urlscan=true';
+            }
+        }
         else if (type === 'hash') endpoint = `${API_BASE}/hash/${encodeURIComponent(value)}`;
 
         if (typeof gtag !== 'undefined') {

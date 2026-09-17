@@ -215,6 +215,21 @@ main {
     margin-bottom: 1rem;
 }
 
+.urlscan-disclosure {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+    margin-top: 0.8rem;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.urlscan-disclosure input {
+    margin-top: 0.2rem;
+    accent-color: var(--accent);
+}
+
 .search-bar:focus-within {
     border-color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent-dim);
