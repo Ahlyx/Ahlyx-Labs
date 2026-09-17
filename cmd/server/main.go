@@ -53,10 +53,11 @@ func newRouter(cfg *shared.Config, cache *shared.Cache) http.Handler {
 	// Rate limiters per CLAUDE.md:
 	//   IP / domain / hash : 30 req/min, burst 30
 	//   URL               : 10 req/min, burst 10
-	stdRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30)  // 30/min
-	urlRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10)  // 10/min
-	hwRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30)   // 30/min
-	pcapRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10) // 10/min
+	globalRL := rate.NewLimiter(rate.Every(100*time.Millisecond), 120)
+	stdRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30, cfg.TrustedProxyCIDRs, globalRL)  // 30/min
+	urlRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10, cfg.TrustedProxyCIDRs, globalRL)  // 10/min
+	hwRL := shared.NewRateLimiter(rate.Every(2*time.Second), 30, cfg.TrustedProxyCIDRs, globalRL)   // 30/min
+	pcapRL := shared.NewRateLimiter(rate.Every(6*time.Second), 10, cfg.TrustedProxyCIDRs, globalRL) // 10/min
 
 	// -----------------------------------------------------------------------
 	// Health check
@@ -85,7 +86,7 @@ func newRouter(cfg *shared.Config, cache *shared.Cache) http.Handler {
 	// scanner package remains available for isolated owner-controlled labs and
 	// local tools, where a separate allowlist must be enforced.
 	if cfg.ServerScannerEnabled && len(cfg.ServerScannerAllowedTargets) > 0 {
-		scanRL := shared.NewRateLimiter(rate.Every(12*time.Second), 5) // 5/min
+		scanRL := shared.NewRateLimiter(rate.Every(12*time.Second), 5, cfg.TrustedProxyCIDRs, globalRL) // 5/min
 		r.Method(http.MethodGet, "/api/v1/scanner/scan", scanhandlers.NewControlledScanHandler(scanRL, cfg.ServerScannerAllowedTargets))
 	}
 

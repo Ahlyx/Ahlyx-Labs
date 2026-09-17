@@ -3,49 +3,63 @@ package shared
 import (
 	"net"
 	"net/http"
-	"strings"
 	"sync"
+	"time"
 
 	"golang.org/x/time/rate"
 )
 
+const limiterEntryTTL = 15 * time.Minute
+
 type ipLimiter struct {
-	limiter *rate.Limiter
+	limiter  *rate.Limiter
+	lastSeen time.Time
 }
 
-// RateLimiter holds per-IP token buckets.
+// RateLimiter holds bounded-lifetime per-client token buckets. Forwarding
+// headers are considered only when the socket peer is an explicit trusted proxy.
 type RateLimiter struct {
-	mu      sync.Mutex
-	ips     map[string]*ipLimiter
-	limit   rate.Limit
-	burst   int
+	mu             sync.Mutex
+	ips            map[string]*ipLimiter
+	limit          rate.Limit
+	burst          int
+	trustedProxies []*net.IPNet
+	global         *rate.Limiter
+	lastCleanup    time.Time
 }
 
-// NewRateLimiter creates a RateLimiter with the given rate and burst.
-func NewRateLimiter(r rate.Limit, burst int) *RateLimiter {
-	return &RateLimiter{
-		ips:   make(map[string]*ipLimiter),
-		limit: r,
-		burst: burst,
-	}
+func NewRateLimiter(r rate.Limit, burst int, trustedProxies []*net.IPNet, global *rate.Limiter) *RateLimiter {
+	return &RateLimiter{ips: make(map[string]*ipLimiter), limit: r, burst: burst, trustedProxies: trustedProxies, global: global}
 }
 
-func (rl *RateLimiter) get(ip string) *rate.Limiter {
+func (rl *RateLimiter) get(ip string, now time.Time) *rate.Limiter {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
-	if v, ok := rl.ips[ip]; ok {
-		return v.limiter
+	if now.Sub(rl.lastCleanup) >= time.Minute {
+		for key, entry := range rl.ips {
+			if now.Sub(entry.lastSeen) >= limiterEntryTTL {
+				delete(rl.ips, key)
+			}
+		}
+		rl.lastCleanup = now
 	}
-	l := rate.NewLimiter(rl.limit, rl.burst)
-	rl.ips[ip] = &ipLimiter{limiter: l}
-	return l
+	if entry, ok := rl.ips[ip]; ok {
+		entry.lastSeen = now
+		return entry.limiter
+	}
+	limiter := rate.NewLimiter(rl.limit, rl.burst)
+	rl.ips[ip] = &ipLimiter{limiter: limiter, lastSeen: now}
+	return limiter
 }
 
-// Middleware returns an http.Handler wrapper that enforces the rate limit.
 func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := clientIP(r)
-		if !rl.get(ip).Allow() {
+		if rl.global != nil && !rl.global.Allow() {
+			writeError(w, http.StatusTooManyRequests, "service is busy")
+			return
+		}
+		ip := ClientIP(r, rl.trustedProxies)
+		if !rl.get(ip, time.Now()).Allow() {
 			writeError(w, http.StatusTooManyRequests, "rate limit exceeded")
 			return
 		}
@@ -53,24 +67,35 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	})
 }
 
-// clientIP extracts the real client IP, respecting X-Forwarded-For for Render's proxy.
-func clientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		// X-Forwarded-For may be a comma-separated list; the first entry is the client.
-		if idx := strings.Index(xff, ","); idx != -1 {
-			xff = xff[:idx]
+// ClientIP returns the socket peer unless it belongs to a configured trusted
+// proxy CIDR. Only then is CF-Connecting-IP accepted as the client identity.
+func ClientIP(r *http.Request, trustedProxies []*net.IPNet) string {
+	peer := remoteIP(r.RemoteAddr)
+	if peer == nil || !isTrustedProxy(peer, trustedProxies) {
+		if peer != nil {
+			return peer.String()
 		}
-		xff = strings.TrimSpace(xff)
-		if xff != "" {
-			return xff
-		}
-	}
-	if xri := r.Header.Get("X-Real-IP"); xri != "" {
-		return strings.TrimSpace(xri)
-	}
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
 		return r.RemoteAddr
 	}
-	return host
+	if client := net.ParseIP(r.Header.Get("CF-Connecting-IP")); client != nil {
+		return client.String()
+	}
+	return peer.String()
+}
+
+func remoteIP(address string) net.IP {
+	host, _, err := net.SplitHostPort(address)
+	if err != nil {
+		host = address
+	}
+	return net.ParseIP(host)
+}
+
+func isTrustedProxy(ip net.IP, proxies []*net.IPNet) bool {
+	for _, proxy := range proxies {
+		if proxy.Contains(ip) {
+			return true
+		}
+	}
+	return false
 }
