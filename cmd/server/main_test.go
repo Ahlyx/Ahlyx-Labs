@@ -65,6 +65,19 @@ func TestURLRouteIsPostOnlyAndDoesNotReadQueryValue(t *testing.T) {
 	}
 }
 
+func TestCapabilitiesExposeOnlyTheSafeURLScanEnablementSignal(t *testing.T) {
+	router := newRouter(&shared.Config{URLScanActiveSubmission: true}, shared.NewCache())
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/capabilities", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK || rec.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("capabilities = %d, Cache-Control=%q", rec.Code, rec.Header().Get("Cache-Control"))
+	}
+	if got := rec.Body.String(); got != "{\"urlscan_active_submission\":true}\n" {
+		t.Fatalf("unexpected capabilities response: %s", got)
+	}
+}
+
 func TestScannerRouteRequiresAnAllowlist(t *testing.T) {
 	router := newRouter(&shared.Config{ServerScannerEnabled: true}, shared.NewCache())
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/scanner/scan?subnet=192.168.1.1", nil)

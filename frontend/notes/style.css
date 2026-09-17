@@ -1,6 +1,4 @@
 .notes-page { min-width: 320px; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--text); }
-.notes-page .back-button { padding: .45rem 0; border: 0; border-bottom: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; font: .72rem/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
-.notes-page .back-button:hover { border-bottom-color: var(--amber); color: var(--amber); }
 .notes-main { width: min(calc(100% - 3rem), 850px); margin: 0 auto; padding: clamp(3.5rem, 8vw, 7rem) 0; }
 .notes-kicker, .note-meta, .note-label { color: var(--amber); font: .72rem/1.5 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .notes-hero { max-width: 54rem; margin-bottom: clamp(3rem, 7vw, 5rem); }

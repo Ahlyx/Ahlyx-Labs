@@ -1,61 +1,7 @@
-// ---------------------------------------------------------------------------
-// GA4 bootstrap — must run before DOMContentLoaded so the dataLayer is
-// available when the async gtag.js library initialises.
-// ---------------------------------------------------------------------------
 // The synchronous document-head bootstrap removes relay credentials from the
 // URL before analytics scripts load. This script only consumes its in-memory
 // copy.
 const relayBootstrap = window.__AHLYX_RELAY_BOOTSTRAP || null;
-/* Analytics consent and loading are centralized in /assets/analytics.js.
-
-window.dataLayer = window.dataLayer || [];
-function gtag() { dataLayer.push(arguments); }
-
-const CONSENT_KEY = 'analytics_consent';
-const GA_ID = 'G-99NT7YXMY8';
-
-const consent = localStorage.getItem(CONSENT_KEY);
-
-if (consent === 'accepted') {
-    // User previously accepted — initialise GA4 fully.
-    gtag('js', new Date());
-    gtag('config', GA_ID);
-} else {
-    // 'declined' or not yet set — keep GA4 in denied mode.
-    gtag('consent', 'default', {
-        analytics_storage: 'denied',
-        ad_storage: 'denied',
-    });
-}
-
-// ---------------------------------------------------------------------------
-// Consent banner wiring
-// ---------------------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', function () {
-    const banner     = document.getElementById('consent-banner');
-    const btnAccept  = document.getElementById('consent-accept');
-    const btnDecline = document.getElementById('consent-decline');
-
-    if (!localStorage.getItem(CONSENT_KEY)) {
-        banner.classList.remove('hidden');
-    }
-
-    btnAccept.addEventListener('click', function () {
-        localStorage.setItem(CONSENT_KEY, 'accepted');
-        banner.classList.add('hidden');
-        gtag('consent', 'update', { analytics_storage: 'granted' });
-        gtag('js', new Date());
-        gtag('config', GA_ID);
-    });
-
-    btnDecline.addEventListener('click', function () {
-        localStorage.setItem(CONSENT_KEY, 'declined');
-        banner.classList.add('hidden');
-    });
-});
-
-// ---------------------------------------------------------------------------
-*/
 // WebSocket
 // ---------------------------------------------------------------------------
 const SESSION_ID = relayBootstrap ? relayBootstrap.sessionID : null;
@@ -104,7 +50,9 @@ function connect() {
         reconnectTimer = null;
     }
 
-    setStatus('connecting');
+    // A missing local agent is an expected state. Subsequent quiet retries do
+    // not repeatedly replace that useful status with a flashing connection UI.
+    if (SESSION_ID || reconnectAttempts === 0) setStatus('connecting');
 
     console.info('pcap websocket: connecting', { url: WS_URL, attempt: reconnectAttempts });
     const socket = SESSION_ID
@@ -140,7 +88,7 @@ function connect() {
             wasClean: Boolean(event.wasClean),
         });
         ws = null;
-        setStatus('disconnected');
+        setStatus(SESSION_ID ? 'disconnected' : 'local-unavailable');
         scheduleReconnect();
     });
 
@@ -155,7 +103,9 @@ function connect() {
 function scheduleReconnect() {
     if (reconnectTimer !== null) return;
     reconnectAttempts++;
-    const delay = 3000;
+    const delay = SESSION_ID
+        ? Math.min(3000 * reconnectAttempts, 15000)
+        : Math.min(3000 * (2 ** Math.min(reconnectAttempts - 1, 4)), 30000);
     console.info('pcap websocket: reconnect scheduled', { attempt: reconnectAttempts, delay: delay });
     reconnectTimer = setTimeout(function () {
         reconnectTimer = null;
@@ -194,6 +144,11 @@ function setStatus(state) {
         dot.className   = 'status-dot';
         text.className  = 'status-text status-connecting';
         text.textContent = 'CONNECTING...';
+        banner.classList.remove('hidden');
+    } else if (state === 'local-unavailable') {
+        dot.className   = 'status-dot offline';
+        text.className  = 'status-text status-disconnected';
+        text.textContent = 'LOCAL AGENT NOT RUNNING';
         banner.classList.remove('hidden');
     } else {
         dot.className   = 'status-dot offline';

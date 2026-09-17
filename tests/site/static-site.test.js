@@ -11,7 +11,6 @@ const indexablePages = [
     ['landing/index.html', 'https://ahlyxlabs.com/'],
     ['services/index.html', 'https://ahlyxlabs.com/services'],
     ['enrichment/index.html', 'https://ahlyxlabs.com/enrichment'],
-    ['scanner/index.html', 'https://ahlyxlabs.com/scanner'],
     ['hardware/index.html', 'https://ahlyxlabs.com/hardware'],
     ['pcap/index.html', 'https://ahlyxlabs.com/pcap'],
     ['security/index.html', 'https://ahlyxlabs.com/security'],
@@ -57,6 +56,17 @@ test('Vercel routes do not turn missing nested paths into successful pages', () 
     assert.ok(config.rewrites.every((rewrite) => !rewrite.source.includes('(.*)')));
 });
 
+test('the retired hosted scanner route redirects to the local-tool repository', () => {
+    const config = JSON.parse(read('vercel.json'));
+    assert.deepEqual(config.redirects, [{
+        source: '/scanner',
+        destination: 'https://github.com/Ahlyx/Network-Scanner',
+        permanent: false
+    }]);
+    assert.ok(!config.rewrites.some((rewrite) => rewrite.source === '/scanner'));
+    assert.ok(!fs.existsSync(path.join(frontend, 'scanner/index.html')), 'obsolete hosted scanner assets are removed');
+});
+
 test('Vercel headers protect documents without breaking PCAP local mode', () => {
     const config = JSON.parse(read('vercel.json'));
     const headers = Object.fromEntries(config.headers[0].headers.map((header) => [header.key, header.value]));
@@ -97,7 +107,6 @@ test('subpages expose the same primary navigation destinations', () => {
     const subpages = [
         'services/index.html',
         'enrichment/index.html',
-        'scanner/index.html',
         'hardware/index.html',
         'pcap/index.html',
         'research/index.html',
@@ -117,6 +126,80 @@ test('subpages expose the same primary navigation destinations', () => {
     }
 });
 
+test('content pages use the shared homepage header while tools remain compact', () => {
+    const site = read('assets/site.css');
+    assert.match(site, /\.site-header \{[\s\S]*background: rgba\(9, 10, 11, \.96\)/,
+        'shared content header keeps the homepage background treatment');
+    assert.match(site, /\.header-inner \{[\s\S]*min-height: 6\.5rem/,
+        'shared content header keeps the homepage height');
+    assert.match(site, /\.brand-lockup \{[\s\S]*width: clamp\(22rem, 35vw, 34rem\)/,
+        'shared content header keeps the homepage brand-lockup size');
+    assert.match(site, /\.header-identity \{[\s\S]*display: flex;[\s\S]*align-items: center;[\s\S]*min-width: 0/,
+        'Back controls and brand lockups stay inline in the shared identity wrapper');
+
+    for (const file of [
+        'services/index.html', 'notes/index.html', 'notes/custom-domain-email.html',
+        'research/index.html', 'research/rustchain.html', 'research/onedragon.html',
+        'landing/privacy.html', 'security/index.html'
+    ]) {
+        const html = read(file);
+        assert.match(html, /class="header-identity"/, `${file} uses the shared brand-lockup wrapper`);
+        assert.match(html, /<button class="back-button" type="button" data-back-fallback="[^"]+"><span aria-hidden="true">&larr;<\/span> Back<\/button>/,
+            `${file} has the shared inline Back control with the standard label`);
+        assert.match(html, /class="site-nav"/, `${file} uses the shared navigation styling`);
+    }
+
+    for (const file of ['landing/privacy.html', 'security/index.html']) {
+        const html = read(file);
+        assert.match(html, /<body class="content-page policy-page">/, `${file} is a standard content page`);
+        assert.doesNotMatch(html, /href="\/assets\/tool-theme\.css"/, `${file} does not inherit the compact tool header`);
+    }
+
+    for (const file of ['enrichment/index.html', 'hardware/index.html', 'pcap/index.html']) {
+        assert.match(read(file), /<body class="tool-page">/, `${file} retains the compact tool-header theme`);
+    }
+
+    assert.doesNotMatch(read('landing/style.css'), /\.site-header \{/, 'homepage header structure is not duplicated');
+    assert.doesNotMatch(read('services/style.css'), /\.site-header \{/, 'services does not duplicate header structure');
+    assert.doesNotMatch(read('research/shared.css'), /\.site-header \{/, 'research does not duplicate header structure');
+});
+
+test('frontend source contains no known mojibake sequences', () => {
+    const textFiles = [];
+    const walk = (directory) => {
+        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+            const target = path.join(directory, entry.name);
+            if (entry.isDirectory()) walk(target);
+            else if (/\.(?:html|css|js|xml|txt)$/.test(entry.name)) textFiles.push(target);
+        }
+    };
+    walk(frontend);
+    const malformed = /(?:\uFFFD|Ã.|Â.|â€|â†|â—|å¸|èŠ|è¯|åˆ)/;
+    for (const file of textFiles) {
+        assert.doesNotMatch(fs.readFileSync(file, 'utf8'), malformed, `${file} has valid UTF-8 text`);
+    }
+});
+
+test('tool pages rely on centralized analytics rather than page-specific GA bootstraps', () => {
+    for (const file of ['enrichment/app.js', 'hardware/script.js', 'pcap/app.js']) {
+        const source = read(file);
+        assert.doesNotMatch(source, /const GA_ID|const CONSENT_KEY|window\.dataLayer/,
+            `${file} has no duplicate GA bootstrap`);
+    }
+    for (const file of ['landing/index.html', 'enrichment/index.html', 'hardware/index.html']) {
+        assert.doesNotMatch(read(file), /id="consent-banner"/, `${file} has no duplicate consent banner`);
+    }
+});
+
+test('hardware output keeps generic OS telemetry and readable metric units', () => {
+    const script = read('hardware/script.js');
+    const style = read('hardware/style.css');
+    assert.match(script, /appendRow\(container, 'host_os',\s+d\.host_os\)/);
+    assert.match(script, /if \(d\.platform\) appendRow/, 'blank platforms are not rendered');
+    assert.match(style, /white-space: nowrap/, 'value and unit stay together');
+    assert.doesNotMatch(style, /word-break: break-all/, 'large metric values do not break every character');
+});
+
 test('Gmail compose fallback is available in site footers without bloating primary contact actions', () => {
     for (const file of ['landing/index.html', 'services/index.html']) {
         const html = read(file);
@@ -124,4 +207,50 @@ test('Gmail compose fallback is available in site footers without bloating prima
         const bodyBeforeFooter = html.split('<footer class="site-footer">')[0];
         assert.doesNotMatch(bodyBeforeFooter, /Email via Gmail/, `${file} keeps Gmail fallback out of primary CTAs`);
     }
+});
+
+test('every public footer exactly matches the homepage canonical footer', () => {
+    const canonicalFooter = read('landing/index.html').match(/<footer class="site-footer">[\s\S]*?<\/footer>/)[0];
+    const requiredLinks = [
+        'https://github.com/Ahlyx',
+        'https://twitter.com/AhIyxx',
+        'mailto:alex@ahlyxlabs.com',
+        'https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=alex%40ahlyxlabs.com',
+        '/security',
+        '/privacy'
+    ];
+    const footerPages = [];
+    const walk = (directory) => {
+        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+            const target = path.join(directory, entry.name);
+            if (entry.isDirectory()) walk(target);
+            else if (entry.name.endsWith('.html') && fs.readFileSync(target, 'utf8').includes('site-footer')) footerPages.push(target);
+        }
+    };
+    walk(frontend);
+
+    for (const page of footerPages) {
+        const footer = fs.readFileSync(page, 'utf8').match(/<footer class="site-footer">[\s\S]*?<\/footer>/)[0];
+        assert.equal(footer, canonicalFooter, `${page} uses the canonical homepage footer`);
+        for (const link of requiredLinks) assert.ok(footer.includes(`href="${link}"`), `${page} includes ${link}`);
+        assert.doesNotMatch(footer, /Build notes[\s\S]*notes\/custom-domain-email/, `${page} has no unrelated PCAP build-notes footer link`);
+    }
+    assert.ok(footerPages.some((page) => page.endsWith(path.join('security', 'index.html'))));
+    assert.ok(footerPages.some((page) => page.endsWith(path.join('landing', 'privacy.html'))));
+});
+
+test('shared CSS owns the canonical footer structure and aligned Lab CTAs', () => {
+    const site = read('assets/site.css');
+    assert.match(site, /\.site-footer \{[\s\S]*display: flex;[\s\S]*justify-content: center;[\s\S]*flex-wrap: wrap;[\s\S]*border-top: 1px solid var\(--border\)/,
+        'shared CSS centers and wraps every footer');
+    assert.match(site, /\.site-footer a \{[\s\S]*text-decoration: none/, 'shared CSS styles footer links');
+    assert.match(site, /\.site-footer \.sep \{[\s\S]*color: var\(--border\)/, 'shared CSS styles footer separators');
+
+    const landing = read('landing/index.html');
+    assert.match(landing, /href="https:\/\/github\.com\/Ahlyx\/Network-Scanner"[^>]*>View project/, 'Network Scanner links directly to its repository with project wording');
+    assert.doesNotMatch(landing, /href="\/scanner"/, 'Network Scanner does not point to the retired hosted page');
+    const landingStyles = read('landing/style.css');
+    assert.match(landingStyles, /\.lab-entry \{ display: flex; flex-direction: column;/, 'Lab cards use flex-column layout');
+    assert.match(landingStyles, /\.lab-entry \.text-link \{ margin-top: auto; padding-top: 1\.2rem; \}/,
+        'Lab CTA alignment uses auto margin instead of fixed card heights');
 });

@@ -1,19 +1,4 @@
 .research-page { min-width: 320px; min-height: 100vh; margin: 0; overflow-x: hidden; background: var(--bg); color: var(--text); font-family: var(--font-body); }
 .research-page *, .research-page *::before, .research-page *::after { box-sizing: border-box; }
 .research-page a { color: inherit; }
-.site-header { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--border); background: rgba(9, 10, 11, .96); }
-.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; width: min(calc(100% - 3rem), 1240px); min-height: 6.5rem; margin: 0 auto; }
-.header-identity { display: flex; align-items: center; gap: 1rem; min-width: 0; }
-.brand-lockup { display: block; width: clamp(22rem, 35vw, 34rem); flex: 0 0 auto; }
-.brand-lockup img { display: block; width: 100%; height: auto; }
-.back-button { padding: .45rem 0; border: 0; border-bottom: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; font: .72rem/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
-.back-button:hover { color: var(--amber); border-bottom-color: var(--amber); }
-.research-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .25rem 1.1rem; font: .72rem/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
-.research-nav a { padding: .5rem 0; color: var(--text-muted); text-decoration: none; border-bottom: 1px solid transparent; }
-.research-nav a:hover, .research-nav a[aria-current="page"] { color: var(--amber); border-bottom-color: var(--amber); }
 .back-link, .header-titles { display: none; }
-.site-footer { display: flex; justify-content: center; gap: .85rem; flex-wrap: wrap; margin-top: auto; padding: 1.5rem; border-top: 1px solid var(--border); color: var(--technical); font: .72rem/1.5 var(--font-mono); }
-.site-footer a { color: var(--text-muted); text-decoration: none; }
-.site-footer a:hover { color: var(--amber); }
-.site-footer .sep { color: var(--border); }
-@media (max-width: 680px) { .header-inner { width: calc(100vw - 2rem); min-height: auto; padding: .85rem 0; align-items: flex-start; flex-direction: column; gap: .45rem; } .header-identity { gap: .75rem; } .brand-lockup { width: 9.5rem; } .research-nav { justify-content: flex-start; gap: .25rem .8rem; } .research-nav a:last-child { display: none; } }

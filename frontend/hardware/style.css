@@ -214,7 +214,9 @@ main {
 .data-val {
     color: var(--white);
     text-align: right;
-    word-break: break-all;
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
 }
 
 .highlight {
@@ -296,34 +298,6 @@ main {
 }
 
 /* ── Footer ──────────────────────────────────────────────── */
-
-.site-footer {
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    color: var(--muted);
-    text-align: center;
-    padding: 1.5rem;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.site-footer a {
-    color: var(--dim);
-    transition: color 0.15s ease;
-}
-
-.site-footer a:hover {
-    color: var(--accent);
-    opacity: 1;
-}
-
-.site-footer .sep {
-    color: var(--border);
-}
 
 /* ── Consent banner ──────────────────────────────────────── */
 

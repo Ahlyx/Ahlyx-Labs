@@ -1,54 +1,4 @@
 // ---------------------------------------------------------------------------
-// GA4 bootstrap — must run before DOMContentLoaded so the dataLayer is
-// available when the async gtag.js library initialises.
-// ---------------------------------------------------------------------------
-window.dataLayer = window.dataLayer || [];
-function gtag() { dataLayer.push(arguments); }
-
-const CONSENT_KEY = 'analytics_consent';
-const GA_ID = 'G-99NT7YXMY8';
-
-const consent = localStorage.getItem(CONSENT_KEY);
-
-if (consent === 'accepted') {
-    // User previously accepted — initialise GA4 fully.
-    gtag('js', new Date());
-    gtag('config', GA_ID);
-} else {
-    // 'declined' or not yet set — keep GA4 in denied mode.
-    gtag('consent', 'default', {
-        analytics_storage: 'denied',
-        ad_storage: 'denied',
-    });
-}
-
-// ---------------------------------------------------------------------------
-// Consent banner wiring
-// ---------------------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', function () {
-    const banner     = document.getElementById('consent-banner');
-    const btnAccept  = document.getElementById('consent-accept');
-    const btnDecline = document.getElementById('consent-decline');
-
-    if (!localStorage.getItem(CONSENT_KEY)) {
-        banner.classList.remove('hidden');
-    }
-
-    btnAccept.addEventListener('click', function () {
-        localStorage.setItem(CONSENT_KEY, 'accepted');
-        banner.classList.add('hidden');
-        gtag('consent', 'update', { analytics_storage: 'granted' });
-        gtag('js', new Date());
-        gtag('config', GA_ID);
-    });
-
-    btnDecline.addEventListener('click', function () {
-        localStorage.setItem(CONSENT_KEY, 'declined');
-        banner.classList.add('hidden');
-    });
-});
-
-// ---------------------------------------------------------------------------
 // API config
 // ---------------------------------------------------------------------------
 // dev: http://localhost:8080
@@ -70,6 +20,25 @@ const prefixes = {
 
 let currentType = 'ip';
 let history = [];
+let urlscanActiveSubmission = false;
+
+function updateURLControls() {
+    const state = window.AhlyxEnrichmentUI.urlControlState(currentType, urlscanActiveSubmission);
+    document.getElementById('urlPrivacyWarning').hidden = !state.showPrivacyWarning;
+    document.getElementById('urlscanDisclosure').hidden = !state.showActiveSubmission;
+}
+
+async function checkCapabilities() {
+    try {
+        const res = await fetch(`${API_BASE}/capabilities`);
+        if (!res.ok) return;
+        const capabilities = await res.json();
+        urlscanActiveSubmission = capabilities.urlscan_active_submission === true;
+        updateURLControls();
+    } catch {
+        // Controls stay hidden on an unavailable or older backend.
+    }
+}
 
 // Health check
 async function checkHealth() {
@@ -94,8 +63,7 @@ document.querySelectorAll('.tab').forEach(tab => {
         currentType = tab.dataset.type;
         document.getElementById('searchInput').placeholder = placeholders[currentType];
         document.getElementById('searchPrefix').textContent = prefixes[currentType];
-        document.getElementById('urlscanDisclosure').hidden = currentType !== 'url';
-        document.getElementById('urlPrivacyWarning').hidden = currentType !== 'url';
+        updateURLControls();
         document.getElementById('searchInput').focus();
     });
 });
@@ -131,22 +99,12 @@ const TIER_LABELS = {
 };
 
 function getVerdict(data, type) {
-    if (type === 'ip' && data.threat_tier) {
-        return {
-            tier: data.threat_tier,
-            score: data.threat_score,
-            isMalicious: data.threat_tier === 'high' || data.threat_tier === 'critical',
-            label: TIER_LABELS[data.threat_tier] || TIER_LABELS.clean
-        };
-    }
-    const isMalicious = !!(data.is_malicious || data.is_tor ||
-        (data.abuse && data.abuse.abuse_score >= 80) ||
-        (data.virustotal && data.virustotal.malicious_votes > 0));
+    const verdict = window.AhlyxEnrichmentUI.getVerdict(data, type);
     return {
-        tier: isMalicious ? 'high' : 'clean',
-        score: null,
-        isMalicious,
-        label: isMalicious ? TIER_LABELS.high : TIER_LABELS.clean
+        ...verdict,
+        label: verdict.tier === 'review'
+            ? 'REVIEW \u2014 MIXED SIGNALS'
+            : (TIER_LABELS[verdict.tier] || TIER_LABELS.clean)
     };
 }
 
@@ -176,7 +134,7 @@ async function performSearch(value, type) {
         else if (type === 'domain') endpoint = `${API_BASE}/domain/${encodeURIComponent(value)}`;
         else if (type === 'url') {
             endpoint = `${API_BASE}/url`;
-            const activeSubmission = document.getElementById('urlscanConsent').checked;
+            const activeSubmission = urlscanActiveSubmission && document.getElementById('urlscanConsent').checked;
             if (activeSubmission) {
                 if ((value.includes('?') || value.includes('#')) && !window.confirm('This URL contains a query or fragment that may include private data. Submit it to URLScan anyway?')) {
                     throw new Error('third-party URLScan submission cancelled');
@@ -416,16 +374,25 @@ function renderDomainCards(data, grid) {
     }
     if (data.dns) {
         grid.appendChild(createCard('DNS RECORDS', [
-            ['a_records', data.dns.a_records],
-            ['mx_records', data.dns.mx_records],
-            ['ns_records', data.dns.ns_records],
+            ['A', data.dns.a],
+            ['AAAA', data.dns.aaaa],
+            ['MX', data.dns.mx],
+            ['NS', data.dns.ns],
+            ['TXT', data.dns.txt],
         ]));
     }
     if (data.virustotal) {
         grid.appendChild(createCard('VIRUSTOTAL', [
+            ['evidence', `${data.virustotal.malicious_votes ?? 0} malicious / ${data.virustotal.harmless_votes ?? 0} harmless`],
             ['malicious', data.virustotal.malicious_votes, data.virustotal.malicious_votes > 0 ? 'threat' : 'safe'],
             ['harmless', data.virustotal.harmless_votes, 'safe'],
             ['categories', data.virustotal.categories],
+        ]));
+    }
+    if (data.otx) {
+        grid.appendChild(createCard('ALIENVAULT OTX', [
+            ['pulse_count', data.otx.pulse_count],
+            ['pulses', data.otx.pulses],
         ]));
     }
 }
@@ -548,8 +515,7 @@ function renderHistory() {
             currentType = item.type;
             document.getElementById('searchPrefix').textContent = prefixes[item.type];
             document.getElementById('searchInput').placeholder = placeholders[item.type];
-            document.getElementById('urlPrivacyWarning').hidden = item.type !== 'url';
-            document.getElementById('urlscanDisclosure').hidden = item.type !== 'url';
+            updateURLControls();
             document.getElementById('searchInput').value = item.value;
             performSearch(item.value, item.type);
         });
@@ -581,3 +547,4 @@ try {
 renderHistory();
 
 checkHealth();
+checkCapabilities();

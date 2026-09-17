@@ -55,11 +55,12 @@ requires both an operator setting and visitor opt-in.
 
 ### Network Scanner
 
-The scanner preserves its OT/ICS port reference and is available for local or
-explicitly isolated owner-controlled lab use. Hosted scanning is disabled in
-normal production: `/api/v1/scanner/scan` is **not** a normal public production
-endpoint. Controlled mode requires an explicit enablement flag and fixed
-private CIDR allowlist.
+The [Network Scanner](https://github.com/Ahlyx/Network-Scanner) preserves its
+OT/ICS port reference and is available for local or explicitly isolated
+owner-controlled lab use. Hosted scanning is disabled in normal production:
+`/api/v1/scanner/scan` is **not** a normal public production endpoint.
+Controlled mode requires an explicit enablement flag and fixed private CIDR
+allowlist.
 
 ### Hardware Dashboard
 
