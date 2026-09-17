@@ -161,6 +161,72 @@ assert.equal(vm.runInContext('reconnectTimer', context), null, 'successful recon
 assert.equal(vm.runInContext('reconnectAttempts', context), 0, 'successful reconnect resets attempt count');
 assert.equal(element('statusDot').className, 'status-dot online', 'an open socket remains connected without packet activity');
 
+function createRelayHarness() {
+    const relayElements = new Map();
+    const relayElement = id => {
+        if (!relayElements.has(id)) relayElements.set(id, new Element());
+        return relayElements.get(id);
+    };
+    const relaySockets = [];
+    const relayTimers = new Map();
+    let nextRelayTimerID = 1;
+
+    function RelayWebSocket(url, protocols) {
+        this.url = url;
+        this.protocols = protocols;
+        this.readyState = 0;
+        this.listeners = new Map();
+        relaySockets.push(this);
+    }
+    RelayWebSocket.OPEN = 1;
+    RelayWebSocket.CONNECTING = 0;
+    RelayWebSocket.CLOSING = 2;
+    RelayWebSocket.CLOSED = 3;
+    RelayWebSocket.prototype.addEventListener = FakeWebSocket.prototype.addEventListener;
+    RelayWebSocket.prototype.emit = function (type, event) {
+        if (type === 'open') this.readyState = RelayWebSocket.OPEN;
+        if (type === 'close') this.readyState = RelayWebSocket.CLOSED;
+        (this.listeners.get(type) || []).forEach(listener => listener(event || {}));
+    };
+
+    const relayContext = {
+        console, URLSearchParams, Date, Number, String, Array, Object, Map, Set,
+        window: {
+            location: { search: '' },
+            __AHLYX_RELAY_BOOTSTRAP: { sessionID: 'one-time-session', viewerToken: 'viewer-token' },
+        },
+        document: { getElementById: relayElement, createElement: () => new Element(), addEventListener: () => {} },
+        WebSocket: RelayWebSocket,
+        setTimeout: callback => { const id = nextRelayTimerID++; relayTimers.set(id, callback); return id; },
+        clearTimeout: id => relayTimers.delete(id),
+    };
+    vm.createContext(relayContext);
+    vm.runInContext(fs.readFileSync(pcapDir + '/app.js', 'utf8'), relayContext);
+    return { context: relayContext, elements: relayElements, sockets: relaySockets, timers: relayTimers };
+}
+
+const failedRelay = createRelayHarness();
+assert.equal(failedRelay.sockets.length, 1, 'relay starts with one initial connection attempt');
+assert.deepEqual(Array.from(failedRelay.sockets[0].protocols), ['ahlyx-relay-v1', 'viewer-token'], 'relay viewer credentials remain in the WebSocket subprotocol');
+for (let attempt = 1; attempt < 3; attempt++) {
+    failedRelay.sockets[attempt - 1].emit('close', { code: 1006, reason: '', wasClean: false });
+    assert.equal(failedRelay.timers.size, 1, 'a failed initial relay attempt schedules one bounded retry');
+    const [timerID, callback] = failedRelay.timers.entries().next().value;
+    failedRelay.timers.delete(timerID);
+    callback();
+    assert.equal(failedRelay.sockets.length, attempt + 1, 'each bounded retry creates one relay socket');
+}
+failedRelay.sockets[2].emit('close', { code: 1006, reason: '', wasClean: false });
+assert.equal(failedRelay.timers.size, 0, 'relay retries stop after the finite initial-attempt budget');
+assert.equal(failedRelay.elements.get('statusText').textContent, 'RELAY SESSION UNAVAILABLE', 'failed relay startup has a stable terminal status');
+
+const completedRelay = createRelayHarness();
+completedRelay.sockets[0].emit('open');
+completedRelay.sockets[0].emit('close', { code: 1000, reason: '', wasClean: true });
+assert.equal(completedRelay.timers.size, 0, 'a relay that opened never reconnects with spent credentials');
+assert.equal(completedRelay.sockets.length, 1, 'an ended relay session does not create a replacement socket');
+assert.equal(completedRelay.elements.get('statusText').textContent, 'RELAY SESSION ENDED', 'ended relay sessions render a stable terminal status');
+
 const timestamp = '2026-09-14T12:34:56Z';
 context.setStatus('connected');
 assert.equal(element('statusDot').className, 'status-dot online');
