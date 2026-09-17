@@ -1,2 +1,9 @@
 .env
 ENGINEERING-GUARDRAILS.md
+
+# Local Go build and verification output
+/target/
+/ahlyx-labs
+/ahlyx-labs.exe
+/server
+/server.exe
