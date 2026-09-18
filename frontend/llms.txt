@@ -27,40 +27,40 @@ This summary does not publish a surname or LinkedIn link.
 
 ## Projects
 
-- [Project directory](https://ahlyxlabs.com/projects): explanations and source links.
-- [AuditMCP](https://ahlyxlabs.com/projects/auditmcp): local-first Rust MCP audit
+- [Project directory](https://ahlyxlabs.com/lab): explanations and source links.
+- [AuditMCP](https://ahlyxlabs.com/lab/auditmcp): local-first Rust MCP audit
   logging proxy with tamper-evident SQLite logs and likely-secret redaction.
   Records activity, not authorization enforcement. Runtime logging failures
   are fail-open. Source: https://github.com/Ahlyx/auditmcp.
-- [Conveyance](https://ahlyxlabs.com/projects/conveyance): R&D toward phone-approved
+- [Conveyance](https://ahlyxlabs.com/lab/conveyance): R&D toward phone-approved
   authenticated MCP requests with phone-held credentials. Inspected README reports
   PC substrate complete, Android scaffolding only; real-phone approval is unfinished.
   Source: https://github.com/Ahlyx/Conveyance.
-- [Security Enrichment](https://ahlyxlabs.com/projects/security-enrichment): maintained
+- [Security Enrichment](https://ahlyxlabs.com/lab/security-enrichment): maintained
   Go IP/domain/URL/hash enrichment API. Sources vary by input/configuration;
   missing data is not evidence of safety.
   Source: https://github.com/Ahlyx/Ahlyx-Labs/tree/master/internal/enrichment.
-- [Baptisia](https://ahlyxlabs.com/projects/baptisia): experimental Go DSL compiler
+- [Baptisia](https://ahlyxlabs.com/lab/baptisia): experimental Go DSL compiler
   for ICS/OT control programs; generates C with structural safety constraints and
   includes simulation. No industrial safety certification claimed.
   Source: https://github.com/Ahlyx/Baptisia.
-- [PCAP Agent](https://ahlyxlabs.com/projects/pcap-agent): local Go packet capture
+- [PCAP Agent](https://ahlyxlabs.com/lab/pcap-agent): local Go packet capture
   and metadata analysis in a browser. Default local mode connects to loopback;
   optional confirmed relay transmits metadata through the service. Raw packet
   payloads are not relayed. Local agent/capture privileges required. Observations
   are heuristic, not proof of maliciousness. Source: https://github.com/Ahlyx/pcap-agent.
-- [Network Scanner](https://ahlyxlabs.com/projects/network-scanner): local Python
+- [Network Scanner](https://ahlyxlabs.com/lab/network-scanner): local Python
   ARP discovery/TCP scanning with OT/ICS port flagging for authorized lab networks;
   IPv4 /24 maximum. Not a public arbitrary-target scanning API.
   Source: https://github.com/Ahlyx/Network-Scanner.
-- [Hardware Dashboard](https://ahlyxlabs.com/projects/hardware-dashboard): hosted
+- [Hardware Dashboard](https://ahlyxlabs.com/lab/hardware-dashboard): hosted
   aggregate cloud-backend telemetry, not inspection of the visitor's computer.
   Source: https://github.com/Ahlyx/Ahlyx-Labs/tree/master/internal/hardware.
 
 ## Tools and API documentation
 
 - [Use enrichment](https://ahlyxlabs.com/enrichment)
-- [Enrichment API docs](https://ahlyxlabs.com/projects/security-enrichment#api)
+- [Enrichment API docs](https://ahlyxlabs.com/lab/security-enrichment#api)
 - [Open PCAP dashboard](https://ahlyxlabs.com/pcap): local agent required.
 - [Open hardware dashboard](https://ahlyxlabs.com/hardware)
 
