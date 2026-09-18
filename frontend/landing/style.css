@@ -53,6 +53,8 @@ h1 { max-width: 13ch; margin: 1.25rem 0; font: 400 clamp(2.8rem, 5.2vw, 5.5rem)/
 .lab-entry:last-child { border-right: 0; padding-right: 0; }
 .lab-status { margin-bottom: 1.4rem; color: var(--technical); font-size: .66rem; }
 .lab-entry .text-link { margin-top: auto; padding-top: 1.2rem; }
+.lab-actions { display: flex; flex-wrap: wrap; gap: .7rem 1.2rem; margin-top: auto; }
+.lab-actions .text-link { margin-top: 0; }
 .about-section { display: grid; grid-template-columns: minmax(140px, .32fr) minmax(0, 1fr); gap: 1.5rem; padding-bottom: clamp(4.5rem, 9vw, 8rem); }
 .contact-section { background: var(--surface); border-top: 1px solid var(--border); }
 .contact-inner { display: grid; grid-template-columns: minmax(140px, .32fr) minmax(0, 1fr) auto; align-items: center; gap: 1.5rem; padding-top: clamp(3.5rem, 7vw, 6rem); padding-bottom: clamp(3.5rem, 7vw, 6rem); }

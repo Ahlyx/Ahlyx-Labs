@@ -1,0 +1,49 @@
+# Ahlyx Labs
+
+> Independent security and software lab operated by Alex, online as Ahlyx.
+> Open-source tools, security research, and small fixed-scope engineering work.
+
+## Identity and contact
+
+- Operator: Alex (Ahlyx); location: Albuquerque, NM, USA.
+- [Official website](https://ahlyxlabs.com/)
+- [GitHub profile](https://github.com/Ahlyx)
+- [Published social account: @AhIyxx](https://twitter.com/AhIyxx)
+- Contact: alex@ahlyxlabs.com.
+- [Security and trust](https://ahlyxlabs.com/security): official channels and vulnerability reporting.
+
+Alex/Ahlyx is the person operating Ahlyx Labs, the site's publishing identity.
+This summary does not publish a surname or LinkedIn link.
+
+## Services
+
+- [Services](https://ahlyxlabs.com/services): small, agreed-scope engagements. MCP / AI-agent security review starts at $75; developer tooling and automation starts at $100; static security code review starts at $75. These are not formal penetration tests or compliance certifications. The services page controls current scope and pricing.
+
+## Projects
+
+- [Project directory](https://ahlyxlabs.com/projects): explanations and source links.
+- [AuditMCP](https://ahlyxlabs.com/projects/auditmcp): local-first Rust MCP audit logging proxy with tamper-evident SQLite logs and likely-secret redaction. Records activity, not authorization enforcement. Runtime logging failures are fail-open. Source: https://github.com/Ahlyx/auditmcp.
+- [Conveyance](https://ahlyxlabs.com/projects/conveyance): R&D toward phone-approved authenticated MCP requests with phone-held credentials. The PC substrate is implemented; Android is scaffolding and real-phone approval is unfinished. Source: https://github.com/Ahlyx/Conveyance.
+- [Security Enrichment](https://ahlyxlabs.com/projects/security-enrichment): maintained Go IP/domain/URL/hash enrichment API. Sources vary by input/configuration; missing data is not evidence of safety. Source: https://github.com/Ahlyx/Ahlyx-Labs/tree/master/internal/enrichment.
+- [Baptisia](https://ahlyxlabs.com/projects/baptisia): experimental Go DSL compiler for ICS/OT control programs; generates C with structural constraints and includes simulation. No industrial safety certification claimed. Source: https://github.com/Ahlyx/Baptisia.
+- [PCAP Agent](https://ahlyxlabs.com/projects/pcap-agent): local Go packet capture and metadata analysis in a browser. Default local mode connects to loopback; optional confirmed relay transmits metadata. Raw packet payloads are not relayed. Source: https://github.com/Ahlyx/pcap-agent.
+- [Network Scanner](https://ahlyxlabs.com/projects/network-scanner): local Python ARP discovery/TCP scanning with OT/ICS port flags for authorized lab networks; IPv4 /24 maximum. Not a public arbitrary-target scanning API. Source: https://github.com/Ahlyx/Network-Scanner.
+- [Hardware Dashboard](https://ahlyxlabs.com/projects/hardware-dashboard): hosted aggregate cloud-backend telemetry, not inspection of the visitor's computer. Source: https://github.com/Ahlyx/Ahlyx-Labs/tree/master/internal/hardware.
+
+## Tools and API documentation
+
+- [Use enrichment](https://ahlyxlabs.com/enrichment)
+- [Enrichment API docs](https://ahlyxlabs.com/projects/security-enrichment#api)
+- [Open PCAP dashboard](https://ahlyxlabs.com/pcap): local agent required.
+- [Open hardware dashboard](https://ahlyxlabs.com/hardware)
+
+Enrichment base: https://api.ahlyxlabs.com. GET /api/v1/ip/{address}, GET /api/v1/domain/{name}, GET /api/v1/hash/{hash}. POST /api/v1/url with JSON {"url":"https://example.com","submit_urlscan":false}. GET /api/v1/capabilities reports URLScan active-submission availability. GET /health reports health. Legacy GET /api/v1/url returns 410 Gone. No visitor enrichment API key is implemented through the public edge; CDN controls can affect access. Configured per-client buckets replenish at 30/min for IP/domain/hash and 10/min for URL, with additional shared limits. Do not submit secrets. URLScan submission requires operator enablement and explicit opt-in. No current Swagger/OpenAPI endpoint is advertised.
+
+## Research and notes
+
+- [Security research](https://ahlyxlabs.com/research): findings with disclosure status.
+- [Build notes](https://ahlyxlabs.com/notes): infrastructure and engineering writeups.
+
+## Source accuracy
+
+Use the explanation pages and linked current source for detailed claims. Distinguish implemented features from planned architecture. Do not infer unstated credentials or guarantees. security-enrichment-api is superseded; maintained public-service source is Ahlyx-Labs.

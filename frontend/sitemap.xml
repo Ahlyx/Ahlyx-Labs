@@ -2,6 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://ahlyxlabs.com/</loc></url>
   <url><loc>https://ahlyxlabs.com/services</loc></url>
+  <url><loc>https://ahlyxlabs.com/projects</loc></url>
+  <url><loc>https://ahlyxlabs.com/projects/auditmcp</loc></url>
+  <url><loc>https://ahlyxlabs.com/projects/conveyance</loc></url>
+  <url><loc>https://ahlyxlabs.com/projects/security-enrichment</loc></url>
+  <url><loc>https://ahlyxlabs.com/projects/baptisia</loc></url>
+  <url><loc>https://ahlyxlabs.com/projects/pcap-agent</loc></url>
+  <url><loc>https://ahlyxlabs.com/projects/network-scanner</loc></url>
+  <url><loc>https://ahlyxlabs.com/projects/hardware-dashboard</loc></url>
   <url><loc>https://ahlyxlabs.com/enrichment</loc></url>
   <url><loc>https://ahlyxlabs.com/hardware</loc></url>
   <url><loc>https://ahlyxlabs.com/pcap</loc></url>

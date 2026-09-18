@@ -8,6 +8,12 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Permissions-Policy", "value": "camera=(), geolocation=(), microphone=(), payment=(), usb=()" }
       ]
+    },
+    {
+      "source": "/llms.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+      ]
     }
   ],
   "redirects": [
@@ -20,6 +26,14 @@
     { "source": "/notes/feed.xml",          "destination": "/notes/feed.xml" },
     { "source": "/notes/custom-domain-email", "destination": "/notes/custom-domain-email.html" },
     { "source": "/notes",                    "destination": "/notes/index.html" },
+    { "source": "/projects",                 "destination": "/projects/index.html" },
+    { "source": "/projects/auditmcp",        "destination": "/projects/auditmcp.html" },
+    { "source": "/projects/conveyance",      "destination": "/projects/conveyance.html" },
+    { "source": "/projects/security-enrichment", "destination": "/projects/security-enrichment.html" },
+    { "source": "/projects/baptisia",        "destination": "/projects/baptisia.html" },
+    { "source": "/projects/pcap-agent",      "destination": "/projects/pcap-agent.html" },
+    { "source": "/projects/network-scanner", "destination": "/projects/network-scanner.html" },
+    { "source": "/projects/hardware-dashboard", "destination": "/projects/hardware-dashboard.html" },
     { "source": "/services",                "destination": "/services/index.html" },
     { "source": "/research/rustchain",      "destination": "/research/rustchain.html" },
     { "source": "/research/onedragon",     "destination": "/research/onedragon.html" },

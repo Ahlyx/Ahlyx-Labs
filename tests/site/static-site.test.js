@@ -10,6 +10,14 @@ const read = (file) => fs.readFileSync(path.join(frontend, file), 'utf8');
 const indexablePages = [
     ['landing/index.html', 'https://ahlyxlabs.com/'],
     ['services/index.html', 'https://ahlyxlabs.com/services'],
+    ['projects/index.html', 'https://ahlyxlabs.com/projects'],
+    ['projects/auditmcp.html', 'https://ahlyxlabs.com/projects/auditmcp'],
+    ['projects/conveyance.html', 'https://ahlyxlabs.com/projects/conveyance'],
+    ['projects/security-enrichment.html', 'https://ahlyxlabs.com/projects/security-enrichment'],
+    ['projects/baptisia.html', 'https://ahlyxlabs.com/projects/baptisia'],
+    ['projects/pcap-agent.html', 'https://ahlyxlabs.com/projects/pcap-agent'],
+    ['projects/network-scanner.html', 'https://ahlyxlabs.com/projects/network-scanner'],
+    ['projects/hardware-dashboard.html', 'https://ahlyxlabs.com/projects/hardware-dashboard'],
     ['enrichment/index.html', 'https://ahlyxlabs.com/enrichment'],
     ['hardware/index.html', 'https://ahlyxlabs.com/hardware'],
     ['pcap/index.html', 'https://ahlyxlabs.com/pcap'],
@@ -54,6 +62,10 @@ test('security.txt is complete and the public assets exist', () => {
 test('Vercel routes do not turn missing nested paths into successful pages', () => {
     const config = JSON.parse(read('vercel.json'));
     assert.ok(config.rewrites.every((rewrite) => !rewrite.source.includes('(.*)')));
+    const projectSlugs = ['auditmcp', 'conveyance', 'security-enrichment', 'baptisia', 'pcap-agent', 'network-scanner', 'hardware-dashboard'];
+    assert.deepEqual(config.rewrites.filter((rewrite) => rewrite.source.startsWith('/projects')).map((rewrite) => rewrite.source),
+        ['/projects', ...projectSlugs.map((slug) => `/projects/${slug}`)]);
+    assert.ok(!config.rewrites.some((rewrite) => rewrite.source === '/projects/(.*)'));
 });
 
 test('the retired hosted scanner route redirects to the local-tool repository', () => {
@@ -217,7 +229,8 @@ test('every public footer exactly matches the homepage canonical footer', () => 
         'mailto:alex@ahlyxlabs.com',
         'https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=alex%40ahlyxlabs.com',
         '/security',
-        '/privacy'
+        '/privacy',
+        '/llms.txt'
     ];
     const footerPages = [];
     const walk = (directory) => {
@@ -247,10 +260,51 @@ test('shared CSS owns the canonical footer structure and aligned Lab CTAs', () =
     assert.match(site, /\.site-footer \.sep \{[\s\S]*color: var\(--border\)/, 'shared CSS styles footer separators');
 
     const landing = read('landing/index.html');
-    assert.match(landing, /href="https:\/\/github\.com\/Ahlyx\/Network-Scanner"[^>]*>View project/, 'Network Scanner links directly to its repository with project wording');
+    assert.match(landing, /href="\/projects\/network-scanner"[^>]*>View project/, 'Network Scanner links to its internal explanation with project wording');
     assert.doesNotMatch(landing, /href="\/scanner"/, 'Network Scanner does not point to the retired hosted page');
     const landingStyles = read('landing/style.css');
     assert.match(landingStyles, /\.lab-entry \{ display: flex; flex-direction: column;/, 'Lab cards use flex-column layout');
     assert.match(landingStyles, /\.lab-entry \.text-link \{ margin-top: auto; padding-top: 1\.2rem; \}/,
         'Lab CTA alignment uses auto margin instead of fixed card heights');
+});
+
+test('project pages expose complete static explanations and tool relationships', () => {
+    const projects = [
+        ['auditmcp', 'https://github.com/Ahlyx/auditmcp'],
+        ['conveyance', 'https://github.com/Ahlyx/Conveyance'],
+        ['security-enrichment', 'https://github.com/Ahlyx/Ahlyx-Labs/tree/master/internal/enrichment'],
+        ['baptisia', 'https://github.com/Ahlyx/Baptisia'],
+        ['pcap-agent', 'https://github.com/Ahlyx/pcap-agent'],
+        ['network-scanner', 'https://github.com/Ahlyx/Network-Scanner'],
+        ['hardware-dashboard', 'https://github.com/Ahlyx/Ahlyx-Labs/tree/master/internal/hardware']
+    ];
+    for (const [slug, source] of projects) {
+        const html = read(`projects/${slug}.html`);
+        assert.equal((html.match(/<h1/g) || []).length, 1, `${slug} has one H1`);
+        for (const anchor of ['overview', 'how-it-works', 'getting-started', 'limitations']) {
+            assert.match(html, new RegExp(`id="${anchor}"`), `${slug} has #${anchor}`);
+        }
+        assert.match(html, /Last reviewed: 2026-09-17/, `${slug} has a current review date`);
+        assert.ok(html.includes(source), `${slug} links to its source`);
+        assert.match(html, /"@type":"WebPage"/, `${slug} declares WebPage schema`);
+        assert.match(html, /"@type":"SoftwareSourceCode"/, `${slug} declares source-code schema`);
+    }
+    assert.match(read('projects/security-enrichment.html'), /id="api"/);
+    for (const [file, destination] of [
+        ['enrichment/index.html', '/projects/security-enrichment'],
+        ['pcap/index.html', '/projects/pcap-agent'],
+        ['hardware/index.html', '/projects/hardware-dashboard']
+    ]) assert.match(read(file), new RegExp(`href="${destination}"`), `${file} links to its project overview`);
+});
+
+test('llms.txt is a plain-text project index and is excluded from the sitemap', () => {
+    const llms = read('llms.txt');
+    assert.match(llms, /^# Ahlyx Labs/m);
+    for (const slug of ['auditmcp', 'conveyance', 'security-enrichment', 'baptisia', 'pcap-agent', 'network-scanner', 'hardware-dashboard']) {
+        assert.ok(llms.includes(`https://ahlyxlabs.com/projects/${slug}`));
+    }
+    assert.doesNotMatch(read('sitemap.xml'), /llms\.txt/);
+    const config = JSON.parse(read('vercel.json'));
+    assert.deepEqual(config.headers.find((entry) => entry.source === '/llms.txt').headers,
+        [{ key: 'Content-Type', value: 'text/plain; charset=utf-8' }]);
 });
