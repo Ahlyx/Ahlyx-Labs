@@ -10,6 +10,14 @@ const read = (file) => fs.readFileSync(path.join(frontend, file), 'utf8');
 const indexablePages = [
     ['landing/index.html', 'https://ahlyxlabs.com/'],
     ['services/index.html', 'https://ahlyxlabs.com/services'],
+    ['lab/index.html', 'https://ahlyxlabs.com/lab'],
+    ['lab/auditmcp.html', 'https://ahlyxlabs.com/lab/auditmcp'],
+    ['lab/conveyance.html', 'https://ahlyxlabs.com/lab/conveyance'],
+    ['lab/security-enrichment.html', 'https://ahlyxlabs.com/lab/security-enrichment'],
+    ['lab/baptisia.html', 'https://ahlyxlabs.com/lab/baptisia'],
+    ['lab/pcap-agent.html', 'https://ahlyxlabs.com/lab/pcap-agent'],
+    ['lab/network-scanner.html', 'https://ahlyxlabs.com/lab/network-scanner'],
+    ['lab/hardware-dashboard.html', 'https://ahlyxlabs.com/lab/hardware-dashboard'],
     ['enrichment/index.html', 'https://ahlyxlabs.com/enrichment'],
     ['hardware/index.html', 'https://ahlyxlabs.com/hardware'],
     ['pcap/index.html', 'https://ahlyxlabs.com/pcap'],
@@ -54,15 +62,26 @@ test('security.txt is complete and the public assets exist', () => {
 test('Vercel routes do not turn missing nested paths into successful pages', () => {
     const config = JSON.parse(read('vercel.json'));
     assert.ok(config.rewrites.every((rewrite) => !rewrite.source.includes('(.*)')));
+    const projectSlugs = ['auditmcp', 'conveyance', 'security-enrichment', 'baptisia', 'pcap-agent', 'network-scanner', 'hardware-dashboard'];
+    assert.deepEqual(config.rewrites.filter((rewrite) => rewrite.source.startsWith('/lab')).map((rewrite) => rewrite.source),
+        ['/lab', ...projectSlugs.map((slug) => `/lab/${slug}`)]);
+    assert.ok(!config.rewrites.some((rewrite) => rewrite.source === '/lab/(.*)'));
+    const legacyRoutes = ['/projects', ...projectSlugs.map((slug) => `/projects/${slug}`)];
+    assert.deepEqual(config.redirects.filter((redirect) => redirect.source.startsWith('/projects')), legacyRoutes.map((source, index) => ({
+        source,
+        destination: ['/lab', ...projectSlugs.map((slug) => `/lab/${slug}`)][index],
+        permanent: true
+    })));
+    assert.ok(!config.redirects.some((redirect) => redirect.source === '/projects/(.*)'));
 });
 
 test('the retired hosted scanner route redirects to the local-tool repository', () => {
     const config = JSON.parse(read('vercel.json'));
-    assert.deepEqual(config.redirects, [{
+    assert.deepEqual(config.redirects.find((redirect) => redirect.source === '/scanner'), {
         source: '/scanner',
         destination: 'https://github.com/Ahlyx/Network-Scanner',
         permanent: false
-    }]);
+    });
     assert.ok(!config.rewrites.some((rewrite) => rewrite.source === '/scanner'));
     assert.ok(!fs.existsSync(path.join(frontend, 'scanner/index.html')), 'obsolete hosted scanner assets are removed');
 });
@@ -217,7 +236,8 @@ test('every public footer exactly matches the homepage canonical footer', () => 
         'mailto:alex@ahlyxlabs.com',
         'https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=alex%40ahlyxlabs.com',
         '/security',
-        '/privacy'
+        '/privacy',
+        '/llms.txt'
     ];
     const footerPages = [];
     const walk = (directory) => {
@@ -247,10 +267,95 @@ test('shared CSS owns the canonical footer structure and aligned Lab CTAs', () =
     assert.match(site, /\.site-footer \.sep \{[\s\S]*color: var\(--border\)/, 'shared CSS styles footer separators');
 
     const landing = read('landing/index.html');
-    assert.match(landing, /href="https:\/\/github\.com\/Ahlyx\/Network-Scanner"[^>]*>View project/, 'Network Scanner links directly to its repository with project wording');
+    assert.match(landing, /href="\/lab\/network-scanner"[^>]*>View project/, 'Network Scanner links to its internal explanation with project wording');
     assert.doesNotMatch(landing, /href="\/scanner"/, 'Network Scanner does not point to the retired hosted page');
     const landingStyles = read('landing/style.css');
     assert.match(landingStyles, /\.lab-entry \{ display: flex; flex-direction: column;/, 'Lab cards use flex-column layout');
     assert.match(landingStyles, /\.lab-entry \.text-link \{ margin-top: auto; padding-top: 1\.2rem; \}/,
         'Lab CTA alignment uses auto margin instead of fixed card heights');
+    assert.match(landingStyles, /\.lab-actions \.text-link \{ margin-top: 0; padding-top: 0; \}/,
+        'paired Lab card actions form one clean action row');
+    assert.match(landingStyles, /\.about-section \{[\s\S]*grid-template-columns: var\(--homepage-label-column\)/,
+        'About uses the shared homepage label column');
+    assert.match(landingStyles, /\.contact-inner \{[\s\S]*grid-template-columns: var\(--homepage-label-column\)/,
+        'Contact uses the shared homepage label column');
+});
+
+test('project pages expose complete static explanations and tool relationships', () => {
+    const projects = [
+        ['auditmcp', 'https://github.com/Ahlyx/auditmcp'],
+        ['conveyance', 'https://github.com/Ahlyx/Conveyance'],
+        ['security-enrichment', 'https://github.com/Ahlyx/Ahlyx-Labs/tree/master/internal/enrichment'],
+        ['baptisia', 'https://github.com/Ahlyx/Baptisia'],
+        ['pcap-agent', 'https://github.com/Ahlyx/pcap-agent'],
+        ['network-scanner', 'https://github.com/Ahlyx/Network-Scanner'],
+        ['hardware-dashboard', 'https://github.com/Ahlyx/Ahlyx-Labs/tree/master/internal/hardware']
+    ];
+    for (const [slug, source] of projects) {
+        const html = read(`lab/${slug}.html`);
+        assert.equal((html.match(/<h1/g) || []).length, 1, `${slug} has one H1`);
+        for (const anchor of ['overview', 'how-it-works', 'getting-started', 'limitations']) {
+            assert.match(html, new RegExp(`id="${anchor}"`), `${slug} has #${anchor}`);
+        }
+        const reviewed = html.match(/Last reviewed: (\d{4}-\d{2}-\d{2})/);
+        assert.ok(reviewed, `${slug} has a YYYY-MM-DD review date`);
+        assert.equal(new Date(`${reviewed[1]}T00:00:00Z`).toISOString().slice(0, 10), reviewed[1],
+            `${slug} has a valid review date`);
+        assert.ok(html.includes(source), `${slug} links to its source`);
+        assert.match(html, /"@type":"WebPage"/, `${slug} declares WebPage schema`);
+        assert.match(html, /"@type":"SoftwareSourceCode"/, `${slug} declares source-code schema`);
+    }
+    assert.match(read('lab/security-enrichment.html'), /id="api"/);
+    for (const [file, destination] of [
+        ['enrichment/index.html', '/lab/security-enrichment'],
+        ['pcap/index.html', '/lab/pcap-agent'],
+        ['hardware/index.html', '/lab/hardware-dashboard']
+    ]) assert.match(read(file), new RegExp(`href="${destination}"`), `${file} links to its project overview`);
+});
+
+test('Lab owns project browsing and paired project/tool actions are ordered consistently', () => {
+    const landing = read('landing/index.html');
+    const featured = landing.match(/<section class="content-section section-shell" id="work"[\s\S]*?<\/section>/)[0];
+    const lab = landing.match(/<section class="content-section section-shell" id="lab"[\s\S]*?<\/section>/)[0];
+    assert.doesNotMatch(featured, /Browse projects/);
+    assert.doesNotMatch(lab, /Browse projects/);
+    assert.match(lab, /href="\/lab">View full lab/);
+    assert.ok(lab.indexOf('class="lab-grid"') < lab.indexOf('View full lab'), 'the Lab directory link follows the card grid');
+    assert.doesNotMatch(landing, /Use tool/);
+
+    for (const [project, tool] of [
+        ['/lab/security-enrichment', '/enrichment'],
+        ['/lab/pcap-agent', '/pcap'],
+        ['/lab/hardware-dashboard', '/hardware']
+    ]) {
+        assert.ok(landing.indexOf(project) < landing.indexOf(tool), `${project} precedes ${tool} on the homepage`);
+    }
+
+    const directory = read('lab/index.html');
+    assert.match(directory, /<p class="eyebrow">\/ Lab<\/p>/);
+    assert.doesNotMatch(directory, /aria-label="Project links"/);
+    assert.doesNotMatch(directory, />Explore<\/p>/);
+    for (const [project, tool] of [
+        ['/lab/security-enrichment', '/enrichment'],
+        ['/lab/pcap-agent', '/pcap'],
+        ['/lab/hardware-dashboard', '/hardware']
+    ]) {
+        assert.ok(directory.indexOf(project) < directory.indexOf(tool), `${project} precedes ${tool} in the Lab directory`);
+    }
+    assert.doesNotMatch(directory, /Use tool/);
+    assert.match(directory, /class="subtle-link" href="\/enrichment">Open tool/);
+    assert.match(directory, /class="subtle-link" href="\/pcap">Open tool/);
+    assert.match(directory, /class="subtle-link" href="\/hardware">Open tool/);
+});
+
+test('llms.txt is a plain-text project index and is excluded from the sitemap', () => {
+    const llms = read('llms.txt');
+    assert.match(llms, /^# Ahlyx Labs/m);
+    for (const slug of ['auditmcp', 'conveyance', 'security-enrichment', 'baptisia', 'pcap-agent', 'network-scanner', 'hardware-dashboard']) {
+        assert.ok(llms.includes(`https://ahlyxlabs.com/lab/${slug}`));
+    }
+    assert.doesNotMatch(read('sitemap.xml'), /llms\.txt/);
+    const config = JSON.parse(read('vercel.json'));
+    assert.deepEqual(config.headers.find((entry) => entry.source === '/llms.txt').headers,
+        [{ key: 'Content-Type', value: 'text/plain; charset=utf-8' }]);
 });

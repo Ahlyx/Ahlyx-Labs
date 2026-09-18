@@ -8,10 +8,24 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Permissions-Policy", "value": "camera=(), geolocation=(), microphone=(), payment=(), usb=()" }
       ]
+    },
+    {
+      "source": "/llms.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+      ]
     }
   ],
   "redirects": [
-    { "source": "/scanner", "destination": "https://github.com/Ahlyx/Network-Scanner", "permanent": false }
+    { "source": "/scanner", "destination": "https://github.com/Ahlyx/Network-Scanner", "permanent": false },
+    { "source": "/projects", "destination": "/lab", "permanent": true },
+    { "source": "/projects/auditmcp", "destination": "/lab/auditmcp", "permanent": true },
+    { "source": "/projects/conveyance", "destination": "/lab/conveyance", "permanent": true },
+    { "source": "/projects/security-enrichment", "destination": "/lab/security-enrichment", "permanent": true },
+    { "source": "/projects/baptisia", "destination": "/lab/baptisia", "permanent": true },
+    { "source": "/projects/pcap-agent", "destination": "/lab/pcap-agent", "permanent": true },
+    { "source": "/projects/network-scanner", "destination": "/lab/network-scanner", "permanent": true },
+    { "source": "/projects/hardware-dashboard", "destination": "/lab/hardware-dashboard", "permanent": true }
   ],
   "rewrites": [
     { "source": "/.well-known/security.txt", "destination": "/.well-known/security.txt" },
@@ -20,6 +34,14 @@
     { "source": "/notes/feed.xml",          "destination": "/notes/feed.xml" },
     { "source": "/notes/custom-domain-email", "destination": "/notes/custom-domain-email.html" },
     { "source": "/notes",                    "destination": "/notes/index.html" },
+    { "source": "/lab",                 "destination": "/lab/index.html" },
+    { "source": "/lab/auditmcp",        "destination": "/lab/auditmcp.html" },
+    { "source": "/lab/conveyance",      "destination": "/lab/conveyance.html" },
+    { "source": "/lab/security-enrichment", "destination": "/lab/security-enrichment.html" },
+    { "source": "/lab/baptisia",        "destination": "/lab/baptisia.html" },
+    { "source": "/lab/pcap-agent",      "destination": "/lab/pcap-agent.html" },
+    { "source": "/lab/network-scanner", "destination": "/lab/network-scanner.html" },
+    { "source": "/lab/hardware-dashboard", "destination": "/lab/hardware-dashboard.html" },
     { "source": "/services",                "destination": "/services/index.html" },
     { "source": "/research/rustchain",      "destination": "/research/rustchain.html" },
     { "source": "/research/onedragon",     "destination": "/research/onedragon.html" },

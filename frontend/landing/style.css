@@ -1,4 +1,4 @@
-body { min-width: 320px; overflow-x: hidden; }
+body { --homepage-label-column: clamp(9rem, 18vw, 16rem); min-width: 320px; overflow-x: hidden; }
 .skip-link { position: fixed; z-index: 100; top: 1rem; left: 1rem; padding: .7rem .9rem; background: var(--amber); color: var(--bg); font: .75rem var(--font-mono); text-decoration: none; transform: translateY(-200%); }
 .skip-link:focus { transform: translateY(0); }
 .hero { min-height: min(580px, calc(100vh - 5.25rem)); display: grid; grid-template-columns: minmax(0, 1fr) minmax(485px, .7fr); align-items: center; gap: clamp(2rem, 4vw, 4rem); padding-top: clamp(3rem, 6vw, 5rem); padding-bottom: clamp(3rem, 6vw, 5rem); }
@@ -18,7 +18,7 @@ h1 { max-width: 13ch; margin: 1.25rem 0; font: 400 clamp(2.8rem, 5.2vw, 5.5rem)/
 .hero-mark img { display: block; width: 100%; height: auto; }
 .content-section { padding-top: clamp(4.5rem, 9vw, 8rem); }
 .content-section:last-of-type { padding-bottom: clamp(4.5rem, 9vw, 8rem); }
-.section-heading { display: grid; grid-template-columns: minmax(140px, .32fr) minmax(0, 1fr); gap: 1.5rem; padding-bottom: 1.8rem; border-bottom: 1px solid var(--border); }
+.section-heading { display: grid; grid-template-columns: var(--homepage-label-column) minmax(0, 1fr); gap: 1.5rem; padding-bottom: 1.8rem; border-bottom: 1px solid var(--border); }
 .section-heading h2, .about-section h2, .contact-section h2 { margin-bottom: .55rem; font-size: clamp(1.8rem, 3vw, 3rem); line-height: 1.1; }
 .section-heading > div > p, .about-section > div > p, .contact-section p { max-width: 58ch; margin-bottom: 0; color: var(--text-muted); font-size: 1.05rem; line-height: 1.65; }
 .service-list, .work-list, .research-list { border-bottom: 1px solid var(--border); }
@@ -53,9 +53,11 @@ h1 { max-width: 13ch; margin: 1.25rem 0; font: 400 clamp(2.8rem, 5.2vw, 5.5rem)/
 .lab-entry:last-child { border-right: 0; padding-right: 0; }
 .lab-status { margin-bottom: 1.4rem; color: var(--technical); font-size: .66rem; }
 .lab-entry .text-link { margin-top: auto; padding-top: 1.2rem; }
-.about-section { display: grid; grid-template-columns: minmax(140px, .32fr) minmax(0, 1fr); gap: 1.5rem; padding-bottom: clamp(4.5rem, 9vw, 8rem); }
+.lab-actions { display: flex; flex-wrap: wrap; gap: .7rem 1.2rem; margin-top: auto; }
+.lab-actions .text-link { margin-top: 0; padding-top: 0; }
+.about-section { display: grid; grid-template-columns: var(--homepage-label-column) minmax(0, 1fr); gap: 1.5rem; padding-bottom: clamp(4.5rem, 9vw, 8rem); }
 .contact-section { background: var(--surface); border-top: 1px solid var(--border); }
-.contact-inner { display: grid; grid-template-columns: minmax(140px, .32fr) minmax(0, 1fr) auto; align-items: center; gap: 1.5rem; padding-top: clamp(3.5rem, 7vw, 6rem); padding-bottom: clamp(3.5rem, 7vw, 6rem); }
+.contact-inner { display: grid; grid-template-columns: var(--homepage-label-column) minmax(0, 1fr) auto; align-items: center; gap: 1.5rem; padding-top: clamp(3.5rem, 7vw, 6rem); padding-bottom: clamp(3.5rem, 7vw, 6rem); }
 .contact-inner .button { margin: 0; white-space: nowrap; }
 .consent-banner { position: fixed; z-index: 50; right: 1rem; bottom: 1rem; left: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; max-width: 720px; margin: 0 auto; padding: 1rem; background: var(--surface-raised); border: 1px solid var(--border); box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, .35); }
 .consent-banner.hidden { display: none; }
@@ -64,6 +66,6 @@ h1 { max-width: 13ch; margin: 1.25rem 0; font: 400 clamp(2.8rem, 5.2vw, 5.5rem)/
 .consent-btn { padding: .55rem .7rem; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; font: .68rem/1 var(--font-mono); letter-spacing: .05em; text-transform: uppercase; }
 .consent-btn-accept { border-color: var(--amber); color: var(--amber); }
 .consent-btn:hover { background: var(--amber); border-color: var(--amber); color: var(--bg); }
-@media (max-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(180px, .42fr); gap: 1.5rem; } .hero-mark { width: min(100%, 250px); } .lab-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lab-entry:nth-child(2) { border-right: 0; padding-right: 0; } .lab-entry:nth-child(3) { padding-left: 0; border-top: 1px solid var(--border); } .lab-entry:nth-child(4) { border-top: 1px solid var(--border); } .contact-inner { grid-template-columns: minmax(140px, .32fr) minmax(0, 1fr); } .contact-inner .button { grid-column: 2; justify-self: start; } }
+@media (max-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(180px, .42fr); gap: 1.5rem; } .hero-mark { width: min(100%, 250px); } .lab-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lab-entry:nth-child(2) { border-right: 0; padding-right: 0; } .lab-entry:nth-child(3) { padding-left: 0; border-top: 1px solid var(--border); } .lab-entry:nth-child(4) { border-top: 1px solid var(--border); } .contact-inner { grid-template-columns: var(--homepage-label-column) minmax(0, 1fr); } .contact-inner .button { grid-column: 2; justify-self: start; } }
 @media (max-width: 680px) { .hero { min-height: auto; grid-template-columns: 1fr; padding-top: 4.5rem; } .hero-copy { width: calc(100vw - 2rem); max-width: 358px; } .hero-mark { justify-self: start; width: min(52vw, 210px); } h1 { max-width: 100%; font-size: clamp(2rem, 7vw, 2.25rem); letter-spacing: -.055em; overflow-wrap: anywhere; } .section-heading, .about-section, .contact-inner { grid-template-columns: 1fr; gap: 1rem; } .service-entry, .work-item { grid-template-columns: 1.5rem minmax(0, 1fr); } .service-price, .work-item > .text-link, .work-actions { grid-column: 2; } .research-list { grid-template-columns: 1fr; } .research-entry, .research-entry + .research-entry { padding: 1.6rem 0; border-right: 0; border-top: 1px solid var(--border); } .research-list .research-entry:first-child { border-top: 0; } .contact-inner .button { grid-column: auto; } }
 @media (max-width: 440px) { .lab-grid { grid-template-columns: 1fr; } .lab-entry, .lab-entry + .lab-entry { padding: 1.4rem 0; border-right: 0; border-top: 1px solid var(--border); } .lab-grid .lab-entry:first-child { border-top: 0; } }
