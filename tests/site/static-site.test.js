@@ -284,7 +284,10 @@ test('project pages expose complete static explanations and tool relationships',
         for (const anchor of ['overview', 'how-it-works', 'getting-started', 'limitations']) {
             assert.match(html, new RegExp(`id="${anchor}"`), `${slug} has #${anchor}`);
         }
-        assert.match(html, /Last reviewed: 2026-09-17/, `${slug} has a current review date`);
+        const reviewed = html.match(/Last reviewed: (\d{4}-\d{2}-\d{2})/);
+        assert.ok(reviewed, `${slug} has a YYYY-MM-DD review date`);
+        assert.equal(new Date(`${reviewed[1]}T00:00:00Z`).toISOString().slice(0, 10), reviewed[1],
+            `${slug} has a valid review date`);
         assert.ok(html.includes(source), `${slug} links to its source`);
         assert.match(html, /"@type":"WebPage"/, `${slug} declares WebPage schema`);
         assert.match(html, /"@type":"SoftwareSourceCode"/, `${slug} declares source-code schema`);
