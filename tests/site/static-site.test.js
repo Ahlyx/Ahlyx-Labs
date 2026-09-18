@@ -318,7 +318,9 @@ test('Lab owns project browsing and paired project/tool actions are ordered cons
     const featured = landing.match(/<section class="content-section section-shell" id="work"[\s\S]*?<\/section>/)[0];
     const lab = landing.match(/<section class="content-section section-shell" id="lab"[\s\S]*?<\/section>/)[0];
     assert.doesNotMatch(featured, /Browse projects/);
-    assert.match(lab, /href="\/lab">Browse projects/);
+    assert.doesNotMatch(lab, /Browse projects/);
+    assert.match(lab, /href="\/lab">View full lab/);
+    assert.ok(lab.indexOf('class="lab-grid"') < lab.indexOf('View full lab'), 'the Lab directory link follows the card grid');
     assert.doesNotMatch(landing, /Use tool/);
 
     for (const [project, tool] of [
@@ -330,6 +332,9 @@ test('Lab owns project browsing and paired project/tool actions are ordered cons
     }
 
     const directory = read('lab/index.html');
+    assert.match(directory, /<p class="eyebrow">\/ Lab<\/p>/);
+    assert.doesNotMatch(directory, /aria-label="Project links"/);
+    assert.doesNotMatch(directory, />Explore<\/p>/);
     for (const [project, tool] of [
         ['/lab/security-enrichment', '/enrichment'],
         ['/lab/pcap-agent', '/pcap'],
