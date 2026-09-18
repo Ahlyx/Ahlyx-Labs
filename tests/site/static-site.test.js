@@ -273,6 +273,8 @@ test('shared CSS owns the canonical footer structure and aligned Lab CTAs', () =
     assert.match(landingStyles, /\.lab-entry \{ display: flex; flex-direction: column;/, 'Lab cards use flex-column layout');
     assert.match(landingStyles, /\.lab-entry \.text-link \{ margin-top: auto; padding-top: 1\.2rem; \}/,
         'Lab CTA alignment uses auto margin instead of fixed card heights');
+    assert.match(landingStyles, /\.lab-actions \{[\s\S]*margin-top: auto;[\s\S]*padding-top: 1\.2rem; \}/,
+        'paired Lab card actions receive the same top spacing as single CTA cards');
     assert.match(landingStyles, /\.lab-actions \.text-link \{ margin-top: 0; padding-top: 0; \}/,
         'paired Lab card actions form one clean action row');
     assert.match(landingStyles, /\.about-section \{[\s\S]*grid-template-columns: var\(--homepage-label-column\)/,
