@@ -28,6 +28,7 @@
 .project-content code { padding: .1rem .3rem; background: var(--surface-raised); color: var(--text); font: .88em var(--font-mono); }
 .project-content pre { overflow-x: auto; padding: 1rem; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: .82rem/1.55 var(--font-mono); }
 .project-content pre code { padding: 0; background: transparent; }
+.code-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 .project-content a { color: var(--amber); }
 .project-content a:hover { color: var(--text); }
 .project-aside { align-self: start; position: sticky; top: 8rem; padding: 1.25rem; border: 1px solid var(--border); background: var(--surface); }
