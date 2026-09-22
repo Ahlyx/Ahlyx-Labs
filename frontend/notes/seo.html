@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/ahlyxlabs-favicon.svg">
+    <title>SEO for a Tiny Technical Site Is Mostly Making Things Worth Finding — Ahlyx Labs</title>
+    <meta name="description" content="I recently spent way too much time thinking about SEO for a site that, realistically, does not have much traffic yet.">
+    <link rel="canonical" href="https://ahlyxlabs.com/notes/seo">
+    <meta property="og:site_name" content="Ahlyx Labs">
+    <meta property="og:title" content="SEO for a Tiny Technical Site Is Mostly Making Things Worth Finding">
+    <meta property="og:description" content="I recently spent way too much time thinking about SEO for a site that, realistically, does not have much traffic yet.">
+    <meta property="og:url" content="https://ahlyxlabs.com/notes/seo">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="https://ahlyxlabs.com/assets/brand/ahlyxlabs-social.png">
+    <meta property="og:image:alt" content="Ahlyx Labs security engineering and independent research">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@AhIyxx">
+    <script defer src="/assets/analytics.js"></script>
+    <script defer src="/assets/site.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <link rel="stylesheet" href="/assets/site.css">
+    <link rel="stylesheet" href="/landing/style.css">
+    <link rel="stylesheet" href="/notes/style.css">
+    <link rel="alternate" type="application/rss+xml" title="Ahlyx Labs Notes" href="https://ahlyxlabs.com/notes/feed.xml">
+</head>
+<body class="notes-page">
+    <header class="site-header"><div class="header-inner"><div class="header-identity"><button class="back-button" type="button" data-back-fallback="/notes"><span aria-hidden="true">&larr;</span> Back</button><a class="brand-lockup" href="/" aria-label="Ahlyx Labs home"><img src="/assets/brand/ahlyxlabs-lockup.svg" alt="Ahlyx Labs"></a></div><nav class="site-nav" aria-label="Primary navigation"><a href="/services">Services</a><a href="/#work">Work</a><a href="/research">Research</a><a href="/notes" aria-current="page">Notes</a><a href="/#lab">Lab</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">GitHub</a></nav></div></header>
+    <main class="notes-main"><article class="note-article">
+        <header class="note-article-header"><h1>SEO for a Tiny Technical Site Is Mostly Making Things Worth Finding</h1></header>
+
+        <div class="note-content">
+            <section class="tldr" aria-labelledby="tldr"><h2 id="tldr">TL;DR</h2><p>For a small technical site, the most useful SEO work I did was not squeezing more keywords into existing pages.</p><p>It was giving individual projects permanent pages, making those pages understandable without requiring a trip to GitHub, and making sure each page contributed at least one useful technical idea of its own.</p><p>The metadata, sitemap, structured data, Search Console, and machine-readable summaries still matter.</p><p>But none of them can make a page worth citing.</p><p>The page has to do that itself.</p></section>
+
+            <p>I recently spent way too much time thinking about SEO for a site that, realistically, does not have much traffic yet.</p>
+            <p>Ahlyx Labs is a small personal technical site. It has some open-source tools, security research, notes, and a few hosted utilities. There is no content team, no marketing department, and no giant backlog of keyword-targeted articles.</p>
+            <p>That made a lot of normal SEO advice feel a little backwards.</p>
+            <p>I could keep tweaking title tags forever, but eventually I had to ask a more basic question:</p>
+            <p><strong>If somebody did find the site, is there actually anything here worth finding?</strong></p>
+            <p>That ended up changing how I thought about the whole project.</p>
+
+            <h2 id="project-pages">The site had projects, but not really project pages</h2>
+            <p>Originally, most of the work on Ahlyx Labs existed in two places:</p>
+            <ul><li>a card on the homepage</li><li>a GitHub repository</li></ul>
+            <p>That is fine if someone already knows what they are looking for.</p>
+            <p>It is much worse if someone arrives from a search result and has no context.</p>
+            <p>A GitHub README is usually written for someone who is already interested enough to open the repository. It might mix installation instructions, development commands, implementation details, release notes, known limitations, and project status.</p>
+            <p>A homepage card has the opposite problem.</p>
+            <p>It might have two sentences.</p>
+            <p>There was nothing in between.</p>
+            <p>So I added a <code>/lab</code> directory and standalone pages for seven projects:</p>
+            <pre>/lab/auditmcp
+/lab/conveyance
+/lab/security-enrichment
+/lab/baptisia
+/lab/pcap-agent
+/lab/network-scanner
+/lab/hardware-dashboard</pre>
+            <p>The goal was not to copy the READMEs onto the website.</p>
+            <p>I wanted each page to answer the questions I would have if I found the project without knowing me:</p>
+            <ul><li>What is this?</li><li>Why does it exist?</li><li>What is interesting about the design?</li><li>How does it work?</li><li>What actually works today?</li><li>What does it deliberately not do?</li><li>Where are the trust boundaries?</li><li>Where do I go if I want the source?</li></ul>
+            <p>That sounds obvious in hindsight.</p>
+            <p>My first attempt was still weird.</p>
+
+            <h2 id="voice">My first version sounded like somebody auditing my own projects</h2>
+            <p>I wanted the project pages to stay accurate, so I built them from the maintained repositories and pinned technical references to specific commits.</p>
+            <p>That part was good.</p>
+            <p>The writing was not.</p>
+            <p>A lot of it sounded like this:</p>
+            <blockquote><p>The maintained README reports...</p><p>The reviewed source describes...</p><p>The source documents...</p></blockquote>
+            <p>It was technically cautious, but it sounded like some third party had inspected my project and written a compliance summary.</p>
+            <p>That was not the voice I wanted for the site.</p>
+            <p>I was not trying to hide where the information came from. I just realized that <strong>provenance belongs in the references, not in every sentence of the article</strong>.</p>
+            <p>The better version says something normally:</p>
+            <blockquote><p>AuditMCP is a local MCP audit logging proxy...</p></blockquote>
+            <p>and then links the exact source revision at the bottom.</p>
+            <p>Same evidence.</p>
+            <p>Much more natural page.</p>
+            <p>That was probably the biggest editorial improvement in the process.</p>
+
+            <h2 id="reason-to-exist">A project page needs a reason to exist separately from the README</h2>
+            <p>Once the writing sounded better, I ran into another problem.</p>
+            <p>The pages were accurate, but some of them were still basically nice summaries.</p>
+            <p>That is not necessarily bad.</p>
+            <p>It is just not especially linkable.</p>
+            <p>If another writer is discussing MCP auditing, why would they cite my page instead of the repository?</p>
+            <p>If someone is writing about industrial-control languages, what does my Baptisia page contribute beyond saying that the project exists?</p>
+            <p>The answer turned out to be simple:</p>
+            <p><strong>Each page needed one useful idea of its own.</strong></p>
+            <p>Not a made-up SEO hook.</p>
+            <p>Not a paragraph written because some keyword tool said I needed one.</p>
+            <p>An actual technical idea already present in the project that was worth explaining properly.</p>
+            <p>For AuditMCP, that became the distinction between an audit recorder and a policy gateway.</p>
+            <p>AuditMCP intentionally fails open if logging fails after startup.</p>
+            <p>That sounds strange until the role is clear.</p>
+            <p>If the component exists to observe and record activity, making the logger an availability dependency changes the system it is supposed to observe. A policy gateway might make the opposite choice because blocking is part of its job.</p>
+            <p>That distinction is more useful than another feature list.</p>
+            <p>For Conveyance, the useful idea was request-bound approval.</p>
+            <p>The project explores keeping an agent's credentials on a separate phone. The PC requests an action, the phone holds the credential, a person approves the exact request, the phone executes it, and the PC gets the result instead of the secret.</p>
+            <p>The important part is that the approval has to be bound to the payload.</p>
+            <p>Otherwise, a compromised PC could theoretically show the user one request and execute another after approval.</p>
+            <p>For Security Enrichment, the useful explanation became:</p>
+            <p><strong>No result is not the same thing as a clean result.</strong></p>
+            <p>A provider can time out.</p>
+            <p>A source can have no record.</p>
+            <p>One provider can flag something while another has no data.</p>
+            <p>Those are different states, so the page explains them as different states instead of flattening everything into "safe" or "malicious."</p>
+            <p>For Baptisia, the important distinction was what a compiler can enforce versus what it absolutely cannot.</p>
+            <p>A compiler can enforce structural properties such as making sure certain safety checks occur before normal control logic.</p>
+            <p>It cannot prove that a physical sensor works, that a threshold is correct, that wiring is safe, or that an industrial process is certified.</p>
+            <p>That is a much better reason for the page to exist than another installation guide.</p>
+            <p>The same idea carried over to the smaller projects.</p>
+            <p>PCAP Agent explains the boundary between local packet capture and browser-visible metadata.</p>
+            <p>Network Scanner explains why an open OT/ICS-associated port is a clue, not protocol identification or vulnerability proof.</p>
+            <p>Hardware Dashboard explains that the CPU and RAM values on the screen come from my backend host, not the visitor's computer.</p>
+            <p>That project is older and simpler, so I deliberately did not turn it into a giant essay.</p>
+            <p>Not every page needs to be the same length.</p>
+            <p>It just needs a reason to exist.</p>
+
+            <h2 id="static-html">Static HTML was the easy default</h2>
+            <p>Another thing I wanted was for the important content to exist directly in the page.</p>
+            <p>The site already uses mostly static HTML, so I kept going in that direction.</p>
+            <p>The project explanations are not fetched afterward from an API. They are not empty containers waiting for JavaScript to populate them.</p>
+            <p>The headings, paragraphs, tables, references, and code examples are already in the document.</p>
+            <p>That is good for accessibility and reliability, but I also like the simplicity of it for anything trying to understand the page.</p>
+            <p>There are fewer moving parts between requesting a URL and getting the explanation.</p>
+            <p>JavaScript still exists where it makes sense.</p>
+            <p>The hosted tools obviously need it.</p>
+            <p>Analytics need it.</p>
+            <p>A back button can use it.</p>
+            <p>But the explanation of what AuditMCP does does not need JavaScript to exist.</p>
+            <p>That felt like the right default.</p>
+
+            <h2 id="seo-basics">The boring SEO work still matters</h2>
+            <p>None of this means the basic SEO pieces are useless.</p>
+            <p>I still made sure the site had:</p>
+            <ul><li>descriptive page titles</li><li>real meta descriptions</li><li>one clear H1 per page</li><li>canonical URLs</li><li>clean <code>/lab/...</code> paths</li><li>internal links</li><li>a sitemap</li><li><code>robots.txt</code></li><li>redirects from old <code>/projects/...</code> paths</li><li>Open Graph metadata</li><li>structured data</li><li>a Notes RSS feed</li></ul>
+            <p>The Lab pages now have stable URLs such as:</p>
+            <pre>https://ahlyxlabs.com/lab/auditmcp
+https://ahlyxlabs.com/lab/conveyance
+https://ahlyxlabs.com/lab/security-enrichment</pre>
+            <p>instead of making every project live behind a homepage anchor.</p>
+            <p>That gives each explanation an address somebody can search for, link to, cite, or send directly.</p>
+            <p>I also changed the <code>/lab</code> page itself.</p>
+            <p>Its original H1 was:</p>
+            <pre>Work with context.</pre>
+            <p>I still like the phrase.</p>
+            <p>It just tells a search engine almost nothing.</p>
+            <p>It is now:</p>
+            <pre>Security &amp; software lab projects.</pre>
+            <p>Less clever.</p>
+            <p>Much more useful.</p>
+
+            <h2 id="metadata">Machine-readable metadata can lie while the page looks completely fine</h2>
+            <p>I added structured data too.</p>
+            <p>The homepage has entities for:</p>
+            <pre>Person
+Organization
+WebSite</pre>
+            <p>The Lab directory uses:</p>
+            <pre>CollectionPage</pre>
+            <p>and individual project pages use:</p>
+            <pre>WebPage
+SoftwareSourceCode</pre>
+            <p>That gives machines a little more explicit context about what Ahlyx Labs is, what a page represents, and where the corresponding source lives.</p>
+            <p>The interesting problem was not adding the JSON-LD.</p>
+            <p>It was keeping it synchronized.</p>
+            <p>After I improved the visible page titles, some of the old <code>WebPage.name</code> values were still using the previous names.</p>
+            <p>Baptisia even ended up with an empty <code>SoftwareSourceCode.description</code>.</p>
+            <p>The browser looked fine.</p>
+            <p>The structured representation was stale.</p>
+            <p>That was a useful reminder:</p>
+            <p><strong>Machine-readable metadata is still content.</strong></p>
+            <p>It can drift just like visible copy can.</p>
+            <p>If the page changes, the machine-readable version needs to change too.</p>
+
+            <h2 id="llms-txt">I added llms.txt, but I do not think it is magic</h2>
+            <p>I also added:</p>
+            <pre>https://ahlyxlabs.com/llms.txt</pre>
+            <p>It contains a compact summary of the site, identity, project URLs, tools, API information, and some important limitations.</p>
+            <p>For example, it explicitly says that AuditMCP records activity rather than enforcing authorization and that PCAP Agent does not relay raw packet payloads.</p>
+            <p>I like having it.</p>
+            <p>It is a convenient machine-readable index for systems that choose to look at it.</p>
+            <p>I do <strong>not</strong> know whether it will ever materially affect discovery.</p>
+            <p>That distinction matters.</p>
+            <p>There is a lot of discussion around "agent SEO," "GEO," and whatever acronym comes next. I am interested in it, but I do not want to pretend an <code>llms.txt</code> file is a secret ranking switch.</p>
+            <p>My current approach is much less exciting:</p>
+            <p>Make the normal website easy to understand first.</p>
+            <p>Then add machine-friendly summaries where they are cheap and honest.</p>
+
+            <h2 id="three-realities">The repository, the browser, and the search index were three different realities</h2>
+            <p>One of the more useful things I learned was that I was constantly looking at three different versions of the site.</p>
+            <p>There was the repository.</p>
+            <p>There was the deployed site.</p>
+            <p>And there was the version search engines currently knew about.</p>
+            <p>Those were not always the same.</p>
+            <p>At one point, public search results were still showing an older version of Ahlyx Labs even though the new Lab pages had already been deployed.</p>
+            <p>That is obvious if you think about how crawling works.</p>
+            <p>It is also extremely easy to forget while actively changing a site.</p>
+            <p>A deployment being live does not mean a search engine has seen it.</p>
+            <p>A search engine knowing a URL exists does not mean it has the newest version.</p>
+            <p>And the source code being correct does not guarantee the rendered page actually looks correct.</p>
+            <p>I ended up checking all three.</p>
+            <p>I think that model is more useful than treating "the website" as one thing.</p>
+
+            <h2 id="reviews">Source review and browser review catch different classes of mistakes</h2>
+            <p>I had one model reviewing the repository and another actually inspecting the deployed preview in a browser.</p>
+            <p>That sounds a little excessive for a tiny personal site.</p>
+            <p>They caught completely different problems.</p>
+            <p>Source review was good at finding things like stale canonical URLs, inconsistent JSON-LD, missing descriptions, outdated <code>/projects</code> links, sitemap mismatches, and wording that no longer agreed with the implementation.</p>
+            <p>Browser review found different problems:</p>
+            <ul><li>About and Contact headings that were slightly misaligned</li><li>paired project/tool actions that did not share a baseline</li><li>a Lab directory with too much empty space</li><li>code examples that technically existed but looked terrible at the available width</li></ul>
+            <p>The funniest example was Baptisia.</p>
+            <p>I added a real <code>.ba</code> source fragment to make the page more useful.</p>
+            <p>The HTML accidentally contained literal:</p>
+            <pre>\n</pre>
+            <p>characters instead of actual newlines.</p>
+            <p>A source check could tell me the text was there.</p>
+            <p>The browser made it immediately obvious that it looked awful.</p>
+            <p>Security Enrichment had a similar problem for a different reason. The curl command was simply too long for the available width.</p>
+            <p>The right fix was not changing every <code>&lt;pre&gt;</code> block on the site.</p>
+            <p>I reformatted that command normally:</p>
+            <pre><code>curl 'https://api.ahlyxlabs.com/api/v1/url' \
+  -H 'Content-Type: application/json' \
+  --data '{"url":"https://example.com","submit_urlscan":false}'</code></pre>
+            <p>and added an opt-in wrapping style only for code blocks that actually needed it.</p>
+            <p>That is not really an SEO lesson.</p>
+            <p>It is just a good reminder that <strong>eventually somebody has to look at the thing</strong>.</p>
+            <p>Apparently that somebody can now also be an AI with a browser.</p>
+
+            <h2 id="audits">Automated audits are useful when they find contradictions</h2>
+            <p>Another lesson was learning not to obey every warning an SEO tool produced.</p>
+            <p>One audit complained that labels in the "On this page" navigation did not exactly match the H2 headings.</p>
+            <p>For example:</p>
+            <pre>Limits</pre>
+            <p>linked to:</p>
+            <pre>Trust boundaries and limits</pre>
+            <p>That is fine.</p>
+            <p>A table of contents can use shorter labels.</p>
+            <p>Another warning complained that the project pages shared the same social-card image.</p>
+            <p>Unique images might be nice eventually.</p>
+            <p>They were not something I was going to block the project over.</p>
+            <p>There were also suggestions to add benchmarks such as packet throughput or BLE latency.</p>
+            <p>Those would be useful <strong>if I had actually measured them under a documented setup</strong>.</p>
+            <p>Adding numbers because numbers look authoritative would be worse than leaving them out.</p>
+            <p>The audits became much more valuable when they caught contradictions.</p>
+            <p>The homepage originally described Baptisia as:</p>
+            <pre>A safety-enforcing DSL for ICS/OT systems</pre>
+            <p>while the project page carefully explained that a compiler cannot make a real industrial system safe.</p>
+            <p>That deserved fixing.</p>
+            <p>PCAP Agent originally said:</p>
+            <pre>real-time browser analysis</pre>
+            <p>which was vague enough to sound like the browser itself might be capturing packets.</p>
+            <p>The newer description is:</p>
+            <pre>Local packet capture with real-time browser-based network metadata analysis.</pre>
+            <p>That is more precise.</p>
+            <p>I came away caring less about whether an audit was happy and more about whether the site agreed with itself.</p>
+            <p><strong>Consistency mattered more than chasing a score.</strong></p>
+
+            <h2 id="search-console">Search Console was less dramatic than I expected</h2>
+            <p>Once the pages were deployed, I submitted the sitemap in Google Search Console.</p>
+            <p>It discovered all 19 URLs.</p>
+            <p>That was reassuring.</p>
+            <p>It did not mean all 19 pages suddenly appeared in search.</p>
+            <p>For the pages I cared about most, I used URL Inspection and the live URL test.</p>
+            <p>That helped separate the version Google had previously crawled from what was actually deployed now.</p>
+            <p>Then I requested indexing for the important pages.</p>
+            <p>I did not keep submitting the same URL over and over.</p>
+            <p>At that point the pages were crawlable, internally linked, and present in the sitemap.</p>
+            <p>There was not much else to force.</p>
+            <p>The rest mostly requires time.</p>
+
+            <h2 id="real-work">There is a point where SEO turns into avoiding the real work</h2>
+            <p>I now have:</p>
+            <ul><li>crawlable pages</li><li>useful titles</li><li>canonical URLs</li><li>internal linking</li><li>structured data</li><li>a current sitemap</li><li>Search Console</li><li>project explanations</li><li>source references</li><li>a machine-readable site summary</li><li>notes and research with permanent URLs</li></ul>
+            <p>I can probably find another 30 metadata tweaks if I look hard enough.</p>
+            <p>I do not think that is what the site needs.</p>
+            <p>It needs more things worth finding.</p>
+            <p>A new tool gives me a project page.</p>
+            <p>A weird infrastructure problem gives me a note.</p>
+            <p>A security finding gives me a research writeup.</p>
+            <p>An interesting engineering tradeoff gives me something somebody else might actually cite.</p>
+            <p>Those pages can then link to each other naturally because the work actually relates.</p>
+            <p>That seems like a much healthier long-term strategy than manufacturing articles around keywords I do not care about.</p>
+            <p>I still want search traffic.</p>
+            <p>I would like Ahlyx Labs to appear when somebody searches for something I have actually worked on.</p>
+            <p>But the question I care about more now is:</p>
+            <p><strong>If this page appeared in a search result, would clicking it be worth the reader's time?</strong></p>
+            <p>For AuditMCP, I want the answer to come from the explanation of why an audit logger might intentionally fail open.</p>
+            <p>For Conveyance, from the explanation of why moving credential possession to another device changes the trust boundary.</p>
+            <p>For Baptisia, from separating compiler-enforced structure from real-world industrial safety.</p>
+            <p>For the email note, from actually going through the mess of getting SPF, DKIM, DMARC, Cloudflare Email Routing, SMTP2GO, Gmail, and Thunderbird to cooperate.</p>
+            <p>Those are real things I learned while building.</p>
+            <p>Search engines and agents discovering them would be great.</p>
+            <p>But first there has to be something there worth discovering.</p>
+        </div>
+    </article></main>
+    <footer class="site-footer"><a href="https://github.com/Ahlyx" target="_blank" rel="noopener noreferrer">github.com/Ahlyx</a><span class="sep" aria-hidden="true">|</span><a href="https://twitter.com/AhIyxx" target="_blank" rel="noopener noreferrer">@AhIyxx</a><span class="sep" aria-hidden="true">|</span><a href="mailto:alex@ahlyxlabs.com">alex@ahlyxlabs.com</a><span class="sep" aria-hidden="true">|</span><a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=alex%40ahlyxlabs.com" target="_blank" rel="noopener noreferrer">Email via Gmail</a><span class="sep" aria-hidden="true">|</span><a href="/security">Security &amp; Trust</a><span class="sep" aria-hidden="true">|</span><a href="/privacy">Privacy Policy</a><span class="sep" aria-hidden="true">|</span><a href="/llms.txt" title="Ahlyx Labs summary, project links, services, and API documentation for AI agents.">llms.txt</a></footer>
+</body>
+</html>

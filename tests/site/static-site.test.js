@@ -26,7 +26,8 @@ const indexablePages = [
     ['research/rustchain.html', 'https://ahlyxlabs.com/research/rustchain'],
     ['research/onedragon.html', 'https://ahlyxlabs.com/research/onedragon'],
     ['notes/index.html', 'https://ahlyxlabs.com/notes'],
-    ['notes/custom-domain-email.html', 'https://ahlyxlabs.com/notes/custom-domain-email']
+    ['notes/custom-domain-email.html', 'https://ahlyxlabs.com/notes/custom-domain-email'],
+    ['notes/seo.html', 'https://ahlyxlabs.com/notes/seo']
 ];
 
 test('indexable pages have one apex canonical and complete share metadata', () => {
@@ -133,6 +134,7 @@ test('subpages expose the same primary navigation destinations', () => {
         'research/onedragon.html',
         'notes/index.html',
         'notes/custom-domain-email.html',
+        'notes/seo.html',
         'landing/privacy.html'
     ];
     const destinations = ['/services', '/#work', '/research', '/notes', '/#lab', '/#about', '/#contact', 'https://github.com/Ahlyx'];
@@ -157,7 +159,7 @@ test('content pages use the shared homepage header while tools remain compact', 
         'Back controls and brand lockups stay inline in the shared identity wrapper');
 
     for (const file of [
-        'services/index.html', 'notes/index.html', 'notes/custom-domain-email.html',
+        'services/index.html', 'notes/index.html', 'notes/custom-domain-email.html', 'notes/seo.html',
         'research/index.html', 'research/rustchain.html', 'research/onedragon.html',
         'landing/privacy.html', 'security/index.html'
     ]) {
