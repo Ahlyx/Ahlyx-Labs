@@ -5,6 +5,7 @@ const (
 	TierClean    = "clean"
 	TierLow      = "low"
 	TierMedium   = "medium"
+	TierReview   = "review"
 	TierHigh     = "high"
 	TierCritical = "critical"
 )

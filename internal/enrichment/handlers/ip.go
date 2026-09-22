@@ -83,7 +83,7 @@ func NewIPHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			isTor = abuse.IsTor
 		}
 
-		threatScore, threatTier := models.ScoreIPThreat(abuse, vt, isTor != nil && *isTor)
+		verdict := models.IPVerdict(abuse, vt, isTor != nil && *isTor)
 
 		resp := models.IPResponse{
 			BaseResponse: models.BaseResponse{
@@ -91,6 +91,7 @@ func NewIPHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 				QueryType: "ip",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				Sources:   sources,
+				Verdict:   verdict,
 			},
 			IP:          ptr(address),
 			Geolocation: geo,
@@ -98,8 +99,9 @@ func NewIPHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			VirusTotal:  vt,
 			IsBogon:     ptr(false),
 			IsTor:       isTor,
-			ThreatScore: ptr(threatScore),
-			ThreatTier:  ptr(threatTier),
+			ThreatScore: verdict.Score,
+			ThreatTier:  ptr(verdict.Tier),
+			IsMalicious: ptr(verdict.IsMalicious),
 		}
 
 		data, err := json.Marshal(resp)
@@ -108,9 +110,9 @@ func NewIPHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			return
 		}
 		cache.Set(cacheKey, data, sources)
-		isMalicious := threatTier == models.TierHigh || threatTier == models.TierCritical
 		if shared.ShouldLogQueryTelemetry(r) {
-			shared.LogQuery("enrichment", "ip", threatTier, isMalicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
+			tier, malicious := verdict.QueryLogValues()
+			shared.LogQuery("enrichment", "ip", tier, malicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(data)

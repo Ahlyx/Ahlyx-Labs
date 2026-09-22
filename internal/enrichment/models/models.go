@@ -14,6 +14,7 @@ type BaseResponse struct {
 	QueryType string           `json:"query_type"`
 	Timestamp string           `json:"timestamp"`
 	Sources   []SourceMetadata `json:"sources"`
+	Verdict   Verdict          `json:"verdict"`
 }
 
 // ---------------------------------------------------------------------------
@@ -61,6 +62,7 @@ type IPResponse struct {
 	IsTor       *bool        `json:"is_tor"`
 	ThreatScore *int         `json:"threat_score"`
 	ThreatTier  *string      `json:"threat_tier"`
+	IsMalicious *bool        `json:"is_malicious"`
 }
 
 // ---------------------------------------------------------------------------
@@ -100,11 +102,11 @@ type SSLData struct {
 
 // DomainVTData holds VirusTotal analysis stats for a domain.
 type DomainVTData struct {
-	MaliciousVotes  *int     `json:"malicious_votes"`
-	HarmlessVotes   *int     `json:"harmless_votes"`
-	SuspiciousVotes *int     `json:"suspicious_votes"`
-	LastAnalysisDate *int64  `json:"last_analysis_date"`
-	Categories      []string `json:"categories"`
+	MaliciousVotes   *int     `json:"malicious_votes"`
+	HarmlessVotes    *int     `json:"harmless_votes"`
+	SuspiciousVotes  *int     `json:"suspicious_votes"`
+	LastAnalysisDate *int64   `json:"last_analysis_date"`
+	Categories       []string `json:"categories"`
 }
 
 // OTXData holds AlienVault OTX pulse data, populated by the handler.
@@ -116,12 +118,13 @@ type OTXData struct {
 // DomainResponse is the top-level JSON envelope for /api/v1/domain/{name}.
 type DomainResponse struct {
 	BaseResponse
-	Domain     *string       `json:"domain"`
-	WHOIS      *WhoisData    `json:"whois"`
-	DNS        *DNSData      `json:"dns"`
-	SSL        *SSLData      `json:"ssl"`
-	VirusTotal *DomainVTData `json:"virustotal"`
-	OTX        *OTXData      `json:"otx"`
+	Domain      *string       `json:"domain"`
+	WHOIS       *WhoisData    `json:"whois"`
+	DNS         *DNSData      `json:"dns"`
+	SSL         *SSLData      `json:"ssl"`
+	VirusTotal  *DomainVTData `json:"virustotal"`
+	OTX         *OTXData      `json:"otx"`
+	IsMalicious *bool         `json:"is_malicious"`
 }
 
 // ---------------------------------------------------------------------------
@@ -145,9 +148,9 @@ type URLScanData struct {
 
 // URLVTData holds VirusTotal analysis stats for a URL.
 type URLVTData struct {
-	MaliciousVotes  *int   `json:"malicious_votes"`
-	HarmlessVotes   *int   `json:"harmless_votes"`
-	SuspiciousVotes *int   `json:"suspicious_votes"`
+	MaliciousVotes   *int   `json:"malicious_votes"`
+	HarmlessVotes    *int   `json:"harmless_votes"`
+	SuspiciousVotes  *int   `json:"suspicious_votes"`
 	LastAnalysisDate *int64 `json:"last_analysis_date"`
 }
 
@@ -167,14 +170,14 @@ type URLResponse struct {
 
 // HashVTData holds VirusTotal analysis stats for a file hash.
 type HashVTData struct {
-	MaliciousVotes  *int    `json:"malicious_votes"`
-	HarmlessVotes   *int    `json:"harmless_votes"`
-	SuspiciousVotes *int    `json:"suspicious_votes"`
-	LastAnalysisDate *int64 `json:"last_analysis_date"`
-	FileType        *string `json:"file_type"`
-	FileSize        *int64  `json:"file_size"`
-	MeaningfulName  *string `json:"meaningful_name"`
-	ThreatLabel     *string `json:"threat_label"`
+	MaliciousVotes   *int    `json:"malicious_votes"`
+	HarmlessVotes    *int    `json:"harmless_votes"`
+	SuspiciousVotes  *int    `json:"suspicious_votes"`
+	LastAnalysisDate *int64  `json:"last_analysis_date"`
+	FileType         *string `json:"file_type"`
+	FileSize         *int64  `json:"file_size"`
+	MeaningfulName   *string `json:"meaningful_name"`
+	ThreatLabel      *string `json:"threat_label"`
 }
 
 // MalwareBazaarData holds MalwareBazaar file intelligence data.

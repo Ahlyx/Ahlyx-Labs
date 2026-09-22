@@ -92,17 +92,7 @@ func NewURLHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 
 		wg.Wait()
 
-		// IsMalicious: any source reporting a threat sets the flag.
-		isMalicious := false
-		if sb != nil && sb.IsSafe != nil && !*sb.IsSafe {
-			isMalicious = true
-		}
-		if urlscan != nil && urlscan.Malicious != nil && *urlscan.Malicious {
-			isMalicious = true
-		}
-		if vt != nil && vt.MaliciousVotes != nil && *vt.MaliciousVotes > 0 {
-			isMalicious = true
-		}
+		verdict := models.URLVerdict(sb, urlscan, vt, sources)
 
 		resp := models.URLResponse{
 			BaseResponse: models.BaseResponse{
@@ -110,12 +100,13 @@ func NewURLHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 				QueryType: "url",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				Sources:   sources,
+				Verdict:   verdict,
 			},
 			URL:          ptr(targetURL),
 			SafeBrowsing: sb,
 			URLScan:      urlscan,
 			VirusTotal:   vt,
-			IsMalicious:  ptr(isMalicious),
+			IsMalicious:  ptr(verdict.IsMalicious),
 		}
 
 		data, err := json.Marshal(resp)
@@ -124,12 +115,9 @@ func NewURLHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			return
 		}
 		cache.Set(cacheKey, data, sources)
-		verdict := "clean"
-		if isMalicious {
-			verdict = "threat"
-		}
 		if shared.ShouldLogQueryTelemetry(r) {
-			shared.LogQuery("enrichment", "url", verdict, isMalicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
+			tier, malicious := verdict.QueryLogValues()
+			shared.LogQuery("enrichment", "url", tier, malicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(data)

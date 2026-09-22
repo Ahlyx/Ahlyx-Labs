@@ -82,29 +82,13 @@ document.getElementById('searchBtn').addEventListener('click', () => {
     if (value) performSearch(value, currentType);
 });
 
-// ---------------------------------------------------------------------------
-// Verdict computation
-//
-// The IP tool returns a real composite score/tier from the backend
-// (threat_score / threat_tier — weighted AbuseIPDB + VirusTotal signal,
-// see internal/enrichment/models/threat.go). Other tools still report a
-// single is_malicious boolean, so they fall back to a two-state verdict.
-// ---------------------------------------------------------------------------
-const TIER_LABELS = {
-    critical: '⚠ CRITICAL THREAT',
-    high: '⚠ HIGH THREAT',
-    medium: '⚠ MEDIUM RISK',
-    low: '⚑ LOW RISK',
-    clean: '✓ CLEAN'
-};
-
-function getVerdict(data, type) {
-    const verdict = window.AhlyxEnrichmentUI.getVerdict(data, type);
+// The backend supplies canonical verdict evidence; this small wrapper adds the
+// presentation label shared by the main result banner and Recent Queries.
+function getVerdict(data) {
+    const verdict = window.AhlyxEnrichmentUI.getVerdict(data);
     return {
         ...verdict,
-        label: verdict.tier === 'review'
-            ? 'REVIEW \u2014 MIXED SIGNALS'
-            : (TIER_LABELS[verdict.tier] || TIER_LABELS.clean)
+        label: window.AhlyxEnrichmentUI.labelForTier(verdict.tier)
     };
 }
 
@@ -168,7 +152,7 @@ async function performSearch(value, type) {
 
         renderResults(data, type);
 
-        const verdict = getVerdict(data, type);
+        const verdict = getVerdict(data);
         if (typeof gtag !== 'undefined') {
             gtag('event', 'enrichment_result', {
                 query_type: type,
@@ -225,7 +209,7 @@ function renderResults(data, type) {
     container.innerHTML = '';
 
     // Verdict banner
-    const verdict = getVerdict(data, type);
+    const verdict = getVerdict(data);
 
     const banner = document.createElement('div');
     banner.className = `verdict-banner tier-${verdict.tier}`;
@@ -461,7 +445,7 @@ function renderHashCards(data, grid) {
 }
 
 function addToHistory(value, type, data) {
-    const verdict = getVerdict(data, type);
+    const verdict = getVerdict(data);
 
     history.unshift({
         value,
@@ -498,8 +482,9 @@ function renderHistory() {
         valueEl.textContent = item.value;
 
         const verdictEl = document.createElement('span');
-        verdictEl.className = `history-verdict tier-${item.tier || (item.isMalicious ? 'high' : 'clean')}`;
-        verdictEl.textContent = TIER_LABELS[item.tier] || (item.isMalicious ? '⚠ THREAT' : '✓ CLEAN');
+        const tier = item.tier || (item.isMalicious ? 'high' : 'clean');
+        verdictEl.className = `history-verdict tier-${tier}`;
+        verdictEl.textContent = window.AhlyxEnrichmentUI.labelForTier(tier);
 
         const timeEl = document.createElement('span');
         timeEl.className = 'history-time';
