@@ -105,6 +105,7 @@ type DomainVTData struct {
 	MaliciousVotes   *int     `json:"malicious_votes"`
 	HarmlessVotes    *int     `json:"harmless_votes"`
 	SuspiciousVotes  *int     `json:"suspicious_votes"`
+	UndetectedVotes  *int     `json:"undetected_votes"`
 	LastAnalysisDate *int64   `json:"last_analysis_date"`
 	Categories       []string `json:"categories"`
 }
@@ -151,6 +152,7 @@ type URLVTData struct {
 	MaliciousVotes   *int   `json:"malicious_votes"`
 	HarmlessVotes    *int   `json:"harmless_votes"`
 	SuspiciousVotes  *int   `json:"suspicious_votes"`
+	UndetectedVotes  *int   `json:"undetected_votes"`
 	LastAnalysisDate *int64 `json:"last_analysis_date"`
 }
 
@@ -173,6 +175,7 @@ type HashVTData struct {
 	MaliciousVotes   *int    `json:"malicious_votes"`
 	HarmlessVotes    *int    `json:"harmless_votes"`
 	SuspiciousVotes  *int    `json:"suspicious_votes"`
+	UndetectedVotes  *int    `json:"undetected_votes"`
 	LastAnalysisDate *int64  `json:"last_analysis_date"`
 	FileType         *string `json:"file_type"`
 	FileSize         *int64  `json:"file_size"`

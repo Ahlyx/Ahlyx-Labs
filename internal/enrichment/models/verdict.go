@@ -37,7 +37,7 @@ func IPVerdict(abuse *AbuseData, vt *VTIPData, isTor bool) Verdict {
 func DomainVerdict(vt *DomainVTData, otx *OTXData, sources []SourceMetadata) Verdict {
 	vtSucceeded := sourceSucceeded(sources, "virustotal")
 	otxSucceeded := sourceSucceeded(sources, "alienvault_otx")
-	if vtSucceeded && otxSucceeded && vt != nil && otx != nil && hasStrongVirusTotalConsensus(vt.MaliciousVotes, vt.HarmlessVotes) && positive(otx.PulseCount) {
+	if vtSucceeded && otxSucceeded && vt != nil && otx != nil && hasStrongVirusTotalConsensus(vt.MaliciousVotes, vt.HarmlessVotes, vt.SuspiciousVotes, vt.UndetectedVotes) && positive(otx.PulseCount) {
 		return newVerdict(TierHigh, nil)
 	}
 	if vtSucceeded && vt != nil && positive(vt.MaliciousVotes) {
@@ -60,7 +60,7 @@ func URLVerdict(safeBrowsing *SafeBrowsingData, urlscan *URLScanData, vt *URLVTD
 		return newVerdict(TierHigh, nil)
 	}
 	if sourceSucceeded(sources, "virustotal") && vt != nil {
-		if hasStrongVirusTotalConsensus(vt.MaliciousVotes, vt.HarmlessVotes) {
+		if hasStrongVirusTotalConsensus(vt.MaliciousVotes, vt.HarmlessVotes, vt.SuspiciousVotes, vt.UndetectedVotes) {
 			return newVerdict(TierHigh, nil)
 		}
 		if positive(vt.MaliciousVotes) || positive(vt.SuspiciousVotes) {
@@ -81,7 +81,7 @@ func HashVerdict(vt *HashVTData, malwareBazaar *MalwareBazaarData, _ *CIRCLData,
 		if vt.ThreatLabel != nil && strings.TrimSpace(*vt.ThreatLabel) != "" {
 			return newVerdict(TierHigh, nil)
 		}
-		if hasStrongVirusTotalConsensus(vt.MaliciousVotes, vt.HarmlessVotes) {
+		if hasStrongVirusTotalConsensus(vt.MaliciousVotes, vt.HarmlessVotes, vt.SuspiciousVotes, vt.UndetectedVotes) {
 			return newVerdict(TierHigh, nil)
 		}
 		if positive(vt.MaliciousVotes) || positive(vt.SuspiciousVotes) {
@@ -104,8 +104,13 @@ func sourceSucceeded(sources []SourceMetadata, name string) bool {
 	return false
 }
 
-func hasStrongVirusTotalConsensus(malicious, harmless *int) bool {
-	return positive(malicious) && (harmless == nil || *malicious > *harmless)
+// hasStrongVirusTotalConsensus requires a malicious majority across every VT
+// verdict-bearing category. Missing categories cannot establish consensus.
+func hasStrongVirusTotalConsensus(malicious, harmless, suspicious, undetected *int) bool {
+	if malicious == nil || harmless == nil || suspicious == nil || undetected == nil {
+		return false
+	}
+	return *malicious > *harmless+*suspicious+*undetected
 }
 
 func hasMalwareBazaarEvidence(data *MalwareBazaarData) bool {

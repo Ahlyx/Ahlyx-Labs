@@ -32,8 +32,9 @@ func TestDomainVerdict(t *testing.T) {
 		{"no positive evidence", &DomainVTData{MaliciousVotes: intPtr(0)}, &OTXData{PulseCount: intPtr(0)}, vtAndOTX, TierClean, false},
 		{"minority VirusTotal detections", &DomainVTData{MaliciousVotes: intPtr(2), HarmlessVotes: intPtr(59)}, nil, vtAndOTX, TierReview, false},
 		{"OTX pulses alone", &DomainVTData{MaliciousVotes: intPtr(0)}, &OTXData{PulseCount: intPtr(1)}, vtAndOTX, TierReview, false},
-		{"strong VirusTotal without corroborating OTX", &DomainVTData{MaliciousVotes: intPtr(12), HarmlessVotes: intPtr(1)}, &OTXData{PulseCount: intPtr(1)}, failedOTX, TierReview, false},
-		{"strong VirusTotal and successful OTX", &DomainVTData{MaliciousVotes: intPtr(12), HarmlessVotes: intPtr(1)}, &OTXData{PulseCount: intPtr(2)}, vtAndOTX, TierHigh, true},
+		{"strong VirusTotal without corroborating OTX", &DomainVTData{MaliciousVotes: intPtr(40), HarmlessVotes: intPtr(10), SuspiciousVotes: intPtr(2), UndetectedVotes: intPtr(5)}, &OTXData{PulseCount: intPtr(1)}, failedOTX, TierReview, false},
+		{"strong VirusTotal and successful OTX", &DomainVTData{MaliciousVotes: intPtr(40), HarmlessVotes: intPtr(10), SuspiciousVotes: intPtr(2), UndetectedVotes: intPtr(5)}, &OTXData{PulseCount: intPtr(2)}, vtAndOTX, TierHigh, true},
+		{"positive VT with many undetected votes", &DomainVTData{MaliciousVotes: intPtr(1), HarmlessVotes: intPtr(0), SuspiciousVotes: intPtr(0), UndetectedVotes: intPtr(60)}, &OTXData{PulseCount: intPtr(1)}, vtAndOTX, TierReview, false},
 		{"Muse-style OTX signal", &DomainVTData{MaliciousVotes: intPtr(0)}, &OTXData{PulseCount: intPtr(3)}, vtAndOTX, TierReview, false},
 	}
 
@@ -60,6 +61,8 @@ func TestURLVerdict(t *testing.T) {
 		{"Safe Browsing unsafe", &SafeBrowsingData{IsSafe: boolPtr(false)}, nil, nil, TierHigh, true},
 		{"URLScan malicious", nil, &URLScanData{Malicious: boolPtr(true)}, nil, TierHigh, true},
 		{"minority VirusTotal malicious", nil, nil, &URLVTData{MaliciousVotes: intPtr(2), HarmlessVotes: intPtr(59)}, TierReview, false},
+		{"positive VT with many undetected votes", nil, nil, &URLVTData{MaliciousVotes: intPtr(1), HarmlessVotes: intPtr(0), SuspiciousVotes: intPtr(0), UndetectedVotes: intPtr(60)}, TierReview, false},
+		{"VirusTotal majority", nil, nil, &URLVTData{MaliciousVotes: intPtr(40), HarmlessVotes: intPtr(10), SuspiciousVotes: intPtr(2), UndetectedVotes: intPtr(5)}, TierHigh, true},
 		{"VirusTotal suspicious", nil, nil, &URLVTData{MaliciousVotes: intPtr(0), SuspiciousVotes: intPtr(1)}, TierReview, false},
 		{"no positive evidence", &SafeBrowsingData{IsSafe: boolPtr(true)}, nil, &URLVTData{MaliciousVotes: intPtr(0), SuspiciousVotes: intPtr(0)}, TierClean, false},
 	}
@@ -92,6 +95,8 @@ func TestHashVerdict(t *testing.T) {
 		{"MalwareBazaar signature", nil, &MalwareBazaarData{Signature: stringPtr("Emotet")}, TierHigh, true},
 		{"VirusTotal threat label", &HashVTData{ThreatLabel: stringPtr("trojan")}, nil, TierHigh, true},
 		{"minority VirusTotal detections", &HashVTData{MaliciousVotes: intPtr(2), HarmlessVotes: intPtr(59)}, nil, TierReview, false},
+		{"positive VT with many undetected votes", &HashVTData{MaliciousVotes: intPtr(1), HarmlessVotes: intPtr(0), SuspiciousVotes: intPtr(0), UndetectedVotes: intPtr(60)}, nil, TierReview, false},
+		{"VirusTotal majority", &HashVTData{MaliciousVotes: intPtr(40), HarmlessVotes: intPtr(10), SuspiciousVotes: intPtr(2), UndetectedVotes: intPtr(5)}, nil, TierHigh, true},
 		{"no positive evidence", &HashVTData{MaliciousVotes: intPtr(0), SuspiciousVotes: intPtr(0)}, &MalwareBazaarData{}, TierClean, false},
 	}
 
