@@ -8,6 +8,11 @@ import (
 
 const previewOrigin = "https://ahlyx-labs-o8kiqf8xa-ahlyx-labs.vercel.app"
 
+const (
+	historicalMusePreviewOrigin = "https://ahlyx-labs-git-ux-post-deployment-corrections-ahlyx-labs.vercel.app"
+	gitPreviewOrigin            = "https://ahlyx-labs-git-fix-preview-telemetry-ahlyx-labs.vercel.app"
+)
+
 func TestClassifyOrigin(t *testing.T) {
 	tests := []struct {
 		origin      string
@@ -18,9 +23,11 @@ func TestClassifyOrigin(t *testing.T) {
 		{"https://ahlyxlabs.com", OriginProduction, true, true},
 		{"https://www.ahlyxlabs.com", OriginProduction, true, true},
 		{previewOrigin, OriginPreview, true, false},
+		{historicalMusePreviewOrigin, OriginPreview, true, false},
+		{gitPreviewOrigin, OriginPreview, true, false},
 		{"http://localhost:3000", OriginOther, false, true},
-		{"https://ahlyx-labs-git-feature-ahlyx.vercel.app", OriginOther, false, true},
 		{"https://random-app.vercel.app", OriginOther, false, true},
+		{"https://unrelated-project-git-ux-post-deployment-corrections-ahlyx-labs.vercel.app", OriginOther, false, true},
 		{"", OriginOther, false, true},
 	}
 

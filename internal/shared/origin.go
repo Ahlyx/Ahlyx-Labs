@@ -15,17 +15,20 @@ const (
 	OriginPreview
 )
 
-var ahlyxPreviewOrigin = regexp.MustCompile(`^https://ahlyx-labs-[a-z0-9]+-ahlyx-labs\.vercel\.app$`)
+var (
+	ahlyxHashedPreviewOrigin = regexp.MustCompile(`^https://ahlyx-labs-[a-z0-9]+-ahlyx-labs\.vercel\.app$`)
+	ahlyxGitPreviewOrigin    = regexp.MustCompile(`^https://ahlyx-labs-git-(?:[a-z0-9]+-)*[a-z0-9]+-ahlyx-labs\.vercel\.app$`)
+)
 
-// ClassifyOrigin recognizes the two production sites and Vercel's hashed
-// deployment hostnames for this Ahlyx Labs project. It is not an access-control
+// ClassifyOrigin recognizes the two production sites plus this project's
+// hashed and git branch Vercel preview hostnames. It is not an access-control
 // mechanism; origin headers are supplied by the client.
 func ClassifyOrigin(origin string) OriginKind {
 	switch origin {
 	case "https://ahlyxlabs.com", "https://www.ahlyxlabs.com":
 		return OriginProduction
 	}
-	if ahlyxPreviewOrigin.MatchString(origin) {
+	if ahlyxHashedPreviewOrigin.MatchString(origin) || ahlyxGitPreviewOrigin.MatchString(origin) {
 		return OriginPreview
 	}
 	return OriginOther
