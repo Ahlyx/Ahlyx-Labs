@@ -22,31 +22,30 @@ assert.deepEqual(JSON.parse(JSON.stringify(ui.urlControlState('url', true))), {
     showActiveSubmission: true
 }, 'URL tab alone reveals enabled active submission');
 
-const mixedDomain = ui.getVerdict({ virustotal: { malicious_votes: 2, harmless_votes: 59 } }, 'domain');
-assert.equal(mixedDomain.tier, 'review', 'minority VT detections are a review signal');
-assert.equal(mixedDomain.isMalicious, false, 'minority VT detections do not become HIGH THREAT');
-const cleanDomain = ui.getVerdict({ virustotal: { malicious_votes: 0, harmless_votes: 59 } }, 'domain');
-assert.equal(cleanDomain.tier, 'clean', 'a domain with no malicious provider signal remains CLEAN');
-const corroboratedDomain = ui.getVerdict({
-    virustotal: { malicious_votes: 12, harmless_votes: 1 },
-    otx: { pulse_count: 2 },
-    sources: [
-        { source: 'virustotal', success: true },
-        { source: 'alienvault_otx', success: true }
-    ]
-}, 'domain');
-assert.equal(corroboratedDomain.tier, 'high', 'strong VT consensus plus an independent OTX pulse is HIGH THREAT');
-assert.equal(corroboratedDomain.isMalicious, true, 'corroborated evidence is marked malicious');
-const unavailableOTX = ui.getVerdict({
-    virustotal: { malicious_votes: 12, harmless_votes: 1 },
-    sources: [
-        { source: 'virustotal', success: true },
-        { source: 'alienvault_otx', success: false }
-    ]
-}, 'domain');
-assert.equal(unavailableOTX.tier, 'review', 'an unavailable source cannot turn a domain into HIGH THREAT');
-const maliciousURL = ui.getVerdict({ safe_browsing: { is_safe: false } }, 'url');
-assert.equal(maliciousURL.tier, 'high', 'an explicit malicious URL provider verdict remains prominent');
+const labels = {
+    clean: '✓ CLEAN',
+    low: '⚑ LOW RISK',
+    medium: '⚠ MEDIUM RISK',
+    review: 'REVIEW — MIXED SIGNALS',
+    high: '⚠ HIGH THREAT',
+    critical: '⚠ CRITICAL THREAT'
+};
+for (const [tier, label] of Object.entries(labels)) {
+    assert.equal(ui.labelForTier(tier), label, `${tier} has the canonical label`);
+}
+
+const museDomain = ui.getVerdict({
+    verdict: { tier: 'review', score: null, is_malicious: false }
+});
+assert.equal(museDomain.tier, 'review', 'the API review verdict remains review in the UI');
+assert.equal(museDomain.isMalicious, false, 'review does not become malicious in the UI');
+assert.equal(ui.labelForTier(museDomain.tier), 'REVIEW — MIXED SIGNALS',
+    'the Muse-style OTX-only result has the same label in banner and history rendering');
+
+const ipFallback = ui.getVerdict({ threat_tier: 'medium', threat_score: 25 });
+assert.deepEqual(JSON.parse(JSON.stringify(ipFallback)), {
+    tier: 'medium', score: 25, isMalicious: false
+}, 'older IP responses retain their existing compatible fallback');
 
 const app = fs.readFileSync(__dirname + '/../../frontend/enrichment/app.js', 'utf8');
 assert.match(app, /\['A', data\.dns\.a\]/, 'domain DNS renders A records from the API schema');
@@ -56,5 +55,11 @@ assert.match(app, /\['NS', data\.dns\.ns\]/, 'domain DNS renders NS records from
 assert.match(app, /\['TXT', data\.dns\.txt\]/, 'domain DNS renders TXT records from the API schema');
 assert.match(app, /malicious \/ \$\{data\.virustotal\.harmless_votes/, 'VirusTotal domain evidence is displayed as a ratio');
 assert.match(app, /createCard\('ALIENVAULT OTX'/, 'independent OTX evidence is visible in the domain result cards');
+assert.match(app, /label: window\.AhlyxEnrichmentUI\.labelForTier\(verdict\.tier\)/,
+    'the main banner uses the shared tier label helper');
+assert.match(app, /verdictEl\.textContent = window\.AhlyxEnrichmentUI\.labelForTier\(tier\)/,
+    'Recent Queries uses the same tier label helper');
+assert.doesNotMatch(app, /const TIER_LABELS/, 'the app does not keep a second tier label mapping');
+assert.match(app, /if \(type !== 'url'\) addToHistory/, 'full URLs remain excluded from Recent Queries');
 
 console.log('enrichment UI-state tests passed');

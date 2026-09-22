@@ -75,16 +75,6 @@ func NewHashHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 
 		wg.Wait()
 
-		// IsMalicious: VT has detections OR MalwareBazaar returned a known sample.
-		isMalicious := false
-		if vt != nil && vt.MaliciousVotes != nil && *vt.MaliciousVotes > 0 {
-			isMalicious = true
-		}
-		if mb != nil && mb.FileName != nil {
-			// MalwareBazaar only returns file data for confirmed malware samples.
-			isMalicious = true
-		}
-
 		// IsKnownGood: CIRCL found the hash and its trust level marks it good.
 		isKnownGood := false
 		if circl != nil &&
@@ -93,19 +83,21 @@ func NewHashHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			isKnownGood = true
 		}
 
+		verdict := models.HashVerdict(vt, mb, circl, sources)
 		resp := models.HashResponse{
 			BaseResponse: models.BaseResponse{
 				Query:     hash,
 				QueryType: "hash",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				Sources:   sources,
+				Verdict:   verdict,
 			},
 			HashValue:     ptr(hash),
 			HashType:      ptr(hashType),
 			VirusTotal:    vt,
 			MalwareBazaar: mb,
 			CIRCL:         circl,
-			IsMalicious:   ptr(isMalicious),
+			IsMalicious:   ptr(verdict.IsMalicious),
 			IsKnownGood:   ptr(isKnownGood),
 		}
 
@@ -115,12 +107,9 @@ func NewHashHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 			return
 		}
 		cache.Set(cacheKey, data, sources)
-		verdict := "clean"
-		if isMalicious {
-			verdict = "threat"
-		}
 		if shared.ShouldLogQueryTelemetry(r) {
-			shared.LogQuery("enrichment", "hash", verdict, isMalicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
+			tier, malicious := verdict.QueryLogValues()
+			shared.LogQuery("enrichment", "hash", tier, malicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(data)

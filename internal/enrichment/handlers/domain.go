@@ -120,19 +120,22 @@ func NewDomainHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc 
 			}
 		}
 
+		verdict := models.DomainVerdict(vt, otxData, sources)
 		resp := models.DomainResponse{
 			BaseResponse: models.BaseResponse{
 				Query:     name,
 				QueryType: "domain",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				Sources:   sources,
+				Verdict:   verdict,
 			},
-			Domain:     ptr(name),
-			WHOIS:      whois,
-			DNS:        dns,
-			SSL:        ssl,
-			VirusTotal: vt,
-			OTX:        otxData,
+			Domain:      ptr(name),
+			WHOIS:       whois,
+			DNS:         dns,
+			SSL:         ssl,
+			VirusTotal:  vt,
+			OTX:         otxData,
+			IsMalicious: ptr(verdict.IsMalicious),
 		}
 
 		data, err := json.Marshal(resp)
@@ -141,16 +144,9 @@ func NewDomainHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc 
 			return
 		}
 		cache.Set(cacheKey, data, sources)
-		isMalicious := false
-		if resp.VirusTotal != nil && resp.VirusTotal.MaliciousVotes != nil && *resp.VirusTotal.MaliciousVotes > 0 {
-			isMalicious = true
-		}
-		verdict := "clean"
-		if isMalicious {
-			verdict = "threat"
-		}
 		if shared.ShouldLogQueryTelemetry(r) {
-			shared.LogQuery("enrichment", "domain", verdict, isMalicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
+			tier, malicious := verdict.QueryLogValues()
+			shared.LogQuery("enrichment", "domain", tier, malicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(data)

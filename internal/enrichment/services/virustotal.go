@@ -61,7 +61,7 @@ func FetchVirusTotalIP(apiKey, ip string) (*models.VTIPData, models.SourceMetada
 					Suspicious *int `json:"suspicious"`
 					Undetected *int `json:"undetected"`
 				} `json:"last_analysis_stats"`
-				LastAnalysisDate         *int64 `json:"last_analysis_date"`
+				LastAnalysisDate            *int64 `json:"last_analysis_date"`
 				PopularThreatClassification struct {
 					SuggestedThreatLabel *string `json:"suggested_threat_label"`
 				} `json:"popular_threat_classification"`
@@ -113,6 +113,7 @@ func FetchVirusTotalDomain(apiKey, domain string) (*models.DomainVTData, models.
 					Malicious  *int `json:"malicious"`
 					Harmless   *int `json:"harmless"`
 					Suspicious *int `json:"suspicious"`
+					Undetected *int `json:"undetected"`
 				} `json:"last_analysis_stats"`
 				LastAnalysisDate *int64            `json:"last_analysis_date"`
 				Categories       map[string]string `json:"categories"`
@@ -134,6 +135,7 @@ func FetchVirusTotalDomain(apiKey, domain string) (*models.DomainVTData, models.
 		MaliciousVotes:   raw.Data.Attributes.LastAnalysisStats.Malicious,
 		HarmlessVotes:    raw.Data.Attributes.LastAnalysisStats.Harmless,
 		SuspiciousVotes:  raw.Data.Attributes.LastAnalysisStats.Suspicious,
+		UndetectedVotes:  raw.Data.Attributes.LastAnalysisStats.Undetected,
 		LastAnalysisDate: raw.Data.Attributes.LastAnalysisDate,
 		Categories:       cats,
 	}, meta
@@ -166,6 +168,7 @@ func FetchVirusTotalURL(apiKey, targetURL string) (*models.URLVTData, models.Sou
 					Malicious  *int `json:"malicious"`
 					Harmless   *int `json:"harmless"`
 					Suspicious *int `json:"suspicious"`
+					Undetected *int `json:"undetected"`
 				} `json:"last_analysis_stats"`
 				LastAnalysisDate *int64 `json:"last_analysis_date"`
 			} `json:"attributes"`
@@ -181,6 +184,7 @@ func FetchVirusTotalURL(apiKey, targetURL string) (*models.URLVTData, models.Sou
 		MaliciousVotes:   raw.Data.Attributes.LastAnalysisStats.Malicious,
 		HarmlessVotes:    raw.Data.Attributes.LastAnalysisStats.Harmless,
 		SuspiciousVotes:  raw.Data.Attributes.LastAnalysisStats.Suspicious,
+		UndetectedVotes:  raw.Data.Attributes.LastAnalysisStats.Undetected,
 		LastAnalysisDate: raw.Data.Attributes.LastAnalysisDate,
 	}, meta
 }
@@ -208,6 +212,7 @@ func FetchVirusTotalHash(apiKey, hash string) (*models.HashVTData, models.Source
 					Malicious  *int `json:"malicious"`
 					Harmless   *int `json:"harmless"`
 					Suspicious *int `json:"suspicious"`
+					Undetected *int `json:"undetected"`
 				} `json:"last_analysis_stats"`
 				LastAnalysisDate            *int64  `json:"last_analysis_date"`
 				TypeDescription             *string `json:"type_description"`
@@ -230,6 +235,7 @@ func FetchVirusTotalHash(apiKey, hash string) (*models.HashVTData, models.Source
 		MaliciousVotes:   attrs.LastAnalysisStats.Malicious,
 		HarmlessVotes:    attrs.LastAnalysisStats.Harmless,
 		SuspiciousVotes:  attrs.LastAnalysisStats.Suspicious,
+		UndetectedVotes:  attrs.LastAnalysisStats.Undetected,
 		LastAnalysisDate: attrs.LastAnalysisDate,
 		FileType:         attrs.TypeDescription,
 		FileSize:         attrs.Size,
