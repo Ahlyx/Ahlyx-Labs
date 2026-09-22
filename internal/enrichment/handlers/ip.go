@@ -109,7 +109,9 @@ func NewIPHandler(cfg *shared.Config, cache *shared.Cache) http.HandlerFunc {
 		}
 		cache.Set(cacheKey, data, sources)
 		isMalicious := threatTier == models.TierHigh || threatTier == models.TierCritical
-		shared.LogQuery("enrichment", "ip", threatTier, isMalicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
+		if shared.ShouldLogQueryTelemetry(r) {
+			shared.LogQuery("enrichment", "ip", threatTier, isMalicious, len(sources), int(time.Since(start).Milliseconds()), 0, 0)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(data)
 	}
