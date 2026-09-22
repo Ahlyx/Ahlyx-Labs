@@ -83,8 +83,12 @@ test('published notes are linked from the Notes index, homepage, and RSS feed', 
 
     assert.match(notesIndex, /href="\/notes\/seo"/);
     assert.match(homepageNotes, /href="\/notes\/seo"/);
+    assert.match(homepageNotes, /href="\/notes\/custom-domain-email"/);
     assert.match(feed, /<link>https:\/\/ahlyxlabs\.com\/notes\/seo<\/link>/);
+    assert.match(feed, /<link>https:\/\/ahlyxlabs\.com\/notes\/custom-domain-email<\/link>/);
+    assert.equal((homepageNotes.match(/Read note/g) || []).length, 2, 'homepage limits its recent-notes list to two entries');
     assert.ok(notesIndex.indexOf('/notes/seo') < notesIndex.indexOf('/notes/custom-domain-email'), 'Notes index lists the newest note first');
+    assert.ok(homepageNotes.indexOf('/notes/seo') < homepageNotes.indexOf('/notes/custom-domain-email'), 'homepage lists recent notes newest first');
     assert.ok(feed.indexOf('/notes/seo') < feed.indexOf('/notes/custom-domain-email'), 'RSS feed lists the newest note first');
 });
 
@@ -98,6 +102,8 @@ test('SEO note has published-article metadata and the email diagram remains narr
     assert.match(seo, /"@type": "Article"/);
     assert.match(seo, /<p class="notes-kicker">\/ SEO · site building<\/p>/);
     assert.match(seo, /<time datetime="2026-09-21">September 21, 2026<\/time>/);
+    assert.match(seo, /<div class="faq-list">/);
+    assert.doesNotMatch(seo, /FAQPage/);
     assert.doesNotMatch(email, /destination-mailbox@example\.net/);
     assert.match(email, /Cloudflare Email Routing\n  ↓\ndestination@example\.net\n  ↓\nThunderbird/);
 });
@@ -383,6 +389,9 @@ test('llms.txt is a plain-text project index and is excluded from the sitemap', 
     assert.match(llms, /^# Ahlyx Labs/m);
     for (const slug of ['auditmcp', 'conveyance', 'security-enrichment', 'baptisia', 'pcap-agent', 'network-scanner', 'hardware-dashboard']) {
         assert.ok(llms.includes(`https://ahlyxlabs.com/lab/${slug}`));
+    }
+    for (const slug of ['seo', 'custom-domain-email']) {
+        assert.ok(llms.includes(`https://ahlyxlabs.com/notes/${slug}`));
     }
     assert.doesNotMatch(read('sitemap.xml'), /llms\.txt/);
     const config = JSON.parse(read('vercel.json'));

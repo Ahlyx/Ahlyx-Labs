@@ -79,6 +79,10 @@ explicit opt-in. No current Swagger/OpenAPI endpoint is advertised.
 
 - [Security research](https://ahlyxlabs.com/research): findings with disclosure status.
 - [Build notes](https://ahlyxlabs.com/notes): infrastructure and engineering writeups.
+- [SEO for a Tiny Technical Site](https://ahlyxlabs.com/notes/seo): why small
+  technical sites need permanent, understandable project pages with useful ideas.
+- [Custom Domain Email](https://ahlyxlabs.com/notes/custom-domain-email): a
+  free custom-domain mail setup using Cloudflare Email Routing, Thunderbird, and SMTP2GO.
 
 ## Source accuracy
 
