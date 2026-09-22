@@ -82,7 +82,7 @@ alex@ahlyxlabs.com
 Cloudflare Email Routing
         |
         v
-destination-mailbox@example.net</pre>
+destination@example.net</pre>
             <p>For a while I used Gmail’s “Send mail as” setting. Messages had the right visible From address, but their real path was still Gmail. When I sent a test and opened Gmail’s <em>Show original</em> view, the headers told a different story:</p>
             <pre>From:        Alex &lt;alex@ahlyxlabs.com&gt;
 Return-Path: sender@gmail.com
@@ -98,7 +98,15 @@ DMARC:       FAIL (ahlyxlabs.com)</pre>
             <h2 id="architecture">The setup I ended up with</h2>
             <pre>INCOMING
 
-sender → alex@ahlyxlabs.com → Cloudflare Email Routing → destination-mailbox@example.net → Thunderbird
+sender
+  ↓
+alex@ahlyxlabs.com
+  ↓
+Cloudflare Email Routing
+  ↓
+destination@example.net
+  ↓
+Thunderbird
 
 OUTGOING
 

@@ -33,6 +33,7 @@
     { "source": "/sitemap.xml",             "destination": "/sitemap.xml" },
     { "source": "/notes/feed.xml",          "destination": "/notes/feed.xml" },
     { "source": "/notes/custom-domain-email", "destination": "/notes/custom-domain-email.html" },
+    { "source": "/notes/seo",                 "destination": "/notes/seo.html" },
     { "source": "/notes",                    "destination": "/notes/index.html" },
     { "source": "/lab",                 "destination": "/lab/index.html" },
     { "source": "/lab/auditmcp",        "destination": "/lab/auditmcp.html" },

@@ -26,7 +26,8 @@ const indexablePages = [
     ['research/rustchain.html', 'https://ahlyxlabs.com/research/rustchain'],
     ['research/onedragon.html', 'https://ahlyxlabs.com/research/onedragon'],
     ['notes/index.html', 'https://ahlyxlabs.com/notes'],
-    ['notes/custom-domain-email.html', 'https://ahlyxlabs.com/notes/custom-domain-email']
+    ['notes/custom-domain-email.html', 'https://ahlyxlabs.com/notes/custom-domain-email'],
+    ['notes/seo.html', 'https://ahlyxlabs.com/notes/seo']
 ];
 
 test('indexable pages have one apex canonical and complete share metadata', () => {
@@ -73,6 +74,38 @@ test('Vercel routes do not turn missing nested paths into successful pages', () 
         permanent: true
     })));
     assert.ok(!config.redirects.some((redirect) => redirect.source === '/projects/(.*)'));
+});
+
+test('published notes are linked from the Notes index, homepage, and RSS feed', () => {
+    const notesIndex = read('notes/index.html');
+    const homepageNotes = read('landing/index.html').match(/<section class="content-section section-shell" id="notes"[\s\S]*?<\/section>/)[0];
+    const feed = read('notes/feed.xml');
+
+    assert.match(notesIndex, /href="\/notes\/seo"/);
+    assert.match(homepageNotes, /href="\/notes\/seo"/);
+    assert.match(homepageNotes, /href="\/notes\/custom-domain-email"/);
+    assert.match(feed, /<link>https:\/\/ahlyxlabs\.com\/notes\/seo<\/link>/);
+    assert.match(feed, /<link>https:\/\/ahlyxlabs\.com\/notes\/custom-domain-email<\/link>/);
+    assert.equal((homepageNotes.match(/Read note/g) || []).length, 2, 'homepage limits its recent-notes list to two entries');
+    assert.ok(notesIndex.indexOf('/notes/seo') < notesIndex.indexOf('/notes/custom-domain-email'), 'Notes index lists the newest note first');
+    assert.ok(homepageNotes.indexOf('/notes/seo') < homepageNotes.indexOf('/notes/custom-domain-email'), 'homepage lists recent notes newest first');
+    assert.ok(feed.indexOf('/notes/seo') < feed.indexOf('/notes/custom-domain-email'), 'RSS feed lists the newest note first');
+});
+
+test('SEO note has published-article metadata and the email diagram remains narrow', () => {
+    const seo = read('notes/seo.html');
+    const email = read('notes/custom-domain-email.html');
+
+    assert.match(seo, /<meta name="author" content="Alex">/);
+    assert.match(seo, /article:published_time" content="2026-09-21T00:00:00Z"/);
+    assert.match(seo, /article:modified_time" content="2026-09-21T00:00:00Z"/);
+    assert.match(seo, /"@type": "Article"/);
+    assert.match(seo, /<p class="notes-kicker">\/ SEO · site building<\/p>/);
+    assert.match(seo, /<time datetime="2026-09-21">September 21, 2026<\/time>/);
+    assert.match(seo, /<div class="faq-list">/);
+    assert.doesNotMatch(seo, /FAQPage/);
+    assert.doesNotMatch(email, /destination-mailbox@example\.net/);
+    assert.match(email, /Cloudflare Email Routing\n  ↓\ndestination@example\.net\n  ↓\nThunderbird/);
 });
 
 test('the retired hosted scanner route redirects to the local-tool repository', () => {
@@ -133,6 +166,7 @@ test('subpages expose the same primary navigation destinations', () => {
         'research/onedragon.html',
         'notes/index.html',
         'notes/custom-domain-email.html',
+        'notes/seo.html',
         'landing/privacy.html'
     ];
     const destinations = ['/services', '/#work', '/research', '/notes', '/#lab', '/#about', '/#contact', 'https://github.com/Ahlyx'];
@@ -157,7 +191,7 @@ test('content pages use the shared homepage header while tools remain compact', 
         'Back controls and brand lockups stay inline in the shared identity wrapper');
 
     for (const file of [
-        'services/index.html', 'notes/index.html', 'notes/custom-domain-email.html',
+        'services/index.html', 'notes/index.html', 'notes/custom-domain-email.html', 'notes/seo.html',
         'research/index.html', 'research/rustchain.html', 'research/onedragon.html',
         'landing/privacy.html', 'security/index.html'
     ]) {
@@ -355,6 +389,9 @@ test('llms.txt is a plain-text project index and is excluded from the sitemap', 
     assert.match(llms, /^# Ahlyx Labs/m);
     for (const slug of ['auditmcp', 'conveyance', 'security-enrichment', 'baptisia', 'pcap-agent', 'network-scanner', 'hardware-dashboard']) {
         assert.ok(llms.includes(`https://ahlyxlabs.com/lab/${slug}`));
+    }
+    for (const slug of ['seo', 'custom-domain-email']) {
+        assert.ok(llms.includes(`https://ahlyxlabs.com/notes/${slug}`));
     }
     assert.doesNotMatch(read('sitemap.xml'), /llms\.txt/);
     const config = JSON.parse(read('vercel.json'));
