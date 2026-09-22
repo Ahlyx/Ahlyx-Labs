@@ -5,7 +5,14 @@
     <link>https://ahlyxlabs.com/notes</link>
     <description>Practical notes on security engineering, systems, and infrastructure from Ahlyx Labs.</description>
     <language>en</language>
-    <lastBuildDate>Wed, 16 Sep 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 21 Sep 2026 00:00:00 +0000</lastBuildDate>
+    <item>
+      <title>SEO for a Tiny Technical Site Is Mostly Making Things Worth Finding</title>
+      <link>https://ahlyxlabs.com/notes/seo</link>
+      <guid isPermaLink="true">https://ahlyxlabs.com/notes/seo</guid>
+      <pubDate>Mon, 21 Sep 2026 00:00:00 +0000</pubDate>
+      <description>For a small technical site, the useful SEO work was giving projects permanent, understandable pages with technical ideas worth finding and citing.</description>
+    </item>
     <item>
       <title>Custom Domain Email Is Way More Complicated Than It Should Be</title>
       <link>https://ahlyxlabs.com/notes/custom-domain-email</link>

@@ -76,6 +76,32 @@ test('Vercel routes do not turn missing nested paths into successful pages', () 
     assert.ok(!config.redirects.some((redirect) => redirect.source === '/projects/(.*)'));
 });
 
+test('published notes are linked from the Notes index, homepage, and RSS feed', () => {
+    const notesIndex = read('notes/index.html');
+    const homepageNotes = read('landing/index.html').match(/<section class="content-section section-shell" id="notes"[\s\S]*?<\/section>/)[0];
+    const feed = read('notes/feed.xml');
+
+    assert.match(notesIndex, /href="\/notes\/seo"/);
+    assert.match(homepageNotes, /href="\/notes\/seo"/);
+    assert.match(feed, /<link>https:\/\/ahlyxlabs\.com\/notes\/seo<\/link>/);
+    assert.ok(notesIndex.indexOf('/notes/seo') < notesIndex.indexOf('/notes/custom-domain-email'), 'Notes index lists the newest note first');
+    assert.ok(feed.indexOf('/notes/seo') < feed.indexOf('/notes/custom-domain-email'), 'RSS feed lists the newest note first');
+});
+
+test('SEO note has published-article metadata and the email diagram remains narrow', () => {
+    const seo = read('notes/seo.html');
+    const email = read('notes/custom-domain-email.html');
+
+    assert.match(seo, /<meta name="author" content="Alex">/);
+    assert.match(seo, /article:published_time" content="2026-09-21T00:00:00Z"/);
+    assert.match(seo, /article:modified_time" content="2026-09-21T00:00:00Z"/);
+    assert.match(seo, /"@type": "Article"/);
+    assert.match(seo, /<p class="notes-kicker">\/ SEO · site building<\/p>/);
+    assert.match(seo, /<time datetime="2026-09-21">September 21, 2026<\/time>/);
+    assert.doesNotMatch(email, /destination-mailbox@example\.net/);
+    assert.match(email, /Cloudflare Email Routing\n  ↓\ndestination@example\.net\n  ↓\nThunderbird/);
+});
+
 test('the retired hosted scanner route redirects to the local-tool repository', () => {
     const config = JSON.parse(read('vercel.json'));
     assert.deepEqual(config.redirects.find((redirect) => redirect.source === '/scanner'), {
