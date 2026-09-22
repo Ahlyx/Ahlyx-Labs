@@ -30,4 +30,5 @@ jobs:
         run: |
           node tests/pcap/app.protocol.test.js
           node tests/enrichment/privacy.test.js
+          node --test tests/site/analytics.test.js
           node --test tests/site/static-site.test.js

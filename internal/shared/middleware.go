@@ -10,10 +10,13 @@ import (
 	"github.com/go-chi/cors"
 )
 
-// CORSMiddleware permits only the public Ahlyx Labs frontend origins.
+// CORSMiddleware permits the public Ahlyx Labs frontend and its hashed Vercel
+// preview deployment origins.
 func CORSMiddleware() func(http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
-		AllowedOrigins: []string{"https://ahlyxlabs.com", "https://www.ahlyxlabs.com"},
+		AllowOriginFunc: func(_ *http.Request, origin string) bool {
+			return IsAllowedBrowserOrigin(origin)
+		},
 		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders: []string{"Content-Type"},
 		MaxAge:         300,

@@ -47,6 +47,17 @@ func TestOriginSecretProtectsSensitiveRoutesButNotHealth(t *testing.T) {
 	}
 }
 
+func TestPreviewOriginDoesNotBypassOriginVerification(t *testing.T) {
+	router := newRouter(&shared.Config{CloudflareOriginSecret: "expected"}, shared.NewCache())
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/ip/8.8.8.8", nil)
+	req.Header.Set("Origin", "https://ahlyx-labs-o8kiqf8xa-ahlyx-labs.vercel.app")
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("preview Origin without verification secret returned %d; want 403", rec.Code)
+	}
+}
+
 func TestURLRouteIsPostOnlyAndDoesNotReadQueryValue(t *testing.T) {
 	router := newRouter(&shared.Config{}, shared.NewCache())
 	get := httptest.NewRequest(http.MethodGet, "/api/v1/url?url=https://example.test/reset?token=secret", nil)

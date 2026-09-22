@@ -1,6 +1,9 @@
 (function () {
     'use strict';
 
+    var productionHosts = ['ahlyxlabs.com', 'www.ahlyxlabs.com'];
+    if (productionHosts.indexOf(window.location.hostname) === -1) return;
+
     var consentKey = 'analytics_consent';
     var measurementId = 'G-99NT7YXMY8';
     var consent = localStorage.getItem(consentKey);
