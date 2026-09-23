@@ -1,125 +1,100 @@
 # Ahlyx Labs
 
-Open-source security tools, systems work, and independent research.
+Ahlyx Labs is an independent security and software lab focused on security
+tools, systems work, and research. This repository contains the source for the
+[Ahlyx Labs website](https://ahlyxlabs.com), its Go API backend, and automated
+checks.
 
-- Website: https://ahlyxlabs.com
-- API: https://api.ahlyxlabs.com
-- Source and releases: https://github.com/Ahlyx
-- Security and trust information: https://ahlyxlabs.com/security
+- [Website](https://ahlyxlabs.com)
+- [GitHub organization](https://github.com/Ahlyx)
+- [This repository](https://github.com/Ahlyx/Ahlyx-Labs)
+- [API](https://api.ahlyxlabs.com)
 
-## Architecture
+The site is built with static HTML, CSS, and JavaScript. A Go service provides
+the public API.
 
-```text
-Internet
-   |
-Cloudflare proxy / DNS
-   |
-   +--> ahlyxlabs.com      -> Vercel frontend
-   |
-   +--> api.ahlyxlabs.com  -> Render Go backend
-```
+## Explore the site
 
-The backend is a single Go binary using chi, an in-memory TTL cache, bounded
-rate limiters, and optional aggregate PostgreSQL telemetry. The public frontend
-is static HTML, CSS, and vanilla JavaScript. Cloudflare provides the public
-edge, Vercel serves the frontend, and Render hosts the Go API.
+- [Projects and lab](https://ahlyxlabs.com/lab) — project summaries, status,
+  source links, and hosted tools.
+- [Security research](https://ahlyxlabs.com/research) — published findings and
+  disclosure writeups, including [RustChain](https://ahlyxlabs.com/research/rustchain)
+  and [OneDragon](https://ahlyxlabs.com/research/onedragon).
+- [Notes](https://ahlyxlabs.com/notes) — practical writeups on systems,
+  security, and infrastructure. Read [SEO for a Tiny Technical Site](https://ahlyxlabs.com/notes/seo)
+  or [Custom Domain Email](https://ahlyxlabs.com/notes/custom-domain-email),
+  or subscribe to the [RSS feed](https://ahlyxlabs.com/notes/feed.xml).
+- [Services](https://ahlyxlabs.com/services) — small, fixed-scope security
+  reviews and developer tooling work.
+- [Security and trust](https://ahlyxlabs.com/security) — official channels and
+  vulnerability reporting.
+- [Privacy policy](https://ahlyxlabs.com/privacy)
+- [llms.txt](https://ahlyxlabs.com/llms.txt) — a machine-readable site and
+  project summary.
 
-When configured, the backend requires a Cloudflare-added origin-verification
-header for API and relay traffic. This protects the origin even if its provider
-address is known. The secret itself is never stored in source; see
-[`MANUAL_SECURITY_ACTIONS.md`](MANUAL_SECURITY_ACTIONS.md).
+## Projects and tools
 
-## Tools
+| Project | What it does | Links |
+|---|---|---|
+| AuditMCP | Local-first MCP audit logging proxy | [Project](https://ahlyxlabs.com/lab/auditmcp) · [Source](https://github.com/Ahlyx/auditmcp) |
+| Conveyance | Research into phone-approved MCP requests | [Project](https://ahlyxlabs.com/lab/conveyance) · [Source](https://github.com/Ahlyx/Conveyance) |
+| Security Enrichment | Go API for IP, domain, URL, and hash enrichment | [Project](https://ahlyxlabs.com/lab/security-enrichment) · [Tool](https://ahlyxlabs.com/enrichment) · [Source](https://github.com/Ahlyx/Ahlyx-Labs/tree/master/internal/enrichment) |
+| Baptisia | Experimental compiler for ICS/OT control programs | [Project](https://ahlyxlabs.com/lab/baptisia) · [Source](https://github.com/Ahlyx/Baptisia) |
+| PCAP Agent | Local packet capture and browser-based analysis | [Project](https://ahlyxlabs.com/lab/pcap-agent) · [Dashboard](https://ahlyxlabs.com/pcap) · [Source](https://github.com/Ahlyx/pcap-agent) |
+| Network Scanner | Local scanner for authorized lab networks | [Project](https://ahlyxlabs.com/lab/network-scanner) · [Source](https://github.com/Ahlyx/Network-Scanner) |
+| Hardware Dashboard | Displays aggregate telemetry from the hosted backend | [Project](https://ahlyxlabs.com/lab/hardware-dashboard) · [Dashboard](https://ahlyxlabs.com/hardware) |
 
-### Security Enrichment
+The PCAP dashboard requires the local agent. The Network Scanner is intended
+for authorized local or isolated lab networks; hosted scanning is disabled in
+normal production.
 
-Enriches IP addresses, domains, URLs, and file hashes using relevant public and
-commercial security sources. URL enrichment accepts sensitive input only as a
-JSON request body; do not submit passwords, API keys, private invitation/reset
-links, or other secrets to any public threat-intelligence lookup.
+## API overview
 
-| Endpoint | Description |
+The API base URL is [`https://api.ahlyxlabs.com`](https://api.ahlyxlabs.com).
+The enrichment service exposes:
+
+| Endpoint | Purpose |
 |---|---|
-| `GET /api/v1/ip/{address}` | IP reputation and contextual enrichment |
-| `GET /api/v1/domain/{name}` | DNS, WHOIS, TLS, OTX, and reputation enrichment |
-| `POST /api/v1/url` | URL enrichment with `{"url":"https://example.com","submit_urlscan":false}` |
-| `GET /api/v1/hash/{hash}` | Hash reputation and malware metadata |
+| `GET /api/v1/ip/{address}` | IP enrichment |
+| `GET /api/v1/domain/{name}` | Domain enrichment |
+| `POST /api/v1/url` | URL enrichment using a JSON request body |
+| `GET /api/v1/hash/{hash}` | File hash enrichment |
+| `GET /api/v1/capabilities` | Reports available API capabilities |
 
-The legacy `GET /api/v1/url?...` route intentionally returns `410 Gone` rather
-than process a full URL in a request query string.
+See the [Security Enrichment project page](https://ahlyxlabs.com/lab/security-enrichment#api)
+for request details. Results depend on available sources and configuration; no
+result should be treated as proof that an indicator is safe. Do not submit
+passwords, API keys, private links, or other secrets to public lookup services.
+URLScan submission requires operator enablement and explicit visitor opt-in.
 
-Sources are selected by indicator type and include AbuseIPDB, VirusTotal,
-IPinfo, AlienVault OTX, Google Safe Browsing, MalwareBazaar, CIRCL HashLookup,
-DNS, WHOIS, TLS, and URLScan. URLScan active submission is optional and
-requires both an operator setting and visitor opt-in.
-
-### Network Scanner
-
-The [Network Scanner](https://github.com/Ahlyx/Network-Scanner) preserves its
-OT/ICS port reference and is available for local or explicitly isolated
-owner-controlled lab use. Hosted scanning is disabled in normal production:
-`/api/v1/scanner/scan` is **not** a normal public production endpoint.
-Controlled mode requires an explicit enablement flag and fixed private CIDR
-allowlist.
-
-### Hardware Dashboard
-
-Shows aggregate telemetry from the Ahlyx Labs cloud backend: runtime platform,
-uptime, CPU utilization/core count, memory utilization, disk capacity/I-O, and
-aggregate network traffic. It does not display a visitor's machine or expose
-hostnames, interface inventories, addresses, mount paths, or filesystem layout.
-
-### PCAP Agent
-
-[`pcap-agent`](https://github.com/Ahlyx/pcap-agent) analyzes traffic locally.
-In local mode, the browser connects directly to `ws://localhost:7777/ws`; packet
-analysis metadata does not transit Ahlyx Labs. Optional relay mode uses a
-short-lived session with separate agent and viewer credentials: the agent uses
-an authorization header and the viewer uses a WebSocket subprotocol. Raw packet
-payloads are not relayed.
-
-## Safe defaults
+## Repository map
 
 ```text
-SERVER_SCANNER_ENABLED=false
-URLSCAN_ACTIVE_SUBMISSION=false
-URLSCAN_VISIBILITY=unlisted
+cmd/server/          Go API entry point
+internal/
+  enrichment/        Enrichment handlers, models, providers, and validation
+  hardware/          Host telemetry handlers and models
+  pcap/              PCAP relay sessions and handlers
+  scanner/           Scanner implementation and guarded handler
+  shared/            Configuration, cache, database, middleware, and limits
+frontend/
+  assets/             Shared styles, scripts, and brand assets
+  landing/            Homepage and privacy page
+  lab/                Project directory and project pages
+  research/           Research index and disclosure reports
+  notes/              Notes, articles, and RSS feed
+  enrichment/         Enrichment interface
+  pcap/                PCAP dashboard
+  hardware/            Hardware dashboard
+  services/            Services page
+  security/            Security and trust page
+  vercel.json          Site routes, redirects, and response headers
+tests/                 Go and browser-side checks
+.github/workflows/     CI workflow for Go and frontend checks
+Dockerfile             Container build for the Go backend
+.env.example           Backend configuration variable names
+go.mod, go.sum         Go module and dependency checksums
+.gitignore             Local environment and build-output exclusions
 ```
 
-Missing enablement flags are false. Never enable the scanner on the normal
-public backend. URLScan has no active submission unless the operator enables it
-and the visitor explicitly asks for it.
-
-## Local development
-
-```bash
-git clone https://github.com/Ahlyx/Ahlyx-Labs.git
-cd Ahlyx-Labs
-cp .env.example .env
-go test ./...
-go run ./cmd/server
-```
-
-For a static frontend preview:
-
-```bash
-python -m http.server 4173 --directory frontend
-```
-
-Open `http://localhost:4173/`. Local development does not require the
-Cloudflare origin secret. Production configuration and verification steps are
-documented in [`MANUAL_SECURITY_ACTIONS.md`](MANUAL_SECURITY_ACTIONS.md).
-
-## Verification
-
-```bash
-go test ./...
-go vet ./...
-node tests/pcap/app.protocol.test.js
-node tests/enrichment/privacy.test.js
-node --test tests/site/static-site.test.js
-```
-
-## License
-
-MIT
+For questions or project inquiries, email [alex@ahlyxlabs.com](mailto:alex@ahlyxlabs.com).
