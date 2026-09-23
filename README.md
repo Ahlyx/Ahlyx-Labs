@@ -93,8 +93,6 @@ tests/                 Go and browser-side checks
 .github/workflows/     CI workflow for Go and frontend checks
 Dockerfile             Container build for the Go backend
 .env.example           Backend configuration variable names
-ENGINEERING-GUARDRAILS.md
-                       Repository-specific engineering guidance
 go.mod, go.sum         Go module and dependency checksums
 .gitignore             Local environment and build-output exclusions
 ```
